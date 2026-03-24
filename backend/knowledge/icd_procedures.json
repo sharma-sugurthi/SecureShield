@@ -1,0 +1,507 @@
+{
+    "metadata": {
+        "source": "ICD-10-PCS / NHA PMJAY / Indian hospital billing data",
+        "description": "Common Indian hospital procedures with ICD codes, typical cost ranges by city tier, and insurance classification",
+        "last_updated": "2025-09-01"
+    },
+    "procedures": [
+        {
+            "name": "Appendectomy (Laparoscopic)",
+            "icd_code": "0DTJ4ZZ",
+            "category": "general_surgery",
+            "is_daycare": false,
+            "typical_stay_days": [
+                2,
+                4
+            ],
+            "cost_range_tier1": [
+                60000,
+                180000
+            ],
+            "cost_range_tier2": [
+                40000,
+                120000
+            ],
+            "cost_range_tier3": [
+                25000,
+                80000
+            ],
+            "common_room_type": "semi_private",
+            "waiting_period_applicable": false
+        },
+        {
+            "name": "Appendectomy (Open)",
+            "icd_code": "0DTJ0ZZ",
+            "category": "general_surgery",
+            "is_daycare": false,
+            "typical_stay_days": [
+                3,
+                7
+            ],
+            "cost_range_tier1": [
+                40000,
+                120000
+            ],
+            "cost_range_tier2": [
+                25000,
+                80000
+            ],
+            "cost_range_tier3": [
+                15000,
+                50000
+            ],
+            "common_room_type": "general",
+            "waiting_period_applicable": false
+        },
+        {
+            "name": "Cholecystectomy (Laparoscopic)",
+            "icd_code": "0FT44ZZ",
+            "category": "general_surgery",
+            "is_daycare": false,
+            "typical_stay_days": [
+                2,
+                4
+            ],
+            "cost_range_tier1": [
+                70000,
+                200000
+            ],
+            "cost_range_tier2": [
+                45000,
+                140000
+            ],
+            "cost_range_tier3": [
+                30000,
+                90000
+            ],
+            "common_room_type": "semi_private",
+            "waiting_period_applicable": false
+        },
+        {
+            "name": "Total Knee Replacement (Unilateral)",
+            "icd_code": "0SRD0JZ",
+            "category": "orthopedic",
+            "is_daycare": false,
+            "typical_stay_days": [
+                5,
+                10
+            ],
+            "cost_range_tier1": [
+                250000,
+                500000
+            ],
+            "cost_range_tier2": [
+                180000,
+                350000
+            ],
+            "cost_range_tier3": [
+                120000,
+                250000
+            ],
+            "common_room_type": "private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24
+        },
+        {
+            "name": "Total Knee Replacement (Bilateral)",
+            "icd_code": "0SRD0JZ",
+            "category": "orthopedic",
+            "is_daycare": false,
+            "typical_stay_days": [
+                7,
+                14
+            ],
+            "cost_range_tier1": [
+                400000,
+                900000
+            ],
+            "cost_range_tier2": [
+                300000,
+                650000
+            ],
+            "cost_range_tier3": [
+                200000,
+                450000
+            ],
+            "common_room_type": "private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24
+        },
+        {
+            "name": "Coronary Artery Bypass Graft (CABG)",
+            "icd_code": "0210093",
+            "category": "cardiac",
+            "is_daycare": false,
+            "typical_stay_days": [
+                7,
+                14
+            ],
+            "cost_range_tier1": [
+                300000,
+                800000
+            ],
+            "cost_range_tier2": [
+                200000,
+                500000
+            ],
+            "cost_range_tier3": [
+                150000,
+                350000
+            ],
+            "common_room_type": "icu",
+            "waiting_period_applicable": false,
+            "notes": "Often emergency. Pre-existing heart disease may trigger PED waiting period."
+        },
+        {
+            "name": "Angioplasty (PTCA) with Stent",
+            "icd_code": "02703DZ",
+            "category": "cardiac",
+            "is_daycare": false,
+            "typical_stay_days": [
+                2,
+                5
+            ],
+            "cost_range_tier1": [
+                200000,
+                600000
+            ],
+            "cost_range_tier2": [
+                150000,
+                400000
+            ],
+            "cost_range_tier3": [
+                100000,
+                300000
+            ],
+            "common_room_type": "icu",
+            "waiting_period_applicable": false,
+            "notes": "Drug-eluting stents are costlier. Some policies have stent sub-limits."
+        },
+        {
+            "name": "Cataract Surgery (Phacoemulsification with IOL)",
+            "icd_code": "08RJ3JZ",
+            "category": "ophthalmology",
+            "is_daycare": true,
+            "typical_stay_days": [
+                0,
+                1
+            ],
+            "cost_range_tier1": [
+                30000,
+                80000
+            ],
+            "cost_range_tier2": [
+                20000,
+                60000
+            ],
+            "cost_range_tier3": [
+                15000,
+                40000
+            ],
+            "common_room_type": "daycare",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24,
+            "notes": "Most policies have per-eye sub-limits (₹40K-₹80K per eye)"
+        },
+        {
+            "name": "Caesarean Section (C-Section)",
+            "icd_code": "10D00Z1",
+            "category": "maternity",
+            "is_daycare": false,
+            "typical_stay_days": [
+                4,
+                7
+            ],
+            "cost_range_tier1": [
+                80000,
+                250000
+            ],
+            "cost_range_tier2": [
+                50000,
+                150000
+            ],
+            "cost_range_tier3": [
+                30000,
+                100000
+            ],
+            "common_room_type": "private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24,
+            "notes": "Maternity waiting period typically 24-36 months. Newborn coverage from day 1 in some policies."
+        },
+        {
+            "name": "Normal Delivery",
+            "icd_code": "10E0XZZ",
+            "category": "maternity",
+            "is_daycare": false,
+            "typical_stay_days": [
+                2,
+                4
+            ],
+            "cost_range_tier1": [
+                40000,
+                120000
+            ],
+            "cost_range_tier2": [
+                25000,
+                80000
+            ],
+            "cost_range_tier3": [
+                15000,
+                50000
+            ],
+            "common_room_type": "semi_private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24
+        },
+        {
+            "name": "Hernia Repair (Laparoscopic)",
+            "icd_code": "0YU60JZ",
+            "category": "general_surgery",
+            "is_daycare": false,
+            "typical_stay_days": [
+                1,
+                3
+            ],
+            "cost_range_tier1": [
+                50000,
+                150000
+            ],
+            "cost_range_tier2": [
+                35000,
+                100000
+            ],
+            "cost_range_tier3": [
+                20000,
+                70000
+            ],
+            "common_room_type": "semi_private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24
+        },
+        {
+            "name": "Dialysis (Hemodialysis per session)",
+            "icd_code": "5A1D70Z",
+            "category": "nephrology",
+            "is_daycare": true,
+            "typical_stay_days": [
+                0,
+                0
+            ],
+            "cost_range_tier1": [
+                2000,
+                5000
+            ],
+            "cost_range_tier2": [
+                1500,
+                3500
+            ],
+            "cost_range_tier3": [
+                1000,
+                2500
+            ],
+            "common_room_type": "daycare",
+            "waiting_period_applicable": false,
+            "notes": "Pre-existing kidney disease may trigger PED waiting period."
+        },
+        {
+            "name": "Chemotherapy (per cycle)",
+            "icd_code": "3E04305",
+            "category": "oncology",
+            "is_daycare": true,
+            "typical_stay_days": [
+                0,
+                2
+            ],
+            "cost_range_tier1": [
+                20000,
+                100000
+            ],
+            "cost_range_tier2": [
+                15000,
+                70000
+            ],
+            "cost_range_tier3": [
+                10000,
+                50000
+            ],
+            "common_room_type": "daycare",
+            "waiting_period_applicable": false,
+            "notes": "Immunotherapy can be significantly more expensive."
+        },
+        {
+            "name": "Hip Replacement",
+            "icd_code": "0SR9019",
+            "category": "orthopedic",
+            "is_daycare": false,
+            "typical_stay_days": [
+                5,
+                10
+            ],
+            "cost_range_tier1": [
+                250000,
+                600000
+            ],
+            "cost_range_tier2": [
+                180000,
+                400000
+            ],
+            "cost_range_tier3": [
+                120000,
+                300000
+            ],
+            "common_room_type": "private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24
+        },
+        {
+            "name": "Tonsillectomy",
+            "icd_code": "0CTP0ZZ",
+            "category": "ent",
+            "is_daycare": true,
+            "typical_stay_days": [
+                0,
+                2
+            ],
+            "cost_range_tier1": [
+                25000,
+                70000
+            ],
+            "cost_range_tier2": [
+                15000,
+                50000
+            ],
+            "cost_range_tier3": [
+                10000,
+                35000
+            ],
+            "common_room_type": "daycare",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24
+        },
+        {
+            "name": "Hysterectomy (Laparoscopic)",
+            "icd_code": "0UT94ZZ",
+            "category": "gynecology",
+            "is_daycare": false,
+            "typical_stay_days": [
+                3,
+                6
+            ],
+            "cost_range_tier1": [
+                100000,
+                300000
+            ],
+            "cost_range_tier2": [
+                70000,
+                200000
+            ],
+            "cost_range_tier3": [
+                50000,
+                150000
+            ],
+            "common_room_type": "private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24
+        },
+        {
+            "name": "Kidney Stone Removal (PCNL/Lithotripsy)",
+            "icd_code": "0TT60ZZ",
+            "category": "urology",
+            "is_daycare": false,
+            "typical_stay_days": [
+                2,
+                5
+            ],
+            "cost_range_tier1": [
+                60000,
+                200000
+            ],
+            "cost_range_tier2": [
+                40000,
+                140000
+            ],
+            "cost_range_tier3": [
+                25000,
+                90000
+            ],
+            "common_room_type": "semi_private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24
+        },
+        {
+            "name": "Gallbladder Stone Removal",
+            "icd_code": "0FT44ZZ",
+            "category": "general_surgery",
+            "is_daycare": false,
+            "typical_stay_days": [
+                2,
+                4
+            ],
+            "cost_range_tier1": [
+                60000,
+                180000
+            ],
+            "cost_range_tier2": [
+                40000,
+                120000
+            ],
+            "cost_range_tier3": [
+                25000,
+                80000
+            ],
+            "common_room_type": "semi_private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24
+        },
+        {
+            "name": "Spinal Fusion Surgery",
+            "icd_code": "0SG10AJ",
+            "category": "orthopedic",
+            "is_daycare": false,
+            "typical_stay_days": [
+                5,
+                10
+            ],
+            "cost_range_tier1": [
+                300000,
+                800000
+            ],
+            "cost_range_tier2": [
+                200000,
+                500000
+            ],
+            "cost_range_tier3": [
+                150000,
+                350000
+            ],
+            "common_room_type": "private",
+            "waiting_period_applicable": false
+        },
+        {
+            "name": "Dengue/Malaria Treatment",
+            "icd_code": "A90",
+            "category": "infectious_disease",
+            "is_daycare": false,
+            "typical_stay_days": [
+                3,
+                7
+            ],
+            "cost_range_tier1": [
+                30000,
+                100000
+            ],
+            "cost_range_tier2": [
+                20000,
+                70000
+            ],
+            "cost_range_tier3": [
+                10000,
+                40000
+            ],
+            "common_room_type": "general",
+            "waiting_period_applicable": false,
+            "notes": "Covered after initial 30-day waiting period."
+        }
+    ]
+}
