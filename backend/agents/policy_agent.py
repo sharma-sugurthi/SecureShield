@@ -99,6 +99,19 @@ def _validate_and_clean_rules(raw_rules: list[dict]) -> list[PolicyRule]:
                 continue
             seen_conditions.add(cond_key)
 
+            # Clean limit_value: extract number from strings like "24 months", "₹5,000", "30 days"
+            lv = raw.get("limit_value")
+            if isinstance(lv, str) and lv.strip():
+                import re
+                nums = re.findall(r'[\d,.]+', lv.replace(',', ''))
+                if nums:
+                    try:
+                        raw["limit_value"] = float(nums[0])
+                    except (ValueError, IndexError):
+                        raw["limit_value"] = None
+                else:
+                    raw["limit_value"] = None
+
             rule = PolicyRule(**raw)
             validated.append(rule)
         except Exception as e:

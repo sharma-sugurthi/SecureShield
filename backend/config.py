@@ -8,24 +8,30 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- OpenRouter API ---
+# --- Google AI Studio (Primary — fast, free, high limits) ---
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+
+# --- OpenRouter API (Fallback) ---
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # --- Model Routing ---
-# Each agent uses the best free model for its specific task.
-MODELS = {
-    # Deep document analysis — 1M context window for full policy PDFs
-    "policy_ingestion": "google/gemini-2.0-flash-exp:free",
-    
-    # Structured extraction — best reasoning for JSON extraction
-    "case_analysis": "meta-llama/llama-4-maverick:free",
-    
-    # Patient-friendly explanations — natural conversational tone
-    "explanation": "mistralai/mistral-small-3.1-24b-instruct:free",
-    
-    # Fallback / general-purpose
-    "fallback": "deepseek/deepseek-chat-v3-0324:free",
+# Primary: Google AI Studio Gemini models (fast, reliable)
+# Fallback: OpenRouter free models
+GOOGLE_MODELS = {
+    "policy_ingestion": "gemini-2.0-flash",
+    "case_analysis": "gemini-2.0-flash",
+    "explanation": "gemini-2.0-flash",
+}
+
+OPENROUTER_MODELS = {
+    "fallback_chain": [
+        "qwen/qwen3-coder:free",
+        "google/gemma-3-27b-it:free",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "mistralai/mistral-small-3.1-24b-instruct:free",
+    ]
 }
 
 # --- Database ---

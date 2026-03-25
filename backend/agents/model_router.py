@@ -1,34 +1,123 @@
 """
-Model Router — Unified OpenRouter client with automatic model selection.
-Each agent role maps to the best free model for its task.
-Falls back to DeepSeek V3 if the primary model fails.
+Model Router — Unified LLM client with Google AI Studio as primary provider.
+Falls back to OpenRouter free models if Google is unavailable.
+Uses Google's OpenAI-compatible API endpoint for minimal code changes.
 """
 
+import asyncio
 import httpx
 import json
 import logging
-from config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL, MODELS
+import re
+from config import (
+    GOOGLE_API_KEY, GOOGLE_BASE_URL, GOOGLE_MODELS,
+    OPENROUTER_API_KEY, OPENROUTER_BASE_URL, OPENROUTER_MODELS,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class ModelRouter:
-    """Routes LLM calls to the best free model per agent role via OpenRouter."""
+    """Routes LLM calls to Google AI Studio (primary) or OpenRouter (fallback)."""
 
     def __init__(self):
-        self.api_key = OPENROUTER_API_KEY
-        self.base_url = OPENROUTER_BASE_URL
-        self.models = MODELS
-        self.headers = {
-            "Authorization": f"Bearer {self.api_key}",
+        self.google_key = GOOGLE_API_KEY
+        self.google_url = f"{GOOGLE_BASE_URL}/chat/completions"
+        self.google_models = GOOGLE_MODELS
+        
+        self.openrouter_key = OPENROUTER_API_KEY
+        self.openrouter_url = OPENROUTER_BASE_URL
+        self.openrouter_fallbacks = OPENROUTER_MODELS.get("fallback_chain", [])
+
+    def _get_google_model(self, role: str) -> str:
+        return self.google_models.get(role, "gemini-2.0-flash")
+
+    async def _call_google(self, payload: dict) -> str | None:
+        """Try multiple Gemini models (each has separate daily quota)."""
+        google_models = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash-lite"]
+        headers = {
+            "Authorization": f"Bearer {self.google_key}",
+            "Content-Type": "application/json",
+        }
+        for model in google_models:
+            payload_copy = {**payload, "model": model}
+            try:
+                timeout = httpx.Timeout(connect=15.0, read=120.0, write=15.0, pool=15.0)
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    logger.info(f"[ModelRouter] Google AI Studio → {model}")
+                    response = await client.post(
+                        self.google_url,
+                        headers=headers,
+                        json=payload_copy,
+                    )
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        content = data["choices"][0]["message"]["content"]
+                        logger.info(f"[ModelRouter] Google ✓ {model} ({len(content)} chars)")
+                        return content
+                    elif response.status_code == 429:
+                        logger.warning(f"[ModelRouter] Google {model} rate-limited, trying next...")
+                        continue
+                    else:
+                        logger.warning(f"[ModelRouter] Google {model} returned {response.status_code}: {response.text[:200]}")
+                        continue
+                        
+            except httpx.TimeoutException:
+                logger.warning(f"[ModelRouter] Google {model} timed out")
+                continue
+            except Exception as e:
+                logger.warning(f"[ModelRouter] Google {model} error: {e}")
+                continue
+        
+        return None
+
+    async def _call_openrouter(self, payload: dict) -> str | None:
+        """Try OpenRouter free models as fallback."""
+        headers = {
+            "Authorization": f"Bearer {self.openrouter_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://secureshield.app",
             "X-Title": "SecureShield",
         }
-
-    def _get_model(self, role: str) -> str:
-        """Get the model ID for a given agent role."""
-        return self.models.get(role, self.models["fallback"])
+        
+        for i, model in enumerate(self.openrouter_fallbacks):
+            payload["model"] = model
+            
+            for retry in range(2):
+                try:
+                    timeout = httpx.Timeout(connect=30.0, read=300.0, write=30.0, pool=30.0)
+                    async with httpx.AsyncClient(timeout=timeout) as client:
+                        logger.info(f"[ModelRouter] OpenRouter → {model} (attempt {retry+1})")
+                        response = await client.post(
+                            self.openrouter_url,
+                            headers=headers,
+                            json=payload,
+                        )
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            content = data["choices"][0]["message"]["content"]
+                            logger.info(f"[ModelRouter] OpenRouter ✓ {model} ({len(content)} chars)")
+                            return content
+                        elif response.status_code == 429:
+                            logger.warning(f"[ModelRouter] {model} rate-limited (429)")
+                            if retry == 0:
+                                await asyncio.sleep(5 * (i + 1))
+                                continue
+                            break
+                        else:
+                            logger.warning(f"[ModelRouter] {model} returned {response.status_code}")
+                            break
+                            
+                except httpx.TimeoutException:
+                    logger.warning(f"[ModelRouter] {model} timed out")
+                    break
+                except Exception as e:
+                    logger.warning(f"[ModelRouter] {model} error: {e}")
+                    break
+        
+        return None
 
     async def call(
         self,
@@ -40,23 +129,9 @@ class ModelRouter:
         response_format: str | None = None,
     ) -> str:
         """
-        Make an LLM call routed to the right model for the given role.
-        
-        Args:
-            role: Agent role key from config (policy_ingestion, case_analysis, explanation)
-            system_prompt: System message for the LLM
-            user_prompt: User message / input data
-            temperature: Sampling temperature (low = deterministic)
-            max_tokens: Maximum response tokens
-            response_format: If "json_object", request JSON mode
-            
-        Returns:
-            The LLM response text content.
+        Make an LLM call. Tries Google AI Studio first, falls back to OpenRouter.
         """
-        model = self._get_model(role)
-        
         payload = {
-            "model": model,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
@@ -68,42 +143,27 @@ class ModelRouter:
         if response_format == "json_object":
             payload["response_format"] = {"type": "json_object"}
 
-        # Try primary model, fall back to deepseek if it fails
-        for attempt_model in [model, self.models["fallback"]]:
-            payload["model"] = attempt_model
-            try:
-                async with httpx.AsyncClient(timeout=120.0) as client:
-                    response = await client.post(
-                        self.base_url,
-                        headers=self.headers,
-                        json=payload,
-                    )
+        # Retry up to 3 times with 60s backoff if ALL providers fail (rate limits reset per minute)
+        for global_attempt in range(3):
+            if global_attempt > 0:
+                wait = 60 * global_attempt
+                logger.info(f"[ModelRouter] All providers failed. Waiting {wait}s for rate limits to reset (attempt {global_attempt+1}/3)...")
+                await asyncio.sleep(wait)
 
-                if response.status_code == 200:
-                    data = response.json()
-                    content = data["choices"][0]["message"]["content"]
-                    logger.info(f"[ModelRouter] {role} → {attempt_model} ✓")
-                    return content
-                else:
-                    error_detail = response.text
-                    logger.warning(
-                        f"[ModelRouter] {attempt_model} returned {response.status_code}: {error_detail}"
-                    )
-                    if attempt_model == model and model != self.models["fallback"]:
-                        logger.info(f"[ModelRouter] Falling back to {self.models['fallback']}")
-                        continue
-                    raise Exception(
-                        f"LLM call failed: {response.status_code} — {error_detail}"
-                    )
+            # 1. Try Google AI Studio (fast, reliable, multiple models)
+            if self.google_key:
+                result = await self._call_google(payload.copy())
+                if result:
+                    return result
+                logger.info("[ModelRouter] Google failed, trying OpenRouter fallback...")
 
-            except httpx.TimeoutException:
-                logger.warning(f"[ModelRouter] {attempt_model} timed out")
-                if attempt_model == model and model != self.models["fallback"]:
-                    logger.info(f"[ModelRouter] Falling back to {self.models['fallback']}")
-                    continue
-                raise Exception("LLM call timed out on all models")
+            # 2. Fallback to OpenRouter free models
+            if self.openrouter_key:
+                result = await self._call_openrouter(payload.copy())
+                if result:
+                    return result
 
-        raise Exception("All model attempts failed")
+        raise Exception("All LLM providers failed after 3 attempts. Rate limits may need more time to reset.")
 
     async def call_json(
         self,
@@ -113,10 +173,7 @@ class ModelRouter:
         temperature: float = 0.1,
         max_tokens: int = 4096,
     ) -> dict:
-        """
-        Make an LLM call and parse the response as JSON.
-        Handles cases where the model wraps JSON in markdown code blocks.
-        """
+        """Make an LLM call and parse the response as JSON."""
         raw = await self.call(
             role=role,
             system_prompt=system_prompt,
@@ -126,8 +183,14 @@ class ModelRouter:
             response_format="json_object",
         )
 
-        # Strip markdown code fences if present
+        # Clean up response
         cleaned = raw.strip()
+        
+        # Remove thinking tags (some models like qwen3 use these)
+        if "<think>" in cleaned:
+            cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL).strip()
+        
+        # Strip markdown code fences
         if cleaned.startswith("```json"):
             cleaned = cleaned[7:]
         if cleaned.startswith("```"):

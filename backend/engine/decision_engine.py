@@ -27,6 +27,7 @@ def _apply_room_rent_rule(rule: PolicyRule, facts: CaseFacts, sum_insured: float
         eligible_per_day = min(facts.room_cost_per_day, max_per_day)
         eligible_total = eligible_per_day * facts.stay_duration_days
     else:
+        max_per_day = facts.room_cost_per_day  # No cap — full amount eligible
         eligible_total = room_total
 
     shortfall = max(0, room_total - eligible_total)
