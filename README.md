@@ -11,7 +11,7 @@
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.2-1C3C3C.svg)](https://langchain-ai.github.io/langgraph/)
 
 > **GenAI-powered health insurance claim eligibility checker for Indian patients.**  
-> Uses a **neuro-symbolic architecture** with **12 custom tools**, **3 ReAct agents**, and a **deterministic decision engine** for zero-hallucination verdicts.
+> Uses a **neuro-symbolic architecture** with **16 custom tools**, **4 specialized agents**, and a **deterministic decision engine** for zero-hallucination verdicts.
 
 ---
 
@@ -284,11 +284,11 @@ npm run dev
 
 | Criteria | SecureShield Implementation |
 |:---------|:----------------------------|
-| **Innovation** | Neuro-symbolic ReAct pattern + LangGraph state machine |
-| **Technical Depth** | Multi-model failover, regex-based string cleaning, async SQLite |
+| **Innovation** | Neuro-symbolic ReAct pattern + LangGraph + **Grievance Resolution Agent** |
+| **Technical Depth** | Multi-model failover, 16 custom tools, IRDAI precedent search, PDF generation |
 | **Feasibility** | Deterministic engine ensures zero mis-calculation risk in production |
 | **Scalability** | Multi-provider LLM chain (Google + OpenRouter) bypasses rate limits |
-| **Compliance** | Explicit IRDAI 2024 guardrails and 8-year moratorium logic |
+| **Compliance** | Explicit IRDAI 2024 guardrails, 8-year moratorium logic, and Grievance automation |
 
 ---
 
