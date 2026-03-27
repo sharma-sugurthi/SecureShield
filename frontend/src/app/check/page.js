@@ -269,6 +269,33 @@ export default function CheckPage() {
                                 </div>
 
                                 <p style={{ fontSize: 14, color: 'var(--gray-500)' }}>{verdict.summary}</p>
+
+                                <div style={{ marginTop: 16, display: 'flex', gap: 16, alignItems: 'center' }}>
+                                    <div className="confidence-pill" style={{
+                                        padding: '4px 12px',
+                                        borderRadius: 20,
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        background: verdict.confidence_score >= 0.8 ? 'rgba(46, 204, 113, 0.1)' : 'rgba(243, 156, 18, 0.1)',
+                                        color: verdict.confidence_score >= 0.8 ? '#2ecc71' : '#f39c12',
+                                        border: `1px solid ${verdict.confidence_score >= 0.8 ? 'rgba(46, 204, 113, 0.2)' : 'rgba(243, 156, 18, 0.2)'}`
+                                    }}>
+                                        🛡️ Confidence: {(verdict.confidence_score * 100).toFixed(0)}%
+                                    </div>
+                                    {verdict.requires_manual_review && (
+                                        <div className="warning-pill" style={{
+                                            padding: '4px 12px',
+                                            borderRadius: 20,
+                                            fontSize: 12,
+                                            fontWeight: 700,
+                                            background: 'rgba(231, 76, 60, 0.15)',
+                                            color: '#e74c3c',
+                                            animation: 'pulse 2s infinite'
+                                        }}>
+                                            ⚠️ MANUAL REVIEW RECOMMENDED
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

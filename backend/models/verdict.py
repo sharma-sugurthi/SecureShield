@@ -44,6 +44,8 @@ class Verdict(BaseModel):
         description="Detailed breakdown of each rule application"
     )
     summary: str = Field("", description="Brief one-line summary of the verdict")
+    confidence_score: float = Field(1.0, description="Reliability score of the decision (0.0 - 1.0)")
+    requires_manual_review: bool = Field(False, description="Flag if claim safety threshold is not met")
 
 
 class EligibilityResponse(BaseModel):

@@ -187,6 +187,11 @@ export default function DisputePage() {
                                                 (Fully approved)
                                             </div>
                                         )}
+                                        {verdict.requires_manual_review && (
+                                            <div style={{ fontSize: 10, color: '#e74c3c', fontWeight: 700, marginTop: 4 }}>
+                                                ⚠️ REVIEW REQD
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             );

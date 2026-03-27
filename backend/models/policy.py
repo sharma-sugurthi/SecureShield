@@ -43,6 +43,10 @@ class PolicyRule(BaseModel):
         ...,
         description="Reference to the specific clause in the policy document"
     )
+    source_provenance: Optional[str] = Field(
+        None,
+        description="Exact text snippet or page number from source PDF"
+    )
     applies_to: Optional[str] = Field(
         None,
         description="What this rule applies to: 'all', specific procedure types, room types, etc."

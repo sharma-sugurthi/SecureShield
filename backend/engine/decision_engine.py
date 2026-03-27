@@ -122,10 +122,12 @@ def _apply_sublimit_rule(rule: PolicyRule, facts: CaseFacts, sum_insured: float)
 def _apply_exclusion_rule(rule: PolicyRule, facts: CaseFacts) -> RuleMatch:
     """Check if the case falls under an exclusion."""
     # --- IRDAI 2024 Compliance: Moratorium Period ---
-    # After 8 continuous years of coverage, PED exclusions generally cannot be invoked.
-    if facts.policy_tenure_years >= 8:
+    # After 5 continuous years (60 months) of coverage, PED exclusions generally cannot be invoked (IRDAI 2024).
+    if facts.policy_tenure_years >= 5:
         condition_lower = (rule.condition or "").lower()
         if "pre-existing" in condition_lower or "ped" in condition_lower or "waiting period" in condition_lower:
+            audit_trail_logger("decision_engine", "moratorium_waive", 
+                               {"tenure": facts.policy_tenure_years, "clause": rule.clause_reference})
             return RuleMatch(
                 rule_category="exclusion",
                 rule_condition=rule.condition,
@@ -134,7 +136,7 @@ def _apply_exclusion_rule(rule: PolicyRule, facts: CaseFacts) -> RuleMatch:
                 eligible_amount=facts.total_claimed_amount,
                 shortfall=0,
                 clause_reference=rule.clause_reference,
-                reason="Moratorium Period (8+ years) applies: PERMANENT exclusion for PED is waived by IRDAI mandate."
+                reason="IRDAI 2024 Moratorium Period (5+ years) applies: Waiver of PED/Exclusions due to long-term tenure."
             )
 
     excluded = False
@@ -365,6 +367,22 @@ def evaluate(rules: list[dict], facts: CaseFacts, sum_insured: float) -> Verdict
         overall = VerdictStatus.DENIED
         summary = f"Claim DENIED — ₹{facts.total_claimed_amount:,.0f} not eligible"
 
+    # Reliability Scoring (Claim Guardian Heuristic)
+    confidence = 1.0
+    if not is_reviewed:
+        confidence -= 0.2  # Unreviewed policy extraction is risky
+    
+    # Analyze rule complexity for additional risk
+    for rule in matched_rules:
+        if rule.status == RuleMatchStatus.CAPPED:
+            if rule.rule_category == "room_rent":
+                confidence -= 0.1  # Proportional deduction complex bills
+            else:
+                confidence -= 0.05 # Other caps
+
+    confidence = max(0.4, min(1.0, confidence))
+    requires_review = confidence < 0.75
+
     verdict = Verdict(
         overall_verdict=overall,
         total_claimed=facts.total_claimed_amount,
@@ -373,7 +391,14 @@ def evaluate(rules: list[dict], facts: CaseFacts, sum_insured: float) -> Verdict
         coverage_percentage=round(coverage_pct, 1),
         matched_rules=matched_rules,
         summary=summary,
+        confidence_score=round(confidence, 2),
+        requires_manual_review=requires_review
     )
 
-    logger.info(f"[DecisionEngine] Verdict: {overall.value} — {coverage_pct:.0f}% coverage")
+    if requires_review:
+        logger.warning(f"[DecisionEngine] Low confidence verdict ({confidence:.2f}) — Flagging for manual review")
+        audit_trail_logger("decision_engine", "safety_gate_trigger", 
+                           {"confidence": confidence, "reason": "Low confidence threshold reached"})
+
+    logger.info(f"[DecisionEngine] Verdict: {overall.value} — {coverage_pct:.0f}% coverage (Confidence: {confidence:.2f})")
     return verdict

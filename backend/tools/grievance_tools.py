@@ -290,11 +290,11 @@ INSTRUCTIONS:
 2. Cite specific IRDAI regulations:
    - IRDAI (Protection of Policyholders' Interests) Regulations 2017
    - IRDAI Health Insurance Regulations 2024 Master Circular
-   - If PED-related: Moratorium Period (8 years, Clause 4.4)
+   - If PED-related: Moratorium Period (5 years / 60 months, Clause 4.4)
    - If waiting-period related: Clause 4.2 limits
 3. State that the policyholder reserves the right to escalate to the Insurance Ombudsman
 4. Request a written response within 15 days as per IRDAI guidelines
-5. Be firm but professional, not aggressive
+5. Use a structured, professional tone. Ensure all matching facts from the claim record are directly linked to the regulation.
 6. End with "Yours faithfully" and the patient's name
 
 Return ONLY a JSON object: {{"letter_text": "...", "regulations_cited": ["regulation 1", "regulation 2"]}}"""
@@ -360,7 +360,7 @@ The following rules were applied to reduce/deny my claim:
 
 I believe this decision may not fully comply with the IRDAI (Protection of Policyholders' Interests) Regulations 2017 and the IRDAI Health Insurance Master Circular 2024. Specifically:
 
-1. As per IRDAI Regulation Clause 4.4, after 8 continuous years of coverage (Moratorium Period), pre-existing disease exclusions shall not be invoked.
+1. As per IRDAI Regulation Clause 4.4 (Master Circular 2024), after 5 continuous years (60 months) of coverage (Moratorium Period), pre-existing disease exclusions shall not be invoked.
 
 2. As per the Master Circular, room rent proportional deductions must be transparently communicated at the time of policy issuance.
 
@@ -374,7 +374,7 @@ Yours faithfully,
         "word_count": len(letter.split()),
         "regulations_cited": [
             "IRDAI (Protection of Policyholders' Interests) Regulations 2017",
-            "IRDAI Health Insurance Master Circular 2024 — Clause 4.4",
+            "IRDAI Health Insurance Master Circular 2024 — Clause 4.4 (Moratorium Period: 60 months)",
             "IRDAI (Insurance Ombudsman) Rules 2017",
         ],
     }
@@ -475,8 +475,8 @@ def _get_curated_precedents(procedure: str, denial_reason: str) -> list[dict]:
             "relevance": "high" if "waiting" in reason_lower else "medium",
         },
         {
-            "title": "IRDAI Circular: Moratorium Period After 8 Years",
-            "summary": "After 8 continuous years of coverage, insurers cannot contest any claim on the "
+            "title": "IRDAI Circular: Moratorium Period After 5 Years (60 Months)",
+            "summary": "After 5 continuous years (60 months) of coverage, insurers cannot contest any claim on the "
                        "grounds of pre-existing disease or non-disclosure, except in cases of proven fraud.",
             "source": "IRDAI Master Circular 2024, Clause 4.4 — Moratorium Period",
             "relevance": "high" if "moratorium" in reason_lower or "pre-existing" in reason_lower else "medium",
