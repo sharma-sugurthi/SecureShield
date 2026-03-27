@@ -12,6 +12,7 @@ const NAV_ITEMS = [
     { label: 'Dashboard', icon: '📊', href: '/' },
     { label: 'Upload Policy', icon: '📄', href: '/upload' },
     { label: 'Check Eligibility', icon: '🔍', href: '/check' },
+    { label: 'Dispute Claim', icon: '⚖️', href: '/dispute' },
     { label: 'History', icon: '📋', href: '/history' },
     { label: 'Audit Trail', icon: '🛡️', href: '/audit' },
 ];
@@ -52,7 +53,7 @@ export default function Sidebar() {
                 <div className="sidebar-footer-text" style={{ marginTop: 16 }}>
                     SecureShield v2.0<br />
                     Agentic Insurance Engine<br />
-                    12 Custom Tools • ReAct Pipeline
+                    16 Custom Tools • ReAct Pipeline
                 </div>
             </div>
         </aside>

@@ -5,3 +5,4 @@ __pycache__/
 .pytest_cache/
 secureshield.db
 data/rules/*.json
+generated_reports/

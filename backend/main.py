@@ -4,10 +4,12 @@ REST API with security middleware, rate limiting, and input validation.
 """
 
 import json
+import os
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from config import APP_NAME, APP_VERSION
 from db.database import init_db, get_all_policies, get_policy, get_check_history
@@ -16,6 +18,7 @@ from agents.orchestrator import run_eligibility_check
 from models.policy import PolicyUploadResponse
 from models.case import EligibilityCheckRequest
 from models.verdict import EligibilityResponse
+from models.grievance import GrievanceRequest, GrievanceResponse
 from security import (
     get_or_create_master_key,
     require_api_key,
@@ -232,6 +235,89 @@ async def get_audit_trail(
         "count": len(trail),
         "description": "Every agent action, tool call, and decision is logged for compliance traceability.",
     }
+
+
+# --- Grievance Agent Endpoints ---
+
+@app.post("/api/dispute-claim", response_model=GrievanceResponse)
+async def dispute_claim(
+    request: GrievanceRequest,
+    _api_key: str = Depends(require_api_key),
+):
+    """
+    Trigger the Grievance Agent pipeline for a denied/partial claim.
+    
+    The Grievance Agent will:
+    1. Analyze the verdict for compliance violations
+    2. Search for IRDAI precedent rulings
+    3. Draft a formal grievance letter (LLM)
+    4. Generate a professional PDF report
+    5. "Send" the grievance email (mocked)
+    
+    Requires: X-API-Key header
+    """
+    from agents.grievance_agent import run_grievance_pipeline
+    
+    if request.overall_verdict == "APPROVED" and request.coverage_percentage >= 95:
+        raise HTTPException(
+            status_code=400,
+            detail="This claim was fully approved. Grievance is not applicable."
+        )
+    
+    try:
+        logger.info(f"[API] Grievance pipeline: policy #{request.policy_id}, "
+                    f"verdict={request.overall_verdict}, denied=₹{request.total_denied:,.0f}")
+        
+        result = await run_grievance_pipeline(
+            patient_name=request.patient_name,
+            patient_age=request.patient_age,
+            procedure=request.procedure,
+            hospital_name=request.hospital_name,
+            insurer=request.insurer,
+            policy_name=request.policy_name,
+            total_claimed=request.total_claimed,
+            total_eligible=request.total_eligible,
+            total_denied=request.total_denied,
+            coverage_percentage=request.coverage_percentage,
+            overall_verdict=request.overall_verdict,
+            matched_rules=request.matched_rules,
+            explanation=request.explanation,
+            suggestions=request.suggestions,
+        )
+        
+        return GrievanceResponse(**result)
+    
+    except Exception as e:
+        logger.error(f"[API] Grievance pipeline failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Grievance pipeline failed: {str(e)}",
+        )
+
+
+@app.get("/api/download-report/{filename}")
+async def download_report(
+    filename: str,
+    _api_key: str = Depends(require_api_key),
+):
+    """
+    Download a generated PDF claim report.
+    Requires: X-API-Key header
+    """
+    from tools.grievance_tools import REPORTS_DIR
+    
+    # Security: prevent path traversal
+    safe_filename = os.path.basename(filename)
+    filepath = os.path.join(REPORTS_DIR, safe_filename)
+    
+    if not os.path.exists(filepath):
+        raise HTTPException(status_code=404, detail="Report not found")
+    
+    return FileResponse(
+        path=filepath,
+        media_type="application/pdf",
+        filename=safe_filename,
+    )
 
 
 if __name__ == "__main__":

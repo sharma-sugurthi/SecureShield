@@ -89,3 +89,16 @@ export async function getHistory(limit = 20) {
 export async function getAuditTrail(limit = 50) {
   return apiFetch(`/api/audit-trail?limit=${limit}`);
 }
+
+// --- Grievance / Dispute ---
+export async function disputeClaim(grievanceData) {
+  return apiFetch('/api/dispute-claim', {
+    method: 'POST',
+    body: JSON.stringify(grievanceData),
+  });
+}
+
+export function getReportDownloadUrl(filename) {
+  const key = getApiKey();
+  return `${API_BASE}/api/download-report/${encodeURIComponent(filename)}?api_key=${key}`;
+}
