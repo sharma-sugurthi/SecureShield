@@ -121,6 +121,22 @@ def _apply_sublimit_rule(rule: PolicyRule, facts: CaseFacts, sum_insured: float)
 
 def _apply_exclusion_rule(rule: PolicyRule, facts: CaseFacts) -> RuleMatch:
     """Check if the case falls under an exclusion."""
+    # --- IRDAI 2024 Compliance: Moratorium Period ---
+    # After 8 continuous years of coverage, PED exclusions generally cannot be invoked.
+    if facts.policy_tenure_years >= 8:
+        condition_lower = (rule.condition or "").lower()
+        if "pre-existing" in condition_lower or "ped" in condition_lower or "waiting period" in condition_lower:
+            return RuleMatch(
+                rule_category="exclusion",
+                rule_condition=rule.condition,
+                status=RuleMatchStatus.PASSED,
+                claimed_amount=facts.total_claimed_amount,
+                eligible_amount=facts.total_claimed_amount,
+                shortfall=0,
+                clause_reference=rule.clause_reference,
+                reason="Moratorium Period (8+ years) applies: PERMANENT exclusion for PED is waived by IRDAI mandate."
+            )
+
     excluded = False
     reason = "Not excluded"
 
@@ -167,8 +183,7 @@ def _apply_exclusion_rule(rule: PolicyRule, facts: CaseFacts) -> RuleMatch:
 
 
 def _apply_waiting_period_rule(rule: PolicyRule, facts: CaseFacts) -> RuleMatch:
-    """Check waiting period rules."""
-    # If no policy start date, we can't evaluate waiting periods
+    """Check waiting period rules with IRDAI 2024 compliance."""
     if not facts.policy_start_date:
         return RuleMatch(
             rule_category="waiting_period",
@@ -181,7 +196,29 @@ def _apply_waiting_period_rule(rule: PolicyRule, facts: CaseFacts) -> RuleMatch:
             reason="Policy start date not provided — cannot evaluate waiting period"
         )
 
-    # Flag it as a warning but don't deny
+    # Basic logic: If procedure is Cataract/Joint/etc and tenure < limit, deny.
+    # We estimate tenure based on policy_tenure_years or policy_start_date.
+    wait_months = rule.limit_value or 24
+    tenure_months = facts.policy_tenure_years * 12
+    
+    condition = (rule.condition or "").lower()
+    procedure = (facts.procedure or "").lower()
+    
+    # Simple semantic match: if rule mentions procedure and tenure < limit
+    is_applicable_procedure = any(word in procedure for word in condition.split())
+    
+    if is_applicable_procedure and tenure_months < wait_months:
+        return RuleMatch(
+            rule_category="waiting_period",
+            rule_condition=rule.condition,
+            status=RuleMatchStatus.DENIED,
+            claimed_amount=facts.total_claimed_amount,
+            eligible_amount=0,
+            shortfall=facts.total_claimed_amount,
+            clause_reference=rule.clause_reference,
+            reason=f"Waiting period for '{rule.condition}' not net: {tenure_months}m tenure < {wait_months}m required."
+        )
+
     return RuleMatch(
         rule_category="waiting_period",
         rule_condition=rule.condition,
@@ -190,7 +227,7 @@ def _apply_waiting_period_rule(rule: PolicyRule, facts: CaseFacts) -> RuleMatch:
         eligible_amount=facts.total_claimed_amount,
         shortfall=0,
         clause_reference=rule.clause_reference,
-        reason=f"Waiting period check: {rule.condition} — verify with policy dates"
+        reason=f"Waiting period check: {tenure_months}m tenure meets/exceeds requirements."
     )
 
 

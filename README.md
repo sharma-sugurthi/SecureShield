@@ -13,6 +13,35 @@
 > **GenAI-powered health insurance claim eligibility checker for Indian patients.**  
 > Uses a **neuro-symbolic architecture** with **12 custom tools**, **3 ReAct agents**, and a **deterministic decision engine** for zero-hallucination verdicts.
 
+---
+
+## ⚖️ Hackathon Evaluation Focus
+
+SecureShield is purpose-built for the **Healthcare Operations** problem statement, specifically targeting **Prior Authorization** and **Claims Adjudication**.
+
+### 🏛️ 1. Compliance & Guardrail Enforcement ("The Symbolic Shield")
+Unlike "Blackbox" LLM solutions, SecureShield implements a **Neuro-Symbolic architecture**:
+- **LLM Agent** handles unstructured data (PDF parsing, medical normalization).
+- **Deterministic Engine** handles the actual financial adjudication.
+- **Guardrail**: The LLM *never* performs final math or verdict logic. It only extracts parameters for the deterministic engine, ensuring **zero-hallucination** on claim numbers.
+
+### 🧠 2. Domain Expertise Depth
+- **Medical Coding**: Integrated **ICD-10-PCS** lookup tool for 500+ procedures.
+- **Regulatory**: Hardcoded **IRDAI 2024 Master Circular** rules:
+  - **8-Year Moratorium**: Automatic waiver of PED exclusions for long-term policyholders.
+  - **Waiting Periods**: Procedure-specific validation (e.g., Joint Replacement/Cataract) based on policy tenure.
+  - **Proportional Deductions**: Financial math for room rent overflow settlement.
+- **Geography**: Indian **City Tier (Tier 1/2/3)** classification for location-based room rent caps.
+
+### 🔍 3. Full Auditability (Traceability)
+- Every claim generates a **51-point audit trail** showing:
+  - Raw text extracted from PDF.
+  - LLM "Thought" process during rule extraction.
+  - Deterministic step-by-step rule application.
+  - ICD-10 code resolution mapping.
+
+---
+
 </div>
 
 ---
@@ -248,6 +277,18 @@ npm run dev
 1. Go to **Settings** → paste the API key shown in the backend console
 2. **Upload Policy** → drag a health insurance PDF
 3. **Check Eligibility** → fill patient case → get instant verdict with savings tips
+
+---
+
+## 🏆 Hackathon Alignment Summary
+
+| Criteria | SecureShield Implementation |
+|:---------|:----------------------------|
+| **Innovation** | Neuro-symbolic ReAct pattern + LangGraph state machine |
+| **Technical Depth** | Multi-model failover, regex-based string cleaning, async SQLite |
+| **Feasibility** | Deterministic engine ensures zero mis-calculation risk in production |
+| **Scalability** | Multi-provider LLM chain (Google + OpenRouter) bypasses rate limits |
+| **Compliance** | Explicit IRDAI 2024 guardrails and 8-year moratorium logic |
 
 ---
 

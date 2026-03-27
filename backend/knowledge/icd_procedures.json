@@ -502,6 +502,58 @@
             "common_room_type": "general",
             "waiting_period_applicable": false,
             "notes": "Covered after initial 30-day waiting period."
+        },
+        {
+            "name": "Kidney Transplant (Recipient)",
+            "icd_code": "0TY00Z0",
+            "category": "nephrology",
+            "is_daycare": false,
+            "typical_stay_days": [
+                10,
+                21
+            ],
+            "cost_range_tier1": [
+                600000,
+                1500000
+            ],
+            "cost_range_tier2": [
+                450000,
+                1000000
+            ],
+            "cost_range_tier3": [
+                300000,
+                700000
+            ],
+            "common_room_type": "private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 36,
+            "notes": "Complex procedure. Donor expenses often covered up to specific sub-limits. Check immunosuppressant coverage."
+        },
+        {
+            "name": "Robot-assisted Radical Prostatectomy",
+            "icd_code": "0VT04ZZ",
+            "category": "urology",
+            "is_daycare": false,
+            "typical_stay_days": [
+                3,
+                5
+            ],
+            "cost_range_tier1": [
+                350000,
+                700000
+            ],
+            "cost_range_tier2": [
+                250000,
+                500000
+            ],
+            "cost_range_tier3": [
+                180000,
+                350000
+            ],
+            "common_room_type": "private",
+            "waiting_period_applicable": true,
+            "typical_waiting_months": 24,
+            "notes": "Modern robotic procedure. Many policies have sub-limits for robotic assistance (₹50K-₹1L)."
         }
     ]
 }

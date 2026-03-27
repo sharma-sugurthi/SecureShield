@@ -55,6 +55,14 @@ class CaseFacts(BaseModel):
         None,
         description="Policy start date (for waiting period calculations)"
     )
+    policy_tenure_years: int = Field(
+        1,
+        description="Number of continuous years with the same insurer (for Moratorium Period)"
+    )
+    is_renewal: bool = Field(
+        False, 
+        description="Whether this is a renewal policy (transparency requirement)"
+    )
     
     # Location
     city_tier: CityTier = Field(

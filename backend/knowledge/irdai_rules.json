@@ -32,10 +32,20 @@
       "typical_months": 24,
       "description": "Waiting period for specific diseases/procedures cannot exceed 48 months. Most insurers keep 24 months.",
       "common_diseases": [
-        "Cataract", "Hernia", "Benign prostatic hypertrophy", "Hysterectomy",
-        "Sinusitis", "Tonsillitis", "Kidney stones", "Gallbladder stones",
-        "Piles/Hemorrhoids", "Fistula", "Pilonidal sinus", "Joint replacement",
-        "Internal congenital diseases", "Age-related macular degeneration"
+        "Cataract",
+        "Hernia",
+        "Benign prostatic hypertrophy",
+        "Hysterectomy",
+        "Sinusitis",
+        "Tonsillitis",
+        "Kidney stones",
+        "Gallbladder stones",
+        "Piles/Hemorrhoids",
+        "Fistula",
+        "Pilonidal sinus",
+        "Joint replacement",
+        "Internal congenital diseases",
+        "Age-related macular degeneration"
       ],
       "regulation": "IRDAI Health Insurance Regulations 2024 - Clause 4.2"
     },
@@ -53,45 +63,141 @@
   },
   "standard_exclusions": {
     "permanent": [
-      {"name": "Cosmetic/Plastic surgery", "exception": "Unless necessitated by injury/illness or as part of medically necessary treatment"},
-      {"name": "Dental treatment", "exception": "Unless requiring hospitalization"},
-      {"name": "Convalescence and general debility"},
-      {"name": "Rest cure and rehabilitation"},
-      {"name": "Intentional self-injury"},
-      {"name": "Treatment arising from alcohol/drug abuse"},
-      {"name": "Treatment for obesity/weight control", "exception": "Unless morbid obesity with BMI > 40"},
-      {"name": "Treatment related to change of gender"},
-      {"name": "Infertility/sterility treatment", "exception": "Unless specifically covered"},
-      {"name": "External aids and appliances", "exception": "Unless internal implants"},
-      {"name": "War, nuclear contamination, terrorism injuries"},
-      {"name": "Circumcision", "exception": "Unless medically necessary"},
-      {"name": "Vaccination/Inoculation", "exception": "Unless post-bite treatment"},
-      {"name": "Treatment for correction of eyesight", "exception": "Unless due to illness"}
+      {
+        "name": "Cosmetic/Plastic surgery",
+        "exception": "Unless necessitated by injury/illness or as part of medically necessary treatment"
+      },
+      {
+        "name": "Dental treatment",
+        "exception": "Unless requiring hospitalization"
+      },
+      {
+        "name": "Convalescence and general debility"
+      },
+      {
+        "name": "Rest cure and rehabilitation"
+      },
+      {
+        "name": "Intentional self-injury"
+      },
+      {
+        "name": "Treatment arising from alcohol/drug abuse"
+      },
+      {
+        "name": "Treatment for obesity/weight control",
+        "exception": "Unless morbid obesity with BMI > 40"
+      },
+      {
+        "name": "Treatment related to change of gender"
+      },
+      {
+        "name": "Infertility/sterility treatment",
+        "exception": "Unless specifically covered"
+      },
+      {
+        "name": "External aids and appliances",
+        "exception": "Unless internal implants"
+      },
+      {
+        "name": "War, nuclear contamination, terrorism injuries"
+      },
+      {
+        "name": "Circumcision",
+        "exception": "Unless medically necessary"
+      },
+      {
+        "name": "Vaccination/Inoculation",
+        "exception": "Unless post-bite treatment"
+      },
+      {
+        "name": "Treatment for correction of eyesight",
+        "exception": "Unless due to illness"
+      }
     ],
     "conditional": [
-      {"name": "Maternity expenses", "typical_waiting_months": 24, "min_waiting_months": 9},
-      {"name": "Mental illness/psychiatric treatment", "note": "Must be covered under Mental Healthcare Act 2017"},
-      {"name": "HIV/AIDS treatment", "note": "Cannot be excluded if contracted through medical procedure"}
+      {
+        "name": "Maternity expenses",
+        "typical_waiting_months": 24,
+        "min_waiting_months": 9
+      },
+      {
+        "name": "Mental illness/psychiatric treatment",
+        "note": "Must be covered under Mental Healthcare Act 2017"
+      },
+      {
+        "name": "HIV/AIDS treatment",
+        "note": "Cannot be excluded if contracted through medical procedure"
+      }
     ]
   },
   "room_rent_guidelines": {
     "description": "IRDAI allows insurers to set room rent sub-limits but mandates transparency",
     "common_structures": [
-      {"type": "percentage_of_si", "typical_value": 1.0, "description": "Room rent capped at 1% of sum insured per day"},
-      {"type": "absolute_cap", "example_values": [3000, 4000, 5000, 8000, 10000], "description": "Fixed daily room rent cap in INR"},
-      {"type": "room_category", "description": "Coverage limited to specific room category (e.g., Single Private AC room)"},
-      {"type": "proportional_deduction", "description": "If room rent exceeds cap, ALL other charges may be proportionally reduced"}
+      {
+        "type": "percentage_of_si",
+        "typical_value": 1.0,
+        "description": "Room rent capped at 1% of sum insured per day"
+      },
+      {
+        "type": "absolute_cap",
+        "example_values": [
+          3000,
+          4000,
+          5000,
+          8000,
+          10000
+        ],
+        "description": "Fixed daily room rent cap in INR"
+      },
+      {
+        "type": "room_category",
+        "description": "Coverage limited to specific room category (e.g., Single Private AC room)"
+      },
+      {
+        "type": "proportional_deduction",
+        "description": "If room rent exceeds cap, ALL other charges may be proportionally reduced"
+      }
     ],
     "proportional_deduction_formula": "Payable = (Eligible Room Rent / Actual Room Rent) × Other Charges"
   },
   "copay_guidelines": {
     "types": [
-      {"type": "voluntary", "description": "Policyholder chooses higher copay for lower premium"},
-      {"type": "compulsory", "description": "Insurer mandates copay for certain conditions"},
-      {"type": "age_based", "typical_ages": [60, 65, 70], "typical_percentages": [10, 20, 30]},
-      {"type": "city_based", "description": "Higher copay in tier-1 cities (non-network hospitals)"},
-      {"type": "disease_specific", "description": "Higher copay for specific chronic diseases"}
+      {
+        "type": "voluntary",
+        "description": "Policyholder chooses higher copay for lower premium"
+      },
+      {
+        "type": "compulsory",
+        "description": "Insurer mandates copay for certain conditions"
+      },
+      {
+        "type": "age_based",
+        "typical_ages": [
+          60,
+          65,
+          70
+        ],
+        "typical_percentages": [
+          10,
+          20,
+          30
+        ]
+      },
+      {
+        "type": "city_based",
+        "description": "Higher copay in tier-1 cities (non-network hospitals)"
+      },
+      {
+        "type": "disease_specific",
+        "description": "Higher copay for specific chronic diseases"
+      }
     ],
     "regulation": "Copay percentage and conditions must be clearly stated in policy document"
+  },
+  "compliance_guardrails": {
+    "moratorium_period": "8 years (no contestability)",
+    "initial_waiting_period_limit": "30 days (accidents exempt)",
+    "standardized_exclusions": "List of 16 permanent exclusions as per IRDAI Master Circular 2024",
+    "pre_existing_disease_cap": "Maximum 4 years waiting period"
   }
 }
