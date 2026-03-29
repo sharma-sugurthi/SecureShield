@@ -163,7 +163,7 @@ async def decision_node(state: PipelineState) -> dict:
         rules = policy["rules"]
         sum_insured = policy["sum_insured"]
         
-        verdict = evaluate(rules, facts, sum_insured)
+        verdict = evaluate(rules, facts, sum_insured, is_reviewed=policy.get("is_reviewed", False))
         t1 = time.time()
         
         audit_trail_logger(

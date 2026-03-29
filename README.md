@@ -13,7 +13,7 @@
 
 **GenAI-powered health insurance claim eligibility checker & dispute resolution engine for Indian patients.**
 
-> 4 Specialized Agents · 16 Custom Tools · Deterministic Decision Engine · Zero-Hallucination Verdicts
+> **Claim Guardian Architecture:** 4 Specialized Agents · 16 Custom Tools · Deterministic Decision Engine · Zero-Hallucination Verdicts · **IRDAI 2024 (June) Compliant**
 
 </div>
 
@@ -221,8 +221,8 @@ Guardrail        →   LLM never performs final math or verdict
 
 | Rule | Implementation |
 |:-----|:--------------|
-| **8-Year Moratorium** | Auto-waives PED exclusions for 8+ year continuous policyholders (Clause 4.4) |
-| **Waiting Periods** | Procedure-specific (Cataract: 2yr, Joint Replacement: 4yr) — enforced from tenure |
+| **5-Year Moratorium** | **Moratorium Period (IRDAI June 2024)**: Claims after 60 continuous months cannot be denied for PED/non-disclosure. |
+| **Waiting Periods** | Procedure-specific validation (e.g., Joint Replacement: 4yr, Cataract: 2yr) per 2024 norms. |
 | **Room Rent Proportional Deduction** | Correctly applied per IRDAI PPHI Regulations 2017 (Section 7) |
 | **Age-Based Co-pay** | 20% co-payment auto-triggered for patients aged 60+ |
 | **City-Tier Limits** | Tier 1/2/3 room rent caps automatically applied based on hospital location |

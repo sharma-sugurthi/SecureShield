@@ -30,7 +30,8 @@ OPENROUTER_MODELS = {
         "qwen/qwen3-coder:free",
         "google/gemma-3-27b-it:free",
         "meta-llama/llama-3.3-70b-instruct:free",
-        "mistralai/mistral-small-3.1-24b-instruct:free",
+        "microsoft/phi-4-reasoning-plus:free",
+        "nvidia/llama-3.1-nemotron-70b-instruct:free",
     ]
 }
 

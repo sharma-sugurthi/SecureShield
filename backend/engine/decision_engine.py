@@ -8,6 +8,7 @@ import logging
 from models.policy import PolicyRule, LimitType
 from models.case import CaseFacts
 from models.verdict import Verdict, RuleMatch, VerdictStatus, RuleMatchStatus
+from tools.audit_tools import audit_trail_logger
 
 logger = logging.getLogger(__name__)
 
@@ -126,8 +127,13 @@ def _apply_exclusion_rule(rule: PolicyRule, facts: CaseFacts) -> RuleMatch:
     if facts.policy_tenure_years >= 5:
         condition_lower = (rule.condition or "").lower()
         if "pre-existing" in condition_lower or "ped" in condition_lower or "waiting period" in condition_lower:
-            audit_trail_logger("decision_engine", "moratorium_waive", 
-                               {"tenure": facts.policy_tenure_years, "clause": rule.clause_reference})
+            audit_trail_logger(
+                agent_name="DecisionEngine",
+                action="moratorium_waive",
+                input_summary=f"Tenure: {facts.policy_tenure_years} years",
+                output_summary=f"Waiving exclusion for clause {rule.clause_reference}",
+                metadata={"tenure": facts.policy_tenure_years, "clause": rule.clause_reference}
+            )
             return RuleMatch(
                 rule_category="exclusion",
                 rule_condition=rule.condition,
@@ -263,7 +269,7 @@ def _apply_deductible_rule(rule: PolicyRule, facts: CaseFacts, current_eligible:
     )
 
 
-def evaluate(rules: list[dict], facts: CaseFacts, sum_insured: float) -> Verdict:
+def evaluate(rules: list[dict], facts: CaseFacts, sum_insured: float, is_reviewed: bool = False) -> Verdict:
     """
     DETERMINISTIC DECISION ENGINE
     
@@ -397,8 +403,13 @@ def evaluate(rules: list[dict], facts: CaseFacts, sum_insured: float) -> Verdict
 
     if requires_review:
         logger.warning(f"[DecisionEngine] Low confidence verdict ({confidence:.2f}) — Flagging for manual review")
-        audit_trail_logger("decision_engine", "safety_gate_trigger", 
-                           {"confidence": confidence, "reason": "Low confidence threshold reached"})
+        audit_trail_logger(
+            agent_name="DecisionEngine",
+            action="safety_gate_trigger",
+            input_summary="Reliability scoring",
+            output_summary=f"Confidence: {confidence}",
+            metadata={"confidence": confidence, "reason": "Low confidence threshold reached"}
+        )
 
     logger.info(f"[DecisionEngine] Verdict: {overall.value} — {coverage_pct:.0f}% coverage (Confidence: {confidence:.2f})")
     return verdict

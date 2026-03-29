@@ -49,8 +49,11 @@ LIMIT TYPES: percentage | absolute | sublimit | exclusion | copay | waiting_peri
 IMPORTANT: Cross-reference extracted rules against the IRDAI regulations provided.
 Flag if any rule violates IRDAI mandated limits (e.g., waiting period > 48 months).
 
-Return ONLY a JSON object: {"insurer": "", "plan_name": "", "sum_insured": 0, 
-"policy_type": "", "rules": [...]}"""
+- Return ONLY a valid JSON object.
+- DO NOT use markdown code blocks inside the JSON strings.
+- ESCAPE every double quote (") if it belongs inside a string value.
+- DO NOT truncate strings. If a rule is long, include the full text.
+- Formatted as: {"insurer": "", "plan_name": "", "sum_insured": 0, "policy_type": "", "rules": [...]}"""
 
 
 def _validate_and_clean_rules(raw_rules: list[dict]) -> list[PolicyRule]:

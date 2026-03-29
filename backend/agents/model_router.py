@@ -34,11 +34,18 @@ class ModelRouter:
 
     async def _call_google(self, payload: dict) -> str | None:
         """Try multiple Gemini models (each has separate daily quota)."""
-        google_models = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash-lite"]
+        google_models = ["gemini-2.0-flash", "gemini-2.0-flash-lite"]
         headers = {
             "Authorization": f"Bearer {self.google_key}",
             "Content-Type": "application/json",
         }
+        # Use model from payload if provided and valid, otherwise use the priority list
+        requested_model = payload.get("model")
+        if requested_model and requested_model in google_models:
+            # Move requested model to the front of the list
+            google_models.remove(requested_model)
+            google_models.insert(0, requested_model)
+            
         for model in google_models:
             payload_copy = {**payload, "model": model}
             try:
@@ -186,23 +193,28 @@ class ModelRouter:
         # Clean up response
         cleaned = raw.strip()
         
-        # Remove thinking tags (some models like qwen3 use these)
-        if "<think>" in cleaned:
-            cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL).strip()
-        
-        # Strip markdown code fences
-        if cleaned.startswith("```json"):
-            cleaned = cleaned[7:]
-        if cleaned.startswith("```"):
-            cleaned = cleaned[3:]
-        if cleaned.endswith("```"):
-            cleaned = cleaned[:-3]
-        cleaned = cleaned.strip()
-
+        # Robust extraction: find the first { and the last }
         try:
+            start_idx = cleaned.find('{')
+            end_idx = cleaned.rfind('}')
+            if start_idx != -1 and end_idx != -1:
+                cleaned = cleaned[start_idx:end_idx + 1]
+            
+            # Simple repair for unterminated strings/blocks if they look truncated
+            if cleaned.count('{') > cleaned.count('}'):
+                cleaned += '}' * (cleaned.count('{') - cleaned.count('}'))
+            
             return json.loads(cleaned)
         except json.JSONDecodeError as e:
-            logger.error(f"[ModelRouter] Failed to parse JSON: {e}\nRaw: {raw[:500]}")
+            # Final attempt: try to find any JSON-like block if loads failed
+            json_match = re.search(r'(\{.*\})', cleaned, re.DOTALL)
+            if json_match:
+                try:
+                    return json.loads(json_match.group(1))
+                except:
+                    pass
+            
+            logger.error(f"[ModelRouter] Failed to parse JSON: {e}\nRaw: {raw[:1000]}")
             raise ValueError(f"LLM returned invalid JSON: {e}")
 
 
