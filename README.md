@@ -9,11 +9,13 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000.svg)](https://nextjs.org)
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.2-1C3C3C.svg)](https://langchain-ai.github.io/langgraph/)
-[![Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4.svg)](https://aistudio.google.com)
+[![Gemini](https://img.shields.io/badge/Gemini-2.0_Flash-4285F4.svg)](https://aistudio.google.com)
+[![Cerebras](https://img.shields.io/badge/Cerebras-1M_Tokens/Day-FFCC00.svg)](https://cloud.cerebras.ai)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-AI_Gateway-F38020.svg)](https://developers.cloudflare.com/ai-gateway)
 
 **GenAI-powered health insurance claim eligibility checker & dispute resolution engine for Indian patients.**
 
-> **Claim Guardian Architecture:** 4 Specialized Agents · 16 Custom Tools · Deterministic Decision Engine · Zero-Hallucination Verdicts · **IRDAI 2024 (June) Compliant**
+> **Claim Guardian Architecture:** 5 Specialized Agents · 18 Custom Tools · Deterministic Decision Engine · Zero-Hallucination Verdicts · **IRDAI 2024 (June) Compliant**
 
 </div>
 
@@ -47,7 +49,9 @@
 | ⚖️ **Grievance Agent** | Denied claim? Agent generates PDF report, formal letter & sends grievance email |
 | 📚 **IRDAI Precedents** | Searches real Ombudsman/NCDRC rulings to strengthen your dispute |
 | 🔍 **51-Point Audit Trail** | Every agent step logged for compliance transparency |
-| 🔄 **Multi-Model Failover** | Auto-switches across 8+ LLM models on rate limits — never goes down |
+| 🔄 **Multi-Model Failover** | Auto-switches across 10+ models (Cerebras, Groq, Gemini) — never goes down |
+| ⚡ **Response Caching** | Local disk-based cache + Cloudflare AI Gateway semantic caching |
+| 🏥 **Medical Chatbot** | 🆕 3-Tier Assistant: FAQ → Cerebras (Free) → Gemini (Complex) |
 
 ---
 
@@ -115,6 +119,13 @@ flowchart TB
         SAVINGS["💰 Cost-Saving Suggestions"]
         PDF_R["📄 PDF Claim Report"]
         LETTER["✉️ Formal Grievance Letter"]
+        CHAT["💬 Medical Chat Assistant"]
+    end
+
+    subgraph OPTIMIZATION["⚡ Optimization Layers"]
+        FAQ["Local FAQ Cache\n(knowledge/faq.json)"]
+        RULE["Rule-Based Extraction\n(policy_tools.py)"]
+        CF["Cloudflare AI Gateway\n(Semantic Caching)"]
     end
 
     PDF --> POLICY_AGENT
@@ -202,6 +213,14 @@ SecureShield has **4 specialized agents** with **16 custom domain tools**.
 | 14 | `draft_grievance_letter` | LLM drafts formal letter citing IRDAI regulations |
 | 15 | `generate_claim_report_pdf` | Professional PDF report with rule-by-rule breakdown |
 | 16 | `send_grievance_email` | Sends grievance to insurer GRO (mocked with tracking ID) |
+
+### Agent 5 — Medical Chat Assistant ⭐ New
+> Instant answers to policy & medical queries via 3-tier hierarchy
+
+| # | Tool | Purpose |
+|:--|:-----|:--------|
+| 17 | `faq_lookup` | Instant keyword search in local `faq.json` (FREE) |
+| 18 | `google_vision_ocr` | OCR for medical documents/photos (1000 free req/mo) |
 
 ---
 
@@ -298,7 +317,8 @@ openrouter/mistral → openrouter/llama → openrouter/deepseek
 | Layer | Technology |
 |:------|:-----------|
 | **Backend** | Python 3.11+, FastAPI, Pydantic v2, LangGraph 0.2 |
-| **LLM Provider** | Google AI Studio (Gemini 2.5 Flash/Pro) + OpenRouter |
+| **LLM Provider** | Cerebras (Fast/Free), Groq (Llama 3.3), Google Gemini (Flash/Pro), xAI Grok |
+| **Edge Cache** | Cloudflare AI Gateway (Semantic Caching & Analytics) |
 | **Frontend** | Next.js 16, React 19, Vanilla CSS |
 | **Database** | Async SQLite (`aiosqlite`) |
 | **PDF Parsing** | PyMuPDF (text + table extraction) |

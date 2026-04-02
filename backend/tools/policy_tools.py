@@ -169,6 +169,69 @@ def _extract_tables_from_text(text: str, page_num: int) -> list[dict]:
     return tables
 
 
+# --- Tool 5: Rule-Based Policy Extractor ---
+
+def rule_based_policy_extractor(text: str) -> dict:
+    """
+    Extract basic policy info using regex/rules (FREE, No API).
+    Targets: Insurer Name, Plan Name, Sum Insured.
+    """
+    import re
+    result = {
+        "insurer": None,
+        "plan_name": None,
+        "sum_insured": None,
+        "confidence": 0.0
+    }
+    
+    # Common Insurer patterns
+    insurers = [
+        "Star Health", "HDFC ERGO", "ICICI Lombard", "Niva Bupa", "Care Health",
+        "Aditya Birla", "TATA AIG", "Bajaj Allianz", "SBI General", "Oriental Insurance",
+        "United India", "New India Assurance", "National Insurance"
+    ]
+    for insurer in insurers:
+        if insurer.lower() in text.lower():
+            result["insurer"] = insurer
+            result["confidence"] += 0.3
+            break
+            
+    # Sum Insured patterns (e.g. "Sum Insured: 5,00,000", "SI - 10 Lakhs")
+    si_patterns = [
+        r"(?:Sum Insured|S\.I\.|Total SI)\s*[:\-\s]*[₹Rs\.]*\s*([\d,]+)",
+        r"([\d,]+)\s*(?:Lakhs|Lakh|L)",
+    ]
+    for pattern in si_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            val = match.group(1).replace(",", "")
+            try:
+                # Handle "10 Lakhs" vs "1000000"
+                if "Lakh" in pattern or (match.group(0).lower().find("lakh") != -1):
+                    result["sum_insured"] = float(val) * 100000
+                else:
+                    result["sum_insured"] = float(val)
+                result["confidence"] += 0.4
+                break
+            except: continue
+            
+    # Plan Name patterns
+    plan_patterns = [
+        r"(?:Plan|Product|Policy)\s*Name\s*[:\-\s]*([A-Z][a-zA-Z0-aligned\s]{3,30})",
+        r"(?:Plan|Product)\s*[:\-\s]*([A-Z][a-zA-Z\s]{3,30})",
+    ]
+    for pattern in plan_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            name = match.group(1).strip()
+            if len(name) > 5:
+                result["plan_name"] = name
+                result["confidence"] += 0.2
+                break
+                
+    return result
+
+
 # --- Tool 3: IRDAI Regulation Lookup ---
 
 def irdai_regulation_lookup(query: str) -> dict:

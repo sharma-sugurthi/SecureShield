@@ -21,6 +21,7 @@ from security import validate_pdf_upload
 from tools.policy_tools import (
     pdf_text_extractor, pdf_table_extractor,
     irdai_regulation_lookup, rule_validator,
+    rule_based_policy_extractor,
 )
 from tools.audit_tools import audit_trail_logger
 
@@ -198,6 +199,16 @@ async def ingest_policy(pdf_bytes: bytes, filename: str = "policy.pdf") -> Polic
         duration_ms=(t1 - t0) * 1000,
     )
 
+    # === Step 3.5: Rule-Based Extraction (FREE) ===
+    # Attempt to extract insurer, plan, and SI before LLM
+    text_for_rules = "\n".join(p["text"] for p in text_result["pages"][:3]) # Usually on first few pages
+    rule_info = rule_based_policy_extractor(text_for_rules)
+    
+    if rule_info["confidence"] > 0.5:
+        logger.info(f"[PolicyAgent] Rule-based extraction succeeded (Conf: {rule_info['confidence']})")
+    else:
+        logger.info(f"[PolicyAgent] Rule-based extraction low confidence, relying more on LLM")
+
     # === Step 4: LLM-based rule extraction (with ALL tool outputs as context) ===
     # Combine all text
     full_text = "\n\n".join(p["text"] for p in text_result["pages"] if p["text"])
@@ -218,16 +229,21 @@ async def ingest_policy(pdf_bytes: bytes, filename: str = "policy.pdf") -> Polic
     irdai_text = f"\n\nIRDAI REGULATIONS FOR CROSS-REFERENCE:\n{json.dumps(irdai_combined, indent=2, default=str)[:3000]}"
 
     user_prompt = f"""Analyze and extract ALL insurance rules from this policy document.
+    
+PRE-IDENTIFIED INFO (Confidence: {rule_info['confidence']}):
+- Insurer: {rule_info['insurer'] or 'Unknown'}
+- Plan Name: {rule_info['plan_name'] or 'Unknown'}
+- Sum Insured: {rule_info['sum_insured'] or 'Unknown'}
 
 EXTRACTED TEXT ({text_result['total_chars']} characters, {text_result['total_pages']} pages):
-{full_text[:15000]}
+{full_text[:12000]}
 {table_context}
 {irdai_text}
 
 INSTRUCTIONS:
+- Use the PRE-IDENTIFIED INFO if correct, otherwise correct it.
 - Extract EVERY rule from both the text AND the tables.
 - Cross-reference against IRDAI regulations — flag any violations.
-- Include exact clause/section references.
 - Return ONLY valid JSON."""
 
     t0 = time.time()

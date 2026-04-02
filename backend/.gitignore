@@ -6,3 +6,5 @@ __pycache__/
 secureshield.db
 data/rules/*.json
 generated_reports/
+ollama_local.py
+securesheild-44339039fc9a.json

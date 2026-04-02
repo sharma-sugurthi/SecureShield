@@ -1,0 +1,40 @@
+{
+    "faq": [
+        {
+            "questions": [
+                "What is a pre-existing disease?",
+                "What does PED mean?",
+                "Is my diabetes covered?"
+            ],
+            "answer": "A Pre-Existing Disease (PED) is any condition, ailment, injury, or disease that was diagnosed by a physician within 48 months prior to the first policy issued by the insurer. Most Indian policies cover PEDs after a waiting period of 2 to 4 years of continuous coverage.",
+            "category": "definitions"
+        },
+        {
+            "questions": [
+                "How much is room rent covered?",
+                "What is the room rent limit?",
+                "Can I stay in a private room?"
+            ],
+            "answer": "Room rent coverage varies by policy. Many standard policies cap room rent at 1% of the Sum Insured per day for a normal room and 2% for ICU. If you exceed this limit, a 'proportionate deduction' may be applied to your entire bill.",
+            "category": "room_rent"
+        },
+        {
+            "questions": [
+                "What is a waiting period?",
+                "Why is my claim denied for waiting period?",
+                "When will my surgery be covered?"
+            ],
+            "answer": "Waiting periods are spans of time during which certain claims are not payable. Initial wait: 30 days (except accidents). Specific illness wait (e.g., hernia, cataract): usually 2 years. PED wait: usually 3 to 4 years.",
+            "category": "waiting_periods"
+        },
+        {
+            "questions": [
+                "What is co-payment?",
+                "Do I have to pay anything from my pocket?",
+                "What is cost sharing?"
+            ],
+            "answer": "Co-payment is a cost-sharing requirement where the policyholder pays a specified percentage (e.g., 10% or 20%) of the admissible claim amount. This is common for senior citizens or for treatment in non-network hospitals.",
+            "category": "copay"
+        }
+    ]
+}

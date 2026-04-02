@@ -42,6 +42,14 @@ async def lifespan(app: FastAPI):
     """Initialize database and security on startup."""
     await init_db()
     master_key = get_or_create_master_key()
+    
+    # Activate local Ollama if USE_OLLAMA=true (git-ignored, demo only)
+    try:
+        from ollama_local import patch_model_router
+        patch_model_router()
+    except ImportError:
+        pass  # ollama_local.py doesn't exist (normal for production/GitHub)
+    
     logger.info(f"🛡️  {APP_NAME} v{APP_VERSION} started")
     logger.info(f"🔑 Master API Key: {master_key}")
     logger.info(f"   Use this key in the X-API-Key header for authenticated endpoints.")
@@ -93,6 +101,12 @@ async def health_check():
 
 
 # --- Authenticated Endpoints ---
+
+@app.get("/health")
+async def health():
+    """Health check endpoint."""
+    return {"status": "ok", "app": APP_NAME, "version": APP_VERSION}
+
 
 @app.post("/api/upload-policy", response_model=PolicyUploadResponse)
 async def upload_policy(
@@ -322,4 +336,4 @@ async def download_report(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, reload_excludes=["*.db"])

@@ -19,6 +19,7 @@ from tools.case_tools import (
     medical_term_normalizer, icd_procedure_lookup,
     city_tier_classifier, hospital_cost_estimator,
 )
+from tools.vision_tools import google_vision_ocr, is_image
 from tools.audit_tools import audit_trail_logger
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,24 @@ async def extract_case_facts(raw_input: dict) -> CaseFacts:
     """
     pipeline_start = time.time()
     logger.info("[CaseAgent] ▶ Starting case analysis pipeline")
+
+    # === Step 0: Handle Image Input (FREE Vision API) ===
+    if raw_input.get("file_bytes") and is_image(raw_input.get("filename", "")):
+        t0 = time.time()
+        ocr_result = google_vision_ocr(raw_input["file_bytes"])
+        t1 = time.time()
+        
+        logger.info(f"[CaseAgent] Image detected. OCR extracted {len(ocr_result['text'])} chars")
+        # Treat OCR text as the new raw input for subsequent tools
+        raw_input["text_content"] = ocr_result["text"]
+        
+        audit_trail_logger(
+            agent_name="CaseAgent", action="vision_ocr",
+            input_summary=f"Image: {raw_input.get('filename')}",
+            output_summary=f"Extracted: '{ocr_result['text'][:50]}...'",
+            tools_used=["google_vision_ocr"],
+            duration_ms=(t1 - t0) * 1000,
+        )
 
     # Pre-extract typed fields (avoid LLM for structured input)
     raw_procedure = str(raw_input.get("procedure", raw_input.get("diagnosis", "")))

@@ -38,6 +38,20 @@ FORMAT: Use paragraphs, not technical bullet points. Amount in ₹ format.
 
 Return ONLY a JSON object: {"explanation": "...", "suggestions": ["...", "..."]}"""
 
+_EXPLANATION_TEMPLATES = {
+    VerdictStatus.APPROVED: {
+        "explanation": "Great news! Your claim for {procedure} at {hospital} has been fully approved. "
+                       "The total amount of ₹{amount:,.0f} is covered under your {plan} policy. "
+                       "Since this is a full approval, you should have zero out-of-pocket expenses for these specific items.",
+        "suggestions": [
+            "Keep all original hospital documents for your records.",
+            "If the hospital asks for a deposit, show them this approval summary.",
+            "Ensure the discharge summary matches the treatment plan provided."
+        ]
+    },
+    # Add more templates for common partial denials if needed
+}
+
 
 async def generate_explanation(
     verdict: Verdict,
@@ -110,6 +124,20 @@ async def generate_explanation(
             tools_used=["savings_calculator", "what_if_analyzer"],
             duration_ms=(t1 - t0) * 1000,
         )
+
+        )
+
+    # === Step 2.5: Template Check (FREE) ===
+    if verdict.overall_verdict == VerdictStatus.APPROVED:
+        template = _EXPLANATION_TEMPLATES[VerdictStatus.APPROVED]
+        explanation = template["explanation"].format(
+            procedure=verdict.procedure or "your treatment",
+            hospital=original_facts.get("hospital_name", "the hospital") if original_facts else "the hospital",
+            amount=verdict.total_eligible,
+            plan=policy_name
+        )
+        logger.info(f"[ExplanationAgent] Using approved template (LLM Skipped)")
+        return {"explanation": explanation, "suggestions": template["suggestions"]}
 
     # === Step 3: LLM — Generate empathetic explanation ===
     clause_text = json.dumps(clause_explanations, indent=2, default=str)[:4000]
