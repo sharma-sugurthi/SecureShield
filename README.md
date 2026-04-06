@@ -256,7 +256,7 @@ Guardrail        →   LLM never performs final math or verdict
 
 ## 🧪 Verified Test Results
 
-### ✅ Case 1 — Star Health Premier Gold (₹10L SI)
+### ✅ Case 1 - Star Health Premier Gold (₹10L SI)
 
 | Parameter | Value |
 |:----------|:------|
@@ -272,7 +272,7 @@ Guardrail        →   LLM never performs final math or verdict
 
 ---
 
-### ⚠️ Case 2 — ICICI Lombard Basic Shield (₹3L SI)
+### ⚠️ Case 2 - ICICI Lombard Basic Shield (₹3L SI)
 
 | Parameter | Value |
 |:----------|:------|
@@ -288,7 +288,7 @@ Guardrail        →   LLM never performs final math or verdict
 
 ---
 
-### ⚖️ Case 3 — ICICI Lombard (Dispute Flow)
+### ⚖️ Case 3 - ICICI Lombard (Dispute Flow)
 
 | Parameter | Value |
 |:----------|:------|
@@ -300,7 +300,7 @@ Guardrail        →   LLM never performs final math or verdict
 
 ---
 
-### 🔄 LLM Resilience — Multi-Model Failover
+### 🔄 LLM Resilience - Multi-Model Failover
 
 ```
 gemini-2.0-flash → gemini-2.5-flash → gemini-2.5-pro → gemini-2.0-flash-lite
