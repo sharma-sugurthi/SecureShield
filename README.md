@@ -2,7 +2,7 @@
 
 # 🛡️ SecureShield
 
-### Agentic AI — Health Insurance Eligibility & Grievance Engine
+### Agentic AI - Health Insurance Eligibility & Grievance Engine
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB.svg)](https://www.python.org)
@@ -174,7 +174,7 @@ stateDiagram-v2
 
 SecureShield has **4 specialized agents** with **16 custom domain tools**.
 
-### Agent 1 — Policy Agent
+### Agent 1 - Policy Agent
 > Reads insurance PDF → extracts & validates structured rules
 
 | # | Tool | Purpose |
@@ -184,7 +184,7 @@ SecureShield has **4 specialized agents** with **16 custom domain tools**.
 | 3 | `irdai_regulation_lookup` | Cross-reference clauses with IRDAI regulations KB |
 | 4 | `rule_validator` | Validate and freeze extracted rules into SQLite |
 
-### Agent 2 — Case Agent
+### Agent 2 - Case Agent
 > Enriches raw patient case with medical coding and location intelligence
 
 | # | Tool | Purpose |
@@ -194,7 +194,7 @@ SecureShield has **4 specialized agents** with **16 custom domain tools**.
 | 7 | `city_tier_classifier` | Auto-classify city → IRDAI Tier 1/2/3 for room rent |
 | 8 | `hospital_cost_estimator` | Benchmark procedure cost vs regional market rates |
 
-### Agent 3 — Explanation Agent
+### Agent 3 - Explanation Agent
 > Translates verdict into plain language + finds savings
 
 | # | Tool | Purpose |
@@ -204,7 +204,7 @@ SecureShield has **4 specialized agents** with **16 custom domain tools**.
 | 11 | `what_if_analyzer` | Re-run engine with modified params to show options |
 | 12 | `audit_trail_logger` | Log every agent step for compliance traceability |
 
-### Agent 4 — Grievance Agent ⭐ New
+### Agent 4 - Grievance Agent 
 > Turns a "No" into a formal dispute with legal backing
 
 | # | Tool | Purpose |
@@ -214,7 +214,7 @@ SecureShield has **4 specialized agents** with **16 custom domain tools**.
 | 15 | `generate_claim_report_pdf` | Professional PDF report with rule-by-rule breakdown |
 | 16 | `send_grievance_email` | Sends grievance to insurer GRO (mocked with tracking ID) |
 
-### Agent 5 — Medical Chat Assistant ⭐ New
+### Agent 5 - Medical Chat Assistant 
 > Instant answers to policy & medical queries via 3-tier hierarchy
 
 | # | Tool | Purpose |
@@ -394,7 +394,7 @@ SecureShield/
 │   │   ├── policy_agent.py        # Agent 1: PDF → structured rules
 │   │   ├── case_agent.py          # Agent 2: Patient case analysis
 │   │   ├── explanation_agent.py   # Agent 3: Verdict explanation + savings
-│   │   ├── grievance_agent.py     # Agent 4: Dispute letter + PDF + email  ⭐ NEW
+│   │   ├── grievance_agent.py     # Agent 4: Dispute letter + PDF + email  
 │   │   └── model_router.py        # Multi-model LLM failover chain
 │   ├── engine/
 │   │   └── decision_engine.py     # 6-phase deterministic evaluator
@@ -402,7 +402,7 @@ SecureShield/
 │   │   ├── policy_tools.py        # Tools 1-4: PDF extraction, rule validation
 │   │   ├── case_tools.py          # Tools 5-8: Medical coding, cost estimation
 │   │   ├── explanation_tools.py   # Tools 9-12: Clause explainer, what-if
-│   │   ├── grievance_tools.py     # Tools 13-16: PDF, letter, search, email  ⭐ NEW
+│   │   ├── grievance_tools.py     # Tools 13-16: PDF, letter, search, email  
 │   │   └── audit_tools.py         # Compliance audit logging
 │   ├── knowledge/
 │   │   ├── irdai_rules.json       # IRDAI Master Circular 2024 clause KB
@@ -411,7 +411,7 @@ SecureShield/
 │   │   ├── policy.py              # Policy schema
 │   │   ├── case.py                # CaseFacts schema (with tenure, renewal)
 │   │   ├── verdict.py             # Verdict, RuleMatch schemas
-│   │   └── grievance.py           # GrievanceRequest/Response  ⭐ NEW
+│   │   └── grievance.py           # GrievanceRequest/Response 
 │   ├── db/                        # Async SQLite
 │   ├── generated_reports/         # PDF claim reports (auto-created)
 │   ├── security.py                # HMAC keys, rate limiting, sanitization
@@ -423,7 +423,7 @@ SecureShield/
 │       ├── page.js                # Dashboard
 │       ├── upload/                # Policy upload (drag-and-drop)
 │       ├── check/                 # Eligibility check form
-│       ├── dispute/               # ⭐ NEW: Grievance Agent UI
+│       ├── dispute/               # Grievance Agent UI
 │       ├── history/               # Past check results
 │       ├── audit/                 # Agent audit trail viewer
 │       └── settings/              # API key configuration
@@ -452,8 +452,8 @@ SecureShield/
 | **Innovation** | Neuro-symbolic ReAct + LangGraph + **Consumer Advocacy Agent** |
 | **Domain Depth** | ICD-10 coding, IRDAI 2024 compliance, City-Tier classification |
 | **Technical Depth** | 16 custom tools, multi-model failover, async SQLite, PDF generation |
-| **Feasibility** | Deterministic engine — zero hallucination risk in financial math |
-| **Scalability** | Multi-provider LLM chain (Google + OpenRouter) — never rate-limited |
+| **Feasibility** | Deterministic engine - zero hallucination risk in financial math |
+| **Scalability** | Multi-provider LLM chain (Google + OpenRouter) - never rate-limited |
 | **Compliance** | IRDAI 2024 guardrails, 8-yr moratorium, Ombudsman escalation path |
 
 ---
@@ -462,18 +462,18 @@ SecureShield/
 
 | Decision | Why |
 |:---------|:----|
-| **Deterministic Decision Engine** | Financial verdicts must be reproducible & auditable — LLMs hallucinate numbers |
+| **Deterministic Decision Engine** | Financial verdicts must be reproducible & auditable - LLMs hallucinate numbers |
 | **LLM only for NLP tasks** | AI does what it excels at (extraction/explanation); math stays in code |
-| **Frozen rules in SQLite** | Once extracted, rules are immutable — same case always → same verdict |
+| **Frozen rules in SQLite** | Once extracted, rules are immutable - same case always → same verdict |
 | **16 domain-specific tools** | Purpose-built tools (IRDAI lookup, ICD-10 resolver) beat generic search |
-| **Grievance Agent** | Transforms "Denied" into a legally-backed action — unique differentiator |
-| **Multi-model failover** | 8+ models across 2 providers — free-tier rate limits are never a showstopper |
+| **Grievance Agent** | Transforms "Denied" into a legally-backed action - unique differentiator |
+| **Multi-model failover** | 8+ models across 2 providers - free-tier rate limits are never a showstopper |
 
 ---
 
 ## 📜 License
 
-Licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
+Licensed under the **MIT License** - see [LICENSE](LICENSE) for details.
 
 ---
 
