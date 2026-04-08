@@ -19,6 +19,7 @@ from models.policy import PolicyUploadResponse
 from models.case import EligibilityCheckRequest
 from models.verdict import EligibilityResponse
 from models.grievance import GrievanceRequest, GrievanceResponse
+from models.chat import ChatRequest, ChatResponse
 from security import (
     get_or_create_master_key,
     require_api_key,
@@ -306,6 +307,32 @@ async def dispute_claim(
         raise HTTPException(
             status_code=500,
             detail=f"Grievance pipeline failed: {str(e)}",
+        )
+
+
+        )
+
+
+@app.post("/api/chat", response_model=ChatResponse)
+async def chat_with_assistant(
+    request: ChatRequest,
+    _api_key: str = Depends(require_api_key),
+):
+    """
+    Chat with the SecureShield AI Medical Assistant.
+    Uses a 3-tier hierarchy: FAQ Cache -> Cerebras (Free) -> Gemini.
+    """
+    from agents.chat_agent import handle_chat_query
+    
+    try:
+        logger.info(f"[API] Chat query: '{request.query[:50]}...'")
+        result = await handle_chat_query(request.query)
+        return result
+    except Exception as e:
+        logger.error(f"[API] Chat failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Chat assistant failed: {str(e)}",
         )
 
 
