@@ -172,7 +172,7 @@ stateDiagram-v2
 
 ## 🤖 Agents & Tools
 
-SecureShield has **4 specialized agents** with **16 custom domain tools**.
+SecureShield has **5 specialized agents** with **18 custom domain tools**.
 
 ### Agent 1 - Policy Agent
 > Reads insurance PDF → extracts & validates structured rules
@@ -300,13 +300,15 @@ Guardrail        →   LLM never performs final math or verdict
 
 ---
 
-### 🔄 LLM Resilience - Multi-Model Failover
+### 🔄 LLM Resilience — Multi-Model Failover
 
 ```
-gemini-2.0-flash → gemini-2.5-flash → gemini-2.5-pro → gemini-2.0-flash-lite
+cerebras/llama-3.3-70b → groq/llama-3.3-70b → gemini-2.0-flash → gemini-2.0-flash-lite
        ↓ (if all exhausted)
-openrouter/mistral → openrouter/llama → openrouter/deepseek
+together/llama-3.3-70b → xai/grok-3-mini → openrouter (5-model fallback chain)
 ```
+
+All providers routed through **Cloudflare AI Gateway** for semantic caching & analytics.
 
 **Global retry**: 3 attempts × 60s exponential backoff. The pipeline self-heals on rate limits.
 
@@ -334,6 +336,8 @@ openrouter/mistral → openrouter/llama → openrouter/deepseek
 - Python 3.11+
 - Node.js 18+
 - [Google AI Studio API key](https://aistudio.google.com/apikey) (free tier: 1,500 req/day)
+- [Cerebras API key](https://cloud.cerebras.ai) (free tier: 1M tokens/day)
+- [Groq API key](https://console.groq.com) (free tier: 14,400 req/day)
 
 ### 1. Backend
 
@@ -341,8 +345,10 @@ openrouter/mistral → openrouter/llama → openrouter/deepseek
 cd backend
 pip install -r requirements.txt
 
-# Add your API key
-echo "GOOGLE_API_KEY=your-key-here" > .env
+# Add your API keys
+cp .env.example .env  # Then edit with your keys
+# Required: GOOGLE_API_KEY, CEREBRAS_API_KEY, GROQ_API_KEY
+# Optional: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_GATEWAY_NAME
 
 # Start server (note the Master API Key in output)
 uvicorn main:app --port 8000
@@ -377,8 +383,9 @@ npm run dev
 | `POST` | `/api/check-eligibility` | Run full agentic eligibility pipeline | ✅ |
 | `GET` | `/api/history` | Recent eligibility check history | ✅ |
 | `GET` | `/api/audit-trail` | 51-point agent audit trail | ✅ |
-| `POST` | `/api/dispute-claim` | 🆕 Run Grievance Agent pipeline | ✅ |
-| `GET` | `/api/download-report/{file}` | 🆕 Download generated PDF report | ✅ |
+| `POST` | `/api/chat` | 🆕 Medical Chat Assistant (3-tier) | ✅ |
+| `POST` | `/api/dispute-claim` | Run Grievance Agent pipeline | ✅ |
+| `GET` | `/api/download-report/{file}` | Download generated PDF report | ✅ |
 
 > All authenticated endpoints require the `X-API-Key` header.
 
@@ -394,7 +401,8 @@ SecureShield/
 │   │   ├── policy_agent.py        # Agent 1: PDF → structured rules
 │   │   ├── case_agent.py          # Agent 2: Patient case analysis
 │   │   ├── explanation_agent.py   # Agent 3: Verdict explanation + savings
-│   │   ├── grievance_agent.py     # Agent 4: Dispute letter + PDF + email  
+│   │   ├── grievance_agent.py     # Agent 4: Dispute letter + PDF + email
+│   │   ├── chat_agent.py          # Agent 5: Medical Chat Assistant (3-tier)
 │   │   └── model_router.py        # Multi-model LLM failover chain
 │   ├── engine/
 │   │   └── decision_engine.py     # 6-phase deterministic evaluator
@@ -402,21 +410,25 @@ SecureShield/
 │   │   ├── policy_tools.py        # Tools 1-4: PDF extraction, rule validation
 │   │   ├── case_tools.py          # Tools 5-8: Medical coding, cost estimation
 │   │   ├── explanation_tools.py   # Tools 9-12: Clause explainer, what-if
-│   │   ├── grievance_tools.py     # Tools 13-16: PDF, letter, search, email  
+│   │   ├── grievance_tools.py     # Tools 13-16: PDF, letter, search, email
+│   │   ├── faq_tools.py           # Tool 17: Local FAQ keyword search
+│   │   ├── vision_tools.py        # Tool 18: Google Vision OCR
 │   │   └── audit_tools.py         # Compliance audit logging
 │   ├── knowledge/
 │   │   ├── irdai_rules.json       # IRDAI Master Circular 2024 clause KB
-│   │   └── icd_procedures.json    # 500+ ICD-10-PCS procedures
+│   │   ├── icd_procedures.json    # 500+ ICD-10-PCS procedures
+│   │   └── faq.json               # Medical & insurance FAQ cache
 │   ├── models/
 │   │   ├── policy.py              # Policy schema
 │   │   ├── case.py                # CaseFacts schema (with tenure, renewal)
 │   │   ├── verdict.py             # Verdict, RuleMatch schemas
-│   │   └── grievance.py           # GrievanceRequest/Response 
+│   │   ├── grievance.py           # GrievanceRequest/Response
+│   │   └── chat.py                # ChatRequest/Response
 │   ├── db/                        # Async SQLite
 │   ├── generated_reports/         # PDF claim reports (auto-created)
 │   ├── security.py                # HMAC keys, rate limiting, sanitization
-│   ├── config.py                  # LLM + system configuration
-│   ├── main.py                    # FastAPI application (9 endpoints)
+│   ├── config.py                  # LLM + Cloudflare Gateway configuration
+│   ├── main.py                    # FastAPI application (10 endpoints)
 │   └── requirements.txt
 ├── frontend/
 │   └── src/app/
@@ -451,10 +463,10 @@ SecureShield/
 |:---------|:----------------------------|
 | **Innovation** | Neuro-symbolic ReAct + LangGraph + **Consumer Advocacy Agent** |
 | **Domain Depth** | ICD-10 coding, IRDAI 2024 compliance, City-Tier classification |
-| **Technical Depth** | 16 custom tools, multi-model failover, async SQLite, PDF generation |
-| **Feasibility** | Deterministic engine - zero hallucination risk in financial math |
-| **Scalability** | Multi-provider LLM chain (Google + OpenRouter) - never rate-limited |
-| **Compliance** | IRDAI 2024 guardrails, 8-yr moratorium, Ombudsman escalation path |
+| **Technical Depth** | 18 custom tools, 6-provider failover, Cloudflare AI Gateway, async SQLite |
+| **Feasibility** | Deterministic engine — zero hallucination risk in financial math |
+| **Scalability** | 6-provider LLM chain (Cerebras + Groq + Gemini + xAI + Together + OpenRouter) |
+| **Compliance** | IRDAI 2024 guardrails, 5-yr moratorium, Ombudsman escalation path |
 
 ---
 
@@ -462,12 +474,12 @@ SecureShield/
 
 | Decision | Why |
 |:---------|:----|
-| **Deterministic Decision Engine** | Financial verdicts must be reproducible & auditable - LLMs hallucinate numbers |
+| **Deterministic Decision Engine** | Financial verdicts must be reproducible & auditable — LLMs hallucinate numbers |
 | **LLM only for NLP tasks** | AI does what it excels at (extraction/explanation); math stays in code |
-| **Frozen rules in SQLite** | Once extracted, rules are immutable - same case always → same verdict |
-| **16 domain-specific tools** | Purpose-built tools (IRDAI lookup, ICD-10 resolver) beat generic search |
-| **Grievance Agent** | Transforms "Denied" into a legally-backed action - unique differentiator |
-| **Multi-model failover** | 8+ models across 2 providers - free-tier rate limits are never a showstopper |
+| **Frozen rules in SQLite** | Once extracted, rules are immutable — same case always → same verdict |
+| **18 domain-specific tools** | Purpose-built tools (IRDAI lookup, ICD-10 resolver, Vision OCR) beat generic search |
+| **Grievance Agent** | Transforms "Denied" into a legally-backed action — unique differentiator |
+| **Multi-model failover** | 10+ models across 6 providers — free-tier rate limits are never a showstopper |
 
 ---
 
@@ -481,6 +493,6 @@ Licensed under the **MIT License** - see [LICENSE](LICENSE) for details.
 
 **Built for the ET GenAI Hackathon 2026** 🚀
 
-*4 Agents · 16 Tools · Zero Hallucination · Full Compliance*
+*5 Agents · 18 Tools · Zero Hallucination · Full Compliance*
 
 </div>
