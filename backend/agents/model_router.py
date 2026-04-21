@@ -39,10 +39,20 @@ logger = logging.getLogger(__name__)
 
 
 # --- Provider Configurations ---
+# NOTE: GROQ_BASE_URL/CEREBRAS_BASE_URL from config already include /chat/completions 
+#       when routed through Cloudflare, and are bare base URLs when using direct API.
+#       We normalise here: strip trailing /chat/completions if present, then re-append.
+def _endpoint(base_url: str) -> str:
+    """Ensure URL ends with /chat/completions exactly once."""
+    base = base_url.rstrip("/")
+    if base.endswith("/chat/completions"):
+        return base
+    return f"{base}/chat/completions"
+
 PROVIDERS = {
     "google": {
         "key": GOOGLE_API_KEY,
-        "url": f"{GOOGLE_BASE_URL}/chat/completions",
+        "url": _endpoint(GOOGLE_BASE_URL),
         "timeout": httpx.Timeout(connect=15.0, read=120.0, write=15.0, pool=15.0),
         "headers_fn": lambda key: {
             "Authorization": f"Bearer {key}",
@@ -51,7 +61,7 @@ PROVIDERS = {
     },
     "groq": {
         "key": GROQ_API_KEY,
-        "url": f"{GROQ_BASE_URL}/chat/completions",
+        "url": _endpoint(GROQ_BASE_URL),
         "timeout": httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0),
         "headers_fn": lambda key: {
             "Authorization": f"Bearer {key}",
@@ -60,7 +70,7 @@ PROVIDERS = {
     },
     "xai": {
         "key": XAI_API_KEY,
-        "url": f"{XAI_BASE_URL}/chat/completions",
+        "url": _endpoint(XAI_BASE_URL),
         "timeout": httpx.Timeout(connect=15.0, read=120.0, write=15.0, pool=15.0),
         "headers_fn": lambda key: {
             "Authorization": f"Bearer {key}",
@@ -69,7 +79,7 @@ PROVIDERS = {
     },
     "together": {
         "key": TOGETHER_API_KEY,
-        "url": f"{TOGETHER_BASE_URL}/chat/completions",
+        "url": _endpoint(TOGETHER_BASE_URL),
         "timeout": httpx.Timeout(connect=15.0, read=120.0, write=15.0, pool=15.0),
         "headers_fn": lambda key: {
             "Authorization": f"Bearer {key}",
@@ -78,16 +88,19 @@ PROVIDERS = {
     },
     "openrouter": {
         "key": OPENROUTER_API_KEY,
-        "url": OPENROUTER_BASE_URL,
+        # OPENROUTER_BASE_URL already ends in /chat/completions (direct or via CF)
+        "url": _endpoint(OPENROUTER_BASE_URL),
         "timeout": httpx.Timeout(connect=30.0, read=300.0, write=30.0, pool=30.0),
         "headers_fn": lambda key: {
+            "Authorization": f"Bearer {key}",
             "HTTP-Referer": "https://secureshield.app",
             "X-Title": "SecureShield",
+            "Content-Type": "application/json",
         },
     },
     "cerebras": {
         "key": CEREBRAS_API_KEY,
-        "url": f"{CEREBRAS_BASE_URL}/chat/completions",
+        "url": _endpoint(CEREBRAS_BASE_URL),
         "timeout": httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0),
         "headers_fn": lambda key: {
             "Authorization": f"Bearer {key}",

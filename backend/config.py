@@ -27,26 +27,32 @@ CEREBRAS_API_KEY = os.getenv("CEREBRAS_API_KEY")
 CF_ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID")
 CF_GATEWAY_NAME = os.getenv("CLOUDFLARE_GATEWAY_NAME")
 
+# Providers fully supported by Cloudflare AI Gateway
+_CF_SUPPORTED = {"groq", "cerebras", "openrouter"}
+
 def get_gateway_url(provider: str, default_url: str) -> str:
-    if CF_ACCOUNT_ID and CF_GATEWAY_NAME:
-        # Map provider names to Cloudflare's supported names
+    """Route through Cloudflare only for providers it reliably supports."""
+    if CF_ACCOUNT_ID and CF_GATEWAY_NAME and provider in _CF_SUPPORTED:
         cf_provider_map = {
-            "google": "google-ai-studio",
             "groq": "groq",
-            "xai": "xai",
-            "together": "togetherai",
-            "openrouter": "openrouter",
             "cerebras": "cerebras",
+            "openrouter": "openrouter",
         }
-        cf_name = cf_provider_map.get(provider, provider)
-        return f"https://gateway.ai.cloudflare.com/v1/{CF_ACCOUNT_ID}/{CF_GATEWAY_NAME}/{cf_name}"
+        cf_name = cf_provider_map[provider]
+        base = f"https://gateway.ai.cloudflare.com/v1/{CF_ACCOUNT_ID}/{CF_GATEWAY_NAME}/{cf_name}"
+        # Cloudflare gateway base URL already routes — append the completions path
+        return f"{base}/chat/completions"
     return default_url
 
-# --- Provider Base URLs ---
-GOOGLE_BASE_URL = get_gateway_url("google", "https://generativelanguage.googleapis.com/v1beta/openai")
+# --- Provider Base URLs (fallback = direct API) ---
+# Google: use direct API (Cloudflare's google-ai-studio gateway has path issues)
+GOOGLE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
 GROQ_BASE_URL = get_gateway_url("groq", "https://api.groq.com/openai/v1")
-XAI_BASE_URL = get_gateway_url("xai", "https://api.x.ai/v1")
-TOGETHER_BASE_URL = get_gateway_url("together", "https://api.together.xyz/v1")
+# xAI: bypass Cloudflare (no free credits via gateway)
+XAI_BASE_URL = "https://api.x.ai/v1"
+# Together: bypass Cloudflare ("Invalid provider" error via gateway)
+TOGETHER_BASE_URL = "https://api.together.xyz/v1"
+# OpenRouter: Cloudflare proxies it, endpoint needs /chat/completions appended
 OPENROUTER_BASE_URL = get_gateway_url("openrouter", "https://openrouter.ai/api/v1/chat/completions")
 CEREBRAS_BASE_URL = get_gateway_url("cerebras", "https://api.cerebras.ai/v1")
 
@@ -90,39 +96,48 @@ CEREBRAS_MODELS = {
 # The router tries them in order until one succeeds.
 TASK_ROUTING = {
     "policy_ingestion": [
-        # PDF parsing needs vision capability → Gemini is best
+        # Cerebras + Groq first (free, reliable, no gateway issues)
+        ("cerebras", CEREBRAS_MODELS["primary"]),
+        ("groq", GROQ_MODELS["primary"]),
+        # Gemini direct fallback (bypasses Cloudflare, uses native API)
         ("google", GOOGLE_MODELS["default"]),
         ("google", GOOGLE_MODELS["lite"]),
-        ("xai", XAI_MODELS["primary"]),
+        # Together direct fallback
         ("together", TOGETHER_MODELS["primary"]),
-        ("openrouter", None),  # Uses fallback chain
+        ("openrouter", None),
     ],
     "case_analysis": [
-        # Fast structured JSON generation → Groq is instant
+        ("cerebras", CEREBRAS_MODELS["primary"]),
         ("groq", GROQ_MODELS["primary"]),
         ("google", GOOGLE_MODELS["default"]),
         ("together", TOGETHER_MODELS["primary"]),
         ("openrouter", None),
     ],
     "explanation": [
-        # Creative text + empathetic tone → Groq for speed
+        ("cerebras", CEREBRAS_MODELS["primary"]),
         ("groq", GROQ_MODELS["primary"]),
-        ("xai", XAI_MODELS["primary"]),
+        ("google", GOOGLE_MODELS["default"]),
         ("together", TOGETHER_MODELS["primary"]),
         ("openrouter", None),
     ],
     "grievance": [
-        # Long-form legal writing → xAI Grok excels
-        ("xai", XAI_MODELS["primary"]),
+        ("cerebras", CEREBRAS_MODELS["primary"]),
         ("groq", GROQ_MODELS["primary"]),
+        ("google", GOOGLE_MODELS["default"]),
         ("together", TOGETHER_MODELS["primary"]),
+        ("openrouter", None),
+    ],
+    "chat": [
+        ("cerebras", CEREBRAS_MODELS["fast"]),
+        ("groq", GROQ_MODELS["fast"]),
+        ("google", GOOGLE_MODELS["lite"]),
         ("openrouter", None),
     ],
 }
 
 # Default routing for any unrecognized role
 DEFAULT_ROUTING = [
-    ("cerebras", CEREBRAS_MODELS["fast"]),
+    ("cerebras", CEREBRAS_MODELS["primary"]),
     ("groq", GROQ_MODELS["primary"]),
     ("google", GOOGLE_MODELS["default"]),
     ("together", TOGETHER_MODELS["primary"]),
