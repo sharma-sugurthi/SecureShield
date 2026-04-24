@@ -491,8 +491,6 @@ Licensed under the **MIT License** - see [LICENSE](LICENSE) for details.
 
 <div align="center">
 
-**Built for the ET GenAI Hackathon 2026** 🚀
-
 *5 Agents · 18 Tools · Zero Hallucination · Full Compliance*
 
 </div>
