@@ -335,40 +335,65 @@ All providers routed through **Cloudflare AI Gateway** for semantic caching & an
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
+- Docker + Docker Compose plugin (optional, recommended for containerized deployment)
 - [Google AI Studio API key](https://aistudio.google.com/apikey) (free tier: 1,500 req/day)
 - [Cerebras API key](https://cloud.cerebras.ai) (free tier: 1M tokens/day)
 - [Groq API key](https://console.groq.com) (free tier: 14,400 req/day)
 
-### 1. Backend
+### 1. Backend (Local)
 
 ```bash
 cd backend
 pip install -r requirements.txt
 
 # Add your API keys
-cp .env.example .env  # Then edit with your keys
+cp .env.example .env
+# Then edit backend/.env with your keys
 # Required: GOOGLE_API_KEY, CEREBRAS_API_KEY, GROQ_API_KEY
 # Optional: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_GATEWAY_NAME
 
-# Start server (note the Master API Key in output)
-uvicorn main:app --port 8000
+# Start the backend server
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-### 2. Frontend
+### 2. Frontend (Local)
 
 ```bash
 cd frontend
 npm install
 npm run dev
-# → Open http://localhost:3000
+# Open http://localhost:3000
 ```
 
-### 3. Usage
+### 3. Docker Deployment (Recommended)
 
-1. **Settings** → paste the API key from the backend console
-2. **Upload Policy** → drag any health insurance PDF
-3. **Check Eligibility** → fill patient details → instant verdict + savings tips
-4. **Dispute Claim** → pick a partial/denied claim → AI generates PDF report + formal letter
+```bash
+# Build and start both backend and frontend together
+docker compose up --build
+```
+
+If your environment uses the legacy Compose command:
+
+```bash
+docker-compose up --build
+```
+
+The stack exposes:
+- Backend: http://localhost:8000
+- Frontend: http://localhost:3000
+
+The Docker setup uses:
+- `backend/Dockerfile` to build the FastAPI backend
+- `frontend/Dockerfile` to build the Next.js frontend
+- `docker-compose.yml` to wire both services together
+
+### 4. Usage
+
+1. Open the frontend at **http://localhost:3000**
+2. In **Settings**, paste the backend `X-API-Key` from startup logs
+3. **Upload Policy** → drag any health insurance PDF
+4. **Check Eligibility** → submit patient details
+5. For partial/denied claims, run **Dispute Claim** to generate a PDF report and grievance letter
 
 ---
 
