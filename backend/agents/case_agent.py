@@ -216,31 +216,93 @@ async def extract_case_facts(raw_input: dict) -> CaseFacts:
 def _build_facts_from_structured(
     raw: dict, norm: dict, icd: dict, tier: dict, cost: dict
 ) -> CaseFacts:
-    """Build CaseFacts directly from structured input + tool outputs (no LLM needed)."""
+    """
+    Build CaseFacts directly from structured input + tool outputs (pure local logic, zero LLM).
+    Handles missing fields gracefully with sensible defaults and tool-provided data.
+    """
+    # === Room Type (with normalization) ===
     room_key = str(raw.get("room_type", "semi_private")).lower().replace("-", "_").replace(" ", "_")
     room_type = _ROOM_TYPE_MAP.get(room_key, RoomType.SEMI_PRIVATE)
 
+    # === Admission Type (with normalization) ===
     admission_key = str(raw.get("admission_type", "planned")).lower()
     admission_type = _ADMISSION_MAP.get(admission_key, AdmissionType.PLANNED)
 
+    # === City Tier (from classifier tool or raw input) ===
     tier_key = tier.get("tier", "tier_1")
     city_tier = CityTier(tier_key)
 
-    procedure = norm.get("detected_procedure") or str(raw.get("procedure", "Unknown")).strip()
+    # === Procedure (prefer detected, then from raw input) ===
+    procedure = norm.get("detected_procedure") or str(raw.get("procedure", raw.get("diagnosis", "Unknown Procedure"))).strip()
+    
+    # === Pre-existing Conditions (combine raw + detected) ===
     conditions = list(set(
-        raw.get("pre_existing_conditions", []) + norm.get("detected_conditions", [])
+        [str(c).strip() for c in raw.get("pre_existing_conditions", []) if c] +
+        norm.get("detected_conditions", [])
     ))
 
-    room_cost = float(raw.get("room_cost_per_day", cost.get("room_cost_per_day", 4000)))
-    stay_days = int(raw.get("stay_duration_days", cost.get("stay_days", 3)))
-    proc_cost = raw.get("procedure_cost")
-    total = float(raw.get("total_claimed_amount", 0))
+    # === Room Cost Per Day (prefer raw, fall back to cost estimator) ===
+    room_cost = None
+    if "room_cost_per_day" in raw and raw["room_cost_per_day"]:
+        room_cost = float(raw["room_cost_per_day"])
+    else:
+        room_cost = float(cost.get("room_cost_per_day", 4000))
+
+    # === Stay Duration (prefer raw, fall back to cost estimator) ===
+    stay_days = None
+    if "stay_duration_days" in raw and raw["stay_duration_days"]:
+        stay_days = int(raw["stay_duration_days"])
+    else:
+        stay_days = int(cost.get("stay_days", 3))
+
+    # === Procedure Cost (optional, may be part of total_claimed_amount) ===
+    proc_cost = None
+    if "procedure_cost" in raw and raw["procedure_cost"]:
+        try:
+            proc_cost = float(raw["procedure_cost"])
+        except (ValueError, TypeError):
+            pass
+
+    # === Total Claimed Amount (calculate if not provided) ===
+    total = 0.0
+    if "total_claimed_amount" in raw and raw["total_claimed_amount"]:
+        total = float(raw["total_claimed_amount"])
+    else:
+        # Calculate from components if not provided
+        room_component = room_cost * stay_days
+        procedure_component = proc_cost if proc_cost else 0
+        total = max(room_component + procedure_component, 0)
+    
+    # Fallback: use cost estimator median if total is zero
     if total <= 0:
-        total = room_cost * stay_days + (float(proc_cost) if proc_cost else 0)
+        total = cost.get("estimated_total", {}).get("median", 100000)
+
+    # === Optional Fields ===
+    patient_name = raw.get("patient_name") or raw.get("patient") or None
+    patient_age = None
+    if "patient_age" in raw and raw["patient_age"]:
+        try:
+            patient_age = int(raw["patient_age"])
+        except (ValueError, TypeError):
+            pass
+
+    policy_start_date = raw.get("policy_start_date") or raw.get("policy_inception_date") or None
+    
+    policy_tenure_years = 1
+    if "policy_tenure_years" in raw and raw["policy_tenure_years"]:
+        try:
+            policy_tenure_years = int(raw["policy_tenure_years"])
+        except (ValueError, TypeError):
+            policy_tenure_years = 1
+
+    is_renewal = raw.get("is_renewal", False)
+    hospital_name = raw.get("hospital_name") or raw.get("hospital") or None
+
+    logger.info(f"[CaseAgent] ✓ Built CaseFacts from structured data: {procedure}, ₹{total:,.0f}, {city_tier.value}")
 
     return CaseFacts(
-        patient_name=raw.get("patient_name"),
-        patient_age=raw.get("patient_age"),
+        patient_name=patient_name,
+        patient_age=patient_age,
         room_type=room_type,
         room_cost_per_day=room_cost,
         stay_duration_days=stay_days,
@@ -248,9 +310,11 @@ def _build_facts_from_structured(
         procedure=procedure,
         procedure_cost=proc_cost,
         pre_existing_conditions=conditions,
-        policy_start_date=raw.get("policy_start_date"),
+        policy_start_date=policy_start_date,
+        policy_tenure_years=policy_tenure_years,
+        is_renewal=is_renewal,
         city_tier=city_tier,
-        hospital_name=raw.get("hospital_name"),
+        hospital_name=hospital_name,
         total_claimed_amount=total,
     )
 

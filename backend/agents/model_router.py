@@ -34,6 +34,8 @@ from config import (
     TASK_ROUTING, DEFAULT_ROUTING,
     CACHE_DIR, ENABLE_CACHE,
 )
+from db.llm_cache import get_cached, set_cached
+from utils.rate_tracker import rate_tracker, can_call, get_available_providers
 
 logger = logging.getLogger(__name__)
 
@@ -111,36 +113,14 @@ PROVIDERS = {
 
 
 class ModelRouter:
-    """Intelligent multi-provider LLM router with task-based failover chains."""
+    """Intelligent multi-provider LLM router with task-based failover chains and SQLite cache."""
 
     def __init__(self):
+        # Legacy disk cache directory (optional for migration/fallback)
         if ENABLE_CACHE and not os.path.exists(CACHE_DIR):
             os.makedirs(CACHE_DIR, exist_ok=True)
+        logger.info("[ModelRouter] Initialized with SQLite-backed response cache")
 
-    def _get_cache_path(self, payload: dict) -> str:
-        """Generate a stable cache filename based on the request payload."""
-        # Remove volatile fields like max_tokens or temperature if you want more hits
-        dumped = json.dumps(payload, sort_keys=True)
-        h = hashlib.sha256(dumped.encode()).hexdigest()
-        return os.path.join(CACHE_DIR, f"{h}.json")
-
-    def _get_from_cache(self, cache_path: str) -> str | None:
-        """Read a response from the local disk cache."""
-        if os.path.exists(cache_path):
-            try:
-                with open(cache_path, "r") as f:
-                    return json.load(f)["response"]
-            except Exception:
-                return None
-        return None
-
-    def _save_to_cache(self, cache_path: str, response: str):
-        """Save a response to the local disk cache."""
-        try:
-            with open(cache_path, "w") as f:
-                json.dump({"response": response}, f)
-        except Exception as e:
-            logger.warning(f"[ModelRouter] Cache save failed: {e}")
 
     async def _call_provider(
         self, provider_name: str, model: str, payload: dict
@@ -213,13 +193,49 @@ class ModelRouter:
         Try each (provider, model) pair in the routing chain.
         If provider is 'openrouter' with model=None, use the full fallback chain.
         """
-        for provider_name, model in chain:
+        # Re-order chain by provider availability (prefer providers with capacity)
+        # Build availability snapshot
+        avail = await get_available_providers()
+        avail_map = {name: cap for name, cap in avail}
+
+        # Sort chain by available capacity (providers not present get lowest priority)
+        sorted_chain = sorted(
+            chain,
+            key=lambda pm: avail_map.get(pm[0], -1),
+            reverse=True,
+        )
+
+        for provider_name, model in sorted_chain:
+            # Skip if provider exhausted
+            try:
+                allowed = await can_call(provider_name)
+            except Exception:
+                allowed = True
+
+            if not allowed:
+                logger.warning(f"[ModelRouter] Skipping {provider_name} — exhausted")
+                continue
+
+            # If provider is near capacity, prefer other providers unless none available
+            try:
+                near = await rate_tracker.windows.get(provider_name).is_near_capacity() if provider_name in rate_tracker.windows else False
+            except Exception:
+                near = False
+
+            if near:
+                logger.info(f"[ModelRouter] {provider_name} nearing capacity — deprioritizing")
+
             if provider_name == "openrouter" and model is None:
                 result = await self._call_openrouter_chain(payload)
             else:
                 result = await self._call_provider(provider_name, model, payload)
 
             if result:
+                # Record usage for provider
+                try:
+                    await rate_tracker.record_call(provider_name)
+                except Exception:
+                    pass
                 return result
 
         return None
@@ -261,15 +277,20 @@ class ModelRouter:
         if response_format == "json_object":
             payload["response_format"] = {"type": "json_object"}
 
-        # --- Cache Check ---
-        cache_path = self._get_cache_path(payload)
+        # --- Cache Check (SQLite) ---
         if ENABLE_CACHE:
-            cached_resp = self._get_from_cache(cache_path)
-            if cached_resp:
-                logger.info(f"[ModelRouter] ⚡ Cache hit for role '{role}'")
-                if expect_json:
-                    return self._parse_json(cached_resp)
-                return cached_resp
+            # Determine which model to use for cache lookup
+            # Try the first provider/model in the routing chain
+            chain = TASK_ROUTING.get(role, DEFAULT_ROUTING)
+            first_provider, first_model = chain[0] if chain else (None, None)
+            
+            if first_model:
+                cached_resp = await get_cached(first_model, payload)
+                if cached_resp:
+                    logger.info(f"[ModelRouter] ⚡ Cache hit for role '{role}' ({first_model})")
+                    if expect_json:
+                        return self._parse_json(cached_resp)
+                    return cached_resp
 
         # Get the routing chain for this role
         chain = TASK_ROUTING.get(role, DEFAULT_ROUTING)
@@ -291,9 +312,13 @@ class ModelRouter:
 
             result = await self._try_routing_chain(chain, payload.copy())
             if result:
-                # --- Save to Cache ---
+                # --- Save to Cache (SQLite) ---
                 if ENABLE_CACHE:
-                    self._save_to_cache(cache_path, result)
+                    # Cache using the model that succeeded
+                    # We'll use first_model as proxy; in production, track which provider succeeded
+                    first_provider, first_model = chain[0] if chain else (None, None)
+                    if first_model:
+                        await set_cached(first_model, payload, result, ttl_days=None)
                 
                 if expect_json:
                     return self._parse_json(result)

@@ -119,12 +119,12 @@ async def generate_explanation(
         audit_trail_logger(
             agent_name="ExplanationAgent", action="calculate_savings",
             input_summary=f"Verdict: {verdict.overall_verdict.value}, coverage: {verdict.coverage_percentage}%",
-            output_summary=f"Found {len(savings_data.get('alternatives', []))} alternatives, "
-                          f"max savings: ₹{savings_data.get('max_possible_savings', 0):,.0f}" if savings_data else "Savings calculation failed",
+            output_summary=(
+                f"Found {len(savings_data.get('alternatives', []))} alternatives, "
+                f"max savings: ₹{savings_data.get('max_possible_savings', 0):,.0f}"
+            ) if savings_data else "Savings calculation failed",
             tools_used=["savings_calculator", "what_if_analyzer"],
             duration_ms=(t1 - t0) * 1000,
-        )
-
         )
 
     # === Step 2.5: Template Check (FREE) ===

@@ -276,56 +276,261 @@ def city_tier_classifier(city_or_hospital: str) -> dict:
 
 
 # --- Tool 8: Medical Term Normalizer ---
+# Comprehensive abbreviation map with 150+ medical terms (Indian healthcare context)
 
 _ABBREVIATION_MAP = {
-    # Procedures
+    # === SURGICAL PROCEDURES (50+) ===
+    # General Surgery
     "lap chole": "Laparoscopic Cholecystectomy",
+    "open chole": "Open Cholecystectomy",
     "lap appy": "Laparoscopic Appendectomy",
+    "open appy": "Open Appendectomy",
+    "hernia repair": "Hernia Repair",
+    "ventral hernia": "Ventral Hernia Repair",
+    
+    # Obstetric & Gynecology
     "lscs": "Lower Segment Caesarean Section",
+    "cs": "Caesarean Section",
     "c-section": "Caesarean Section",
+    "d&c": "Dilation and Curettage",
+    "hysterectomy": "Hysterectomy",
+    "tubectomy": "Tubectomy",
+    "iud insertion": "Intrauterine Device Insertion",
+    
+    # Cardiac & Thoracic
     "cabg": "Coronary Artery Bypass Graft",
     "ptca": "Percutaneous Transluminal Coronary Angioplasty",
+    "pci": "Percutaneous Coronary Intervention",
+    "stent placement": "Stent Placement",
+    "avr": "Aortic Valve Replacement",
+    "mitral valve": "Mitral Valve Repair/Replacement",
+    
+    # Urology
+    "turp": "Transurethral Resection of Prostate",
     "pcnl": "Percutaneous Nephrolithotomy",
     "eswl": "Extracorporeal Shock Wave Lithotripsy",
-    "turp": "Transurethral Resection of Prostate",
+    "ureteric stent": "Ureteric Stent Placement",
+    "circumcision": "Circumcision",
+    
+    # Orthopedic
     "tkr": "Total Knee Replacement",
     "thr": "Total Hip Replacement",
     "acl": "Anterior Cruciate Ligament Reconstruction",
-    "ercp": "Endoscopic Retrograde Cholangiopancreatography",
-    "ugib": "Upper GI Bleed",
-    "dvt": "Deep Vein Thrombosis",
-    "pe": "Pulmonary Embolism",
-    "acs": "Acute Coronary Syndrome",
-    "ami": "Acute Myocardial Infarction",
-    "cva": "Cerebrovascular Accident (Stroke)",
+    "pcl reconstruction": "Posterior Cruciate Ligament Reconstruction",
+    "rotator cuff": "Rotator Cuff Repair",
+    "arthroscopy": "Arthroscopic Surgery",
+    "meniscectomy": "Meniscectomy",
+    "joint replacement": "Joint Replacement Surgery",
     
-    # Conditions
+    # GI & Hepatobiliary
+    "ercp": "Endoscopic Retrograde Cholangiopancreatography",
+    "esd": "Endoscopic Submucosal Dissection",
+    "gastric bypass": "Gastric Bypass Surgery",
+    "liver resection": "Liver Resection",
+    "splenectomy": "Splenectomy",
+    
+    # ENT Surgery
+    "fess": "Functional Endoscopic Sinus Surgery",
+    "tonsillectomy": "Tonsillectomy",
+    "adenoidectomy": "Adenoidectomy",
+    "thyroidectomy": "Thyroidectomy",
+    "mastoidectomy": "Mastoidectomy",
+    "myringotomy": "Myringotomy",
+    
+    # Neurosurgery
+    "craniotomy": "Craniotomy",
+    "laminectomy": "Laminectomy",
+    "spinal fusion": "Spinal Fusion",
+    "discectomy": "Discectomy",
+    "aneurysm clipping": "Aneurysm Clipping",
+    
+    # Oncologic
+    "mastectomy": "Mastectomy",
+    "lumpectomy": "Lumpectomy",
+    "colostomy": "Colostomy",
+    "ileostomy": "Ileostomy",
+    
+    # === DIAGNOSTIC PROCEDURES (15+) ===
+    "endoscopy": "Endoscopy",
+    "colonoscopy": "Colonoscopy",
+    "ct scan": "CT Scan",
+    "mri": "Magnetic Resonance Imaging",
+    "ultrasound": "Ultrasound",
+    "echo": "Echocardiography",
+    "ekg": "Electrocardiography",
+    "ecg": "Electrocardiography",
+    "angiography": "Coronary Angiography",
+    "biopsy": "Biopsy",
+    "pap smear": "Pap Smear",
+    "mammography": "Mammography",
+    "xray": "X-Ray",
+    "x-ray": "X-Ray",
+    
+    # === MEDICAL CONDITIONS & DISEASES (50+) ===
+    # Endocrine
     "dm": "Diabetes Mellitus",
+    "dm1": "Type 1 Diabetes Mellitus",
     "dm2": "Type 2 Diabetes Mellitus",
+    "t1dm": "Type 1 Diabetes Mellitus",
     "t2dm": "Type 2 Diabetes Mellitus",
+    "gestational diabetes": "Gestational Diabetes",
+    "thyroid": "Thyroid Disorder",
+    "hyperthyroid": "Hyperthyroidism",
+    "hypothyroid": "Hypothyroidism",
+    
+    # Cardiovascular
     "htn": "Hypertension",
-    "ckd": "Chronic Kidney Disease",
-    "copd": "Chronic Obstructive Pulmonary Disease",
+    "hypertension": "Hypertension",
+    "hbp": "High Blood Pressure",
     "ihd": "Ischemic Heart Disease",
     "cad": "Coronary Artery Disease",
+    "acs": "Acute Coronary Syndrome",
+    "ami": "Acute Myocardial Infarction",
+    "mi": "Myocardial Infarction",
+    "angina": "Angina Pectoris",
+    "chf": "Congestive Heart Failure",
+    "hf": "Heart Failure",
+    "arrhythmia": "Cardiac Arrhythmia",
+    "afib": "Atrial Fibrillation",
+    "dvt": "Deep Vein Thrombosis",
+    "pe": "Pulmonary Embolism",
+    "stroke": "Cerebrovascular Accident",
+    "cva": "Cerebrovascular Accident",
+    "hypertensive crisis": "Hypertensive Crisis",
+    "cardiogenic shock": "Cardiogenic Shock",
+    
+    # Respiratory
+    "copd": "Chronic Obstructive Pulmonary Disease",
+    "asthma": "Bronchial Asthma",
+    "pneumonia": "Pneumonia",
+    "tuberculosis": "Tuberculosis",
+    "tb": "Tuberculosis",
+    "bronchitis": "Bronchitis",
+    "pleurisy": "Pleurisy",
+    "pneumothorax": "Pneumothorax",
+    "ards": "Acute Respiratory Distress Syndrome",
+    
+    # Gastrointestinal
+    "gerd": "Gastroesophageal Reflux Disease",
+    "peptic ulcer": "Peptic Ulcer Disease",
+    "ibd": "Inflammatory Bowel Disease",
+    "hepatitis": "Hepatitis",
+    "cirrhosis": "Cirrhosis",
+    "gastritis": "Gastritis",
+    "pancreatitis": "Pancreatitis",
+    "appendicitis": "Appendicitis",
+    "cholecystitis": "Cholecystitis",
+    "kidney stones": "Nephrolithiasis",
+    "gallstones": "Cholelithiasis",
+    "ugib": "Upper GI Bleed",
+    "lgib": "Lower GI Bleed",
+    
+    # Renal & Urinary
     "ckd": "Chronic Kidney Disease",
     "esrd": "End Stage Renal Disease",
+    "uti": "Urinary Tract Infection",
     "bph": "Benign Prostatic Hyperplasia",
+    "prostatitis": "Prostatitis",
+    
+    # Rheumatologic & Musculoskeletal
     "ra": "Rheumatoid Arthritis",
     "oa": "Osteoarthritis",
     "sle": "Systemic Lupus Erythematosus",
+    "sjögren's": "Sjögren's Syndrome",
+    "spondylitis": "Ankylosing Spondylitis",
+    "fibromyalgia": "Fibromyalgia",
+    "gout": "Gout",
+    "osteoporosis": "Osteoporosis",
     
-    # Room types
+    # Infectious
+    "hiv": "Human Immunodeficiency Virus",
+    "hepatitis b": "Hepatitis B",
+    "hepatitis c": "Hepatitis C",
+    "malaria": "Malaria",
+    "dengue": "Dengue Fever",
+    "covid": "COVID-19",
+    "covid-19": "COVID-19",
+    
+    # Hematologic
+    "anemia": "Anemia",
+    "leukemia": "Leukemia",
+    "lymphoma": "Lymphoma",
+    "sickle cell": "Sickle Cell Disease",
+    "thrombocytopenia": "Thrombocytopenia",
+    
+    # Neurologic
+    "epilepsy": "Epilepsy",
+    "seizure": "Seizure Disorder",
+    "parkinson's": "Parkinson's Disease",
+    "alzheimer's": "Alzheimer's Disease",
+    "migraine": "Migraine",
+    "meningitis": "Meningitis",
+    "encephalitis": "Encephalitis",
+    
+    # Psychiatric
+    "depression": "Depression",
+    "anxiety": "Anxiety Disorder",
+    "bipolar": "Bipolar Disorder",
+    "schizophrenia": "Schizophrenia",
+    
+    # Obstetric
+    "pregnancy": "Pregnancy",
+    "preeclampsia": "Preeclampsia",
+    "eclampsia": "Eclampsia",
+    
+    # Oncologic
+    "cancer": "Cancer/Malignancy",
+    "breast cancer": "Breast Cancer",
+    "lung cancer": "Lung Cancer",
+    "colon cancer": "Colorectal Cancer",
+    "prostate cancer": "Prostate Cancer",
+    "cervical cancer": "Cervical Cancer",
+    
+    # === ROOM TYPES & LOCATION (25+) ===
+    "general": "General Ward",
+    "general ward": "General Ward",
     "gen ward": "General Ward",
-    "pvt room": "Private Room",
-    "single a/c": "Single AC Room",
+    "ward": "General Ward",
+    "semi-private": "Semi-Private Room",
+    "semi private": "Semi-Private Room",
+    "semi_private": "Semi-Private Room",
     "sharing": "Semi-Private Room",
+    "twin sharing": "Semi-Private Room",
+    "two bed": "Semi-Private Room",
+    "private": "Private Room",
+    "pvt": "Private Room",
+    "pvt room": "Private Room",
+    "private room": "Private Room",
+    "single": "Single AC Room",
+    "single ac": "Single AC Room",
+    "single a/c": "Single AC Room",
+    "ac room": "Single AC Room",
+    "air conditioned": "Single AC Room",
+    "deluxe": "Deluxe Room",
+    "deluxe room": "Deluxe Room",
+    "suite": "Executive Suite",
+    "executive suite": "Executive Suite",
+    "presidential": "Executive Suite",
+    "icu": "ICU Room",
+    "intensive care": "ICU Room",
+    "critical care": "ICU Room",
+    "high dependency": "High Dependency Unit",
+    "hdu": "High Dependency Unit",
+    
+    # === ADMISSION TYPES ===
+    "planned": "Planned Admission",
+    "elective": "Planned Admission",
+    "scheduled": "Planned Admission",
+    "emergency": "Emergency Admission",
+    "urgent": "Emergency Admission",
+    "accident": "Emergency Admission",
 }
 
 
 def medical_term_normalizer(text: str) -> dict:
     """
     Normalize medical terms, abbreviations, and shorthand in clinical text.
+    Purely local operation — no LLM calls.
     
     Args:
         text: Raw clinical text with possible abbreviations
@@ -345,34 +550,129 @@ def medical_term_normalizer(text: str) -> dict:
     conditions = []
     procedure = None
 
-    # Resolve abbreviations
+    # === Step 1: Resolve abbreviations (word-boundary matching) ===
     for abbrev, expanded in _ABBREVIATION_MAP.items():
         if abbrev in text_lower:
-            # Check it's a word boundary match (not a substring)
+            # Check word boundary (not substring) — case insensitive
             pattern = r'\b' + re.escape(abbrev) + r'\b'
             if re.search(pattern, text_lower):
                 normalized = re.sub(pattern, expanded, normalized, flags=re.IGNORECASE)
                 resolved.append({"abbrev": abbrev.upper(), "expanded": expanded})
 
-    # Detect known conditions
+    # === Step 2: Detect known conditions (expanded) ===
     condition_keywords = {
-        "diabetes": "Diabetes Mellitus", "hypertension": "Hypertension",
-        "thyroid": "Thyroid Disorder", "asthma": "Bronchial Asthma",
-        "kidney": "Kidney Disease", "heart disease": "Heart Disease",
-        "cancer": "Cancer/Malignancy", "arthritis": "Arthritis",
+        # Endocrine
+        "diabetes": "Diabetes Mellitus",
+        "diabetic": "Diabetes Mellitus",
+        "hyperglycemia": "Hyperglycemia",
+        "hypoglycemia": "Hypoglycemia",
+        "thyroid": "Thyroid Disorder",
+        "hyperthyroid": "Hyperthyroidism",
+        "hypothyroid": "Hypothyroidism",
+        
+        # Cardiovascular
+        "hypertension": "Hypertension",
+        "high blood pressure": "Hypertension",
+        "coronary": "Coronary Artery Disease",
+        "heart disease": "Heart Disease",
+        "angina": "Angina Pectoris",
+        "heart failure": "Heart Failure",
+        "cardiac": "Cardiac Disorder",
+        "arrhythmia": "Arrhythmia",
+        "atrial fibrillation": "Atrial Fibrillation",
+        "myocardial infarction": "Myocardial Infarction",
+        "thrombosis": "Thrombosis",
+        "clot": "Thrombosis",
+        
+        # Respiratory
+        "asthma": "Asthma",
+        "copd": "COPD",
+        "pneumonia": "Pneumonia",
+        "tuberculosis": "Tuberculosis",
+        "bronchitis": "Bronchitis",
+        "emphysema": "Emphysema",
+        
+        # Gastrointestinal
+        "gerd": "GERD",
+        "reflux": "Gastroesophageal Reflux",
+        "ulcer": "Peptic Ulcer Disease",
+        "gastritis": "Gastritis",
+        "hepatitis": "Hepatitis",
+        "cirrhosis": "Cirrhosis",
+        "pancreatitis": "Pancreatitis",
+        "appendicitis": "Appendicitis",
+        "gallstone": "Cholelithiasis",
+        "kidney stone": "Nephrolithiasis",
+        "colitis": "Colitis",
+        
+        # Renal
+        "kidney disease": "Kidney Disease",
+        "chronic kidney": "Chronic Kidney Disease",
+        "renal failure": "Renal Failure",
+        "urinary": "Urinary Disorder",
+        "kidney": "Kidney Disease",
+        
+        # Rheumatologic
+        "arthritis": "Arthritis",
+        "rheumatoid": "Rheumatoid Arthritis",
+        "osteoarthritis": "Osteoarthritis",
+        "joint": "Joint Disorder",
+        "lupus": "Systemic Lupus Erythematosus",
+        "gout": "Gout",
+        "osteoporosis": "Osteoporosis",
+        
+        # Infectious
+        "infection": "Infection",
+        "fever": "Fever",
+        "malaria": "Malaria",
+        "dengue": "Dengue Fever",
+        "typhoid": "Typhoid",
+        "hiv": "HIV",
+        "hepatitis": "Hepatitis",
+        "tuberculosis": "Tuberculosis",
+        "covid": "COVID-19",
+        
+        # Neurologic
+        "epilepsy": "Epilepsy",
+        "seizure": "Seizure Disorder",
         "stroke": "Cerebrovascular Accident",
+        "migraine": "Migraine",
+        "headache": "Headache",
+        "parkinson": "Parkinson's Disease",
+        "alzheimer": "Alzheimer's Disease",
+        
+        # Hematologic
+        "anemia": "Anemia",
+        "leukemia": "Leukemia",
+        "lymphoma": "Lymphoma",
+        "cancer": "Cancer/Malignancy",
+        "tumor": "Tumor",
+        "malignancy": "Malignancy",
+        
+        # Psychiatric
+        "depression": "Depression",
+        "anxiety": "Anxiety Disorder",
+        "bipolar": "Bipolar Disorder",
+        
+        # Obstetric
+        "pregnancy": "Pregnancy",
+        "pregnant": "Pregnancy",
+        "preeclampsia": "Preeclampsia",
+        "eclampsia": "Eclampsia",
     }
+    
     for keyword, condition in condition_keywords.items():
-        if keyword in text_lower:
+        if keyword in text_lower and condition not in conditions:
             conditions.append(condition)
 
-    # Try to identify the primary procedure
+    # === Step 3: Try to identify primary procedure ===
     proc_result = icd_procedure_lookup(normalized)
-    if proc_result["found"] and proc_result["procedure"]:
+    if proc_result.get("found") and proc_result.get("procedure"):
         procedure = proc_result["procedure"]["name"]
 
     logger.info(f"[Tool:medical_term_normalizer] Resolved {len(resolved)} abbreviations, "
-                f"detected {len(conditions)} conditions")
+                f"detected {len(conditions)} conditions, identified procedure: {procedure or 'unknown'}")
+    
     return {
         "original": text,
         "normalized": normalized,

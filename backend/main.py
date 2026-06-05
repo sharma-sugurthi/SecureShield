@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse
 
 from config import APP_NAME, APP_VERSION
 from db.database import init_db, get_all_policies, get_policy, get_check_history
+from db.llm_cache import init_llm_cache
 from agents.policy_agent import ingest_policy
 from agents.orchestrator import run_eligibility_check
 from models.policy import PolicyUploadResponse
@@ -42,6 +43,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Initialize database and security on startup."""
     await init_db()
+    await init_llm_cache()
     master_key = get_or_create_master_key()
     
     # Activate local Ollama if USE_OLLAMA=true (git-ignored, demo only)
@@ -307,9 +309,6 @@ async def dispute_claim(
         raise HTTPException(
             status_code=500,
             detail=f"Grievance pipeline failed: {str(e)}",
-        )
-
-
         )
 
 

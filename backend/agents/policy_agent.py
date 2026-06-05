@@ -16,7 +16,7 @@ import logging
 import time
 from agents.model_router import router
 from models.policy import PolicyDocument, PolicyRule, LimitType
-from db.database import save_policy
+from db.database import save_policy, get_policy_by_hash
 from security import validate_pdf_upload
 from tools.policy_tools import (
     pdf_text_extractor, pdf_table_extractor,
@@ -128,12 +128,14 @@ async def ingest_policy(pdf_bytes: bytes, filename: str = "policy.pdf") -> Polic
     """
     Full policy ingestion pipeline with tool-calling ReAct pattern:
     
-    Step 1: [Tool] pdf_text_extractor → extract raw text
-    Step 2: [Tool] pdf_table_extractor → extract structured tables
-    Step 3: [Tool] irdai_regulation_lookup → get relevant regulations
-    Step 4: [LLM] Gemini Flash → structured rule extraction (with all tool outputs as context)
-    Step 5: [Tool] rule_validator → validate extracted rules
-    Step 6: [DB] save_policy → persist to database
+    TASK 3 ENHANCEMENT: PDF Hash Caching
+    - Compute SHA-256 hash of PDF bytes
+    - Check if identical PDF was already extracted
+    - Return cached policy if hash match found (zero LLM calls)
+    - Otherwise run full extraction pipeline
+    
+    Pipeline: Hash Check → Policy Lookup → Text Extract → Table Extract → IRDAI Lookup → 
+              Rule-Based Extract → LLM Extract → Validate → Save
     
     Each step is audited for compliance traceability.
     """
@@ -142,6 +144,52 @@ async def ingest_policy(pdf_bytes: bytes, filename: str = "policy.pdf") -> Polic
 
     # --- Security validation ---
     validate_pdf_upload(pdf_bytes, filename)
+
+    # === TASK 3: Step 0 — Compute PDF Hash & Check Cache ===
+    pdf_hash = hashlib.sha256(pdf_bytes).hexdigest()
+    t0 = time.time()
+    cached_policy = await get_policy_by_hash(pdf_hash)
+    t1 = time.time()
+
+    if cached_policy:
+        # Cache HIT: Return immediately without any LLM calls
+        logger.info(f"[PolicyAgent] ⚡ PDF CACHE HIT for {filename} (hash: {pdf_hash[:12]}...)")
+        logger.info(f"[PolicyAgent] ✓ Returning cached policy #{cached_policy['id']}: "
+                    f"{cached_policy['insurer']} — {cached_policy['plan_name']}, "
+                    f"{len(cached_policy['rules'])} rules")
+        
+        audit_trail_logger(
+            agent_name="PolicyAgent",
+            action="pdf_cache_hit",
+            input_summary=f"PDF: {filename} (hash: {pdf_hash[:12]}...)",
+            output_summary=f"Cache HIT — Returned policy #{cached_policy['id']} with {len(cached_policy['rules'])} rules (zero LLM calls)",
+            tools_used=["get_policy_by_hash"],
+            duration_ms=(t1 - t0) * 1000,
+            metadata={"policy_id": cached_policy['id'], "pdf_hash": pdf_hash},
+        )
+
+        return PolicyDocument(
+            id=cached_policy["id"],
+            insurer=cached_policy["insurer"],
+            plan_name=cached_policy["plan_name"],
+            sum_insured=cached_policy["sum_insured"],
+            policy_type=cached_policy["policy_type"],
+            rules=[PolicyRule(**r) for r in cached_policy["rules"]],
+            raw_text_hash=pdf_hash,
+        )
+
+    # Cache MISS: Continue with full extraction pipeline
+    logger.info(f"[PolicyAgent] PDF not cached (hash: {pdf_hash[:12]}...). Running full extraction.")
+    
+    audit_trail_logger(
+        agent_name="PolicyAgent",
+        action="pdf_cache_miss",
+        input_summary=f"PDF: {filename} (hash: {pdf_hash[:12]}...)",
+        output_summary="Cache MISS — Running full extraction pipeline",
+        tools_used=["get_policy_by_hash"],
+        duration_ms=(t1 - t0) * 1000,
+        metadata={"pdf_hash": pdf_hash},
+    )
 
     # === Step 1: Extract text (Tool: pdf_text_extractor) ===
     t0 = time.time()
@@ -212,8 +260,7 @@ async def ingest_policy(pdf_bytes: bytes, filename: str = "policy.pdf") -> Polic
     # === Step 4: LLM-based rule extraction (with ALL tool outputs as context) ===
     # Combine all text
     full_text = "\n\n".join(p["text"] for p in text_result["pages"] if p["text"])
-    text_hash = hashlib.sha256(full_text.encode()).hexdigest()[:16]
-
+    
     # Format table data for LLM
     table_context = ""
     if table_result["tables"]:
@@ -297,14 +344,14 @@ INSTRUCTIONS:
         if issue["severity"] == "critical":
             logger.warning(f"[PolicyAgent] CRITICAL: {issue['message']}")
 
-    # === Step 6: Save to database ===
+    # === Step 6: Save to database (with PDF hash for caching) ===
     policy_id = await save_policy(
         insurer=insurer,
         plan_name=plan_name,
         sum_insured=sum_insured,
         policy_type=policy_type,
         rules=[r.model_dump() for r in validated_rules],
-        raw_text_hash=text_hash,
+        raw_text_hash=pdf_hash,  # TASK 3: Store PDF hash for future cache lookups
     )
 
     pipeline_end = time.time()
@@ -315,19 +362,20 @@ INSTRUCTIONS:
         action="pipeline_complete",
         input_summary=f"PDF: {filename}",
         output_summary=f"Policy #{policy_id}: {insurer} — {plan_name}, SI: ₹{sum_insured:,.0f}, "
-                       f"{len(validated_rules)} rules",
+                       f"{len(validated_rules)} rules (PDF hash: {pdf_hash[:12]}...)",
         tools_used=["pdf_text_extractor", "pdf_table_extractor", "irdai_regulation_lookup",
                     "model_router", "rule_validator", "save_policy"],
         duration_ms=total_ms,
         metadata={
             "policy_id": policy_id,
+            "pdf_hash": pdf_hash,
             "tables_found": table_result["tables_found"],
             "validation_issues": len(validation_report["issues"]),
         },
     )
 
     logger.info(f"[PolicyAgent] ✓ Pipeline complete in {total_ms:.0f}ms — "
-                f"Policy #{policy_id}: {len(validated_rules)} rules")
+                f"Policy #{policy_id}: {len(validated_rules)} rules (hash: {pdf_hash[:12]}...)")
 
     return PolicyDocument(
         id=policy_id,
@@ -336,5 +384,5 @@ INSTRUCTIONS:
         sum_insured=sum_insured,
         policy_type=policy_type,
         rules=validated_rules,
-        raw_text_hash=text_hash,
+        raw_text_hash=pdf_hash,
     )
