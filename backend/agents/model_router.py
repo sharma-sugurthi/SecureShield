@@ -1,12 +1,11 @@
 """
 Model Router — Intelligent Multi-Provider LLM Client with Task-Based Routing.
 
-5 Providers (in priority by task type):
+4 Providers (in priority by task type):
   1. Groq       — Llama 3.3 70B, blazing fast, free (primary for text tasks)
   2. Google     — Gemini Flash, best vision model (primary for PDF parsing)
   3. xAI        — Grok, $25/mo free (primary for long-form writing)
-  4. Together   — Llama 3.3 70B Turbo (reliable backup)
-  5. OpenRouter — Various free models (final fallback)
+    4. OpenRouter — Various free models (final fallback)
 
 Routing logic:
   - Each agent role (policy_ingestion, case_analysis, explanation, grievance)
@@ -27,7 +26,6 @@ from config import (
     GOOGLE_API_KEY, GOOGLE_BASE_URL,
     GROQ_API_KEY, GROQ_BASE_URL,
     XAI_API_KEY, XAI_BASE_URL,
-    TOGETHER_API_KEY, TOGETHER_BASE_URL,
     OPENROUTER_API_KEY, OPENROUTER_BASE_URL,
     OPENROUTER_MODELS,
     CEREBRAS_API_KEY, CEREBRAS_BASE_URL, CEREBRAS_MODELS,
@@ -73,15 +71,6 @@ PROVIDERS = {
     "xai": {
         "key": XAI_API_KEY,
         "url": _endpoint(XAI_BASE_URL),
-        "timeout": httpx.Timeout(connect=15.0, read=120.0, write=15.0, pool=15.0),
-        "headers_fn": lambda key: {
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json",
-        },
-    },
-    "together": {
-        "key": TOGETHER_API_KEY,
-        "url": _endpoint(TOGETHER_BASE_URL),
         "timeout": httpx.Timeout(connect=15.0, read=120.0, write=15.0, pool=15.0),
         "headers_fn": lambda key: {
             "Authorization": f"Bearer {key}",

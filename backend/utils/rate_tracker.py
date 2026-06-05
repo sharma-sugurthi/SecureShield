@@ -30,7 +30,6 @@ DEFAULT_LIMITS = {
     "cerebras": 30,
     "groq": 30,
     "google": 15,
-    "together": 10,
     "openrouter": 5,
     "xai": 20,
 }

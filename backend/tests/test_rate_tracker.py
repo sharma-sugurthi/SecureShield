@@ -45,7 +45,7 @@ async def test_rate_record_and_limits():
 async def test_available_providers_ordering():
     print("\n[TEST] Rate Tracker: provider ordering by available capacity")
     # Reset windows for predictable state
-    for name in ["google", "groq", "cerebras", "together", "openrouter"]:
+    for name in ["google", "groq", "cerebras", "openrouter"]:
         rate_tracker.windows[name] = type(rate_tracker.windows.get(name))(rate_tracker.limits[name])
 
     # Simulate some calls to google and groq

@@ -305,7 +305,7 @@ Guardrail        →   LLM never performs final math or verdict
 ```
 cerebras/llama-3.3-70b → groq/llama-3.3-70b → gemini-2.0-flash → gemini-2.0-flash-lite
        ↓ (if all exhausted)
-together/llama-3.3-70b → xai/grok-3-mini → openrouter (5-model fallback chain)
+xai/grok-3-mini → openrouter (4-model fallback chain)
 ```
 
 All providers routed through **Cloudflare AI Gateway** for semantic caching & analytics.
@@ -465,7 +465,7 @@ SecureShield/
 | **Domain Depth** | ICD-10 coding, IRDAI 2024 compliance, City-Tier classification |
 | **Technical Depth** | 18 custom tools, 6-provider failover, Cloudflare AI Gateway, async SQLite |
 | **Feasibility** | Deterministic engine — zero hallucination risk in financial math |
-| **Scalability** | 6-provider LLM chain (Cerebras + Groq + Gemini + xAI + Together + OpenRouter) |
+| **Scalability** | 5-provider LLM chain (Cerebras + Groq + Gemini + xAI + OpenRouter) |
 | **Compliance** | IRDAI 2024 guardrails, 5-yr moratorium, Ombudsman escalation path |
 
 ---

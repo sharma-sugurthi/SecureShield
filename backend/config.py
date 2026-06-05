@@ -6,7 +6,6 @@ Routing Strategy:
   - Groq (Llama 3.3 70B)  → Primary for text tasks (case analysis, explanation). Blazing fast, free.
   - Gemini Flash           → Primary for PDF/vision tasks (policy ingestion). Best free vision model.
   - xAI Grok               → Primary for long-form writing (grievance letters). $25/mo free credits.
-  - Together.ai            → Backup for all text tasks.
   - OpenRouter             → Final fallback (multiple free models).
 """
 
@@ -19,7 +18,6 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
-TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 CEREBRAS_API_KEY = os.getenv("CEREBRAS_API_KEY")
 
@@ -50,8 +48,6 @@ GOOGLE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
 GROQ_BASE_URL = get_gateway_url("groq", "https://api.groq.com/openai/v1")
 # xAI: bypass Cloudflare (no free credits via gateway)
 XAI_BASE_URL = "https://api.x.ai/v1"
-# Together: bypass Cloudflare ("Invalid provider" error via gateway)
-TOGETHER_BASE_URL = "https://api.together.xyz/v1"
 # OpenRouter: Cloudflare proxies it, endpoint needs /chat/completions appended
 OPENROUTER_BASE_URL = get_gateway_url("openrouter", "https://openrouter.ai/api/v1/chat/completions")
 CEREBRAS_BASE_URL = get_gateway_url("cerebras", "https://api.cerebras.ai/v1")
@@ -69,11 +65,6 @@ GROQ_MODELS = {
 
 XAI_MODELS = {
     "primary": "grok-3-mini-fast",
-}
-
-TOGETHER_MODELS = {
-    "primary": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    "fast": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
 }
 
 OPENROUTER_MODELS = {
@@ -102,29 +93,24 @@ TASK_ROUTING = {
         # Gemini direct fallback (bypasses Cloudflare, uses native API)
         ("google", GOOGLE_MODELS["default"]),
         ("google", GOOGLE_MODELS["lite"]),
-        # Together direct fallback
-        ("together", TOGETHER_MODELS["primary"]),
         ("openrouter", None),
     ],
     "case_analysis": [
         ("cerebras", CEREBRAS_MODELS["primary"]),
         ("groq", GROQ_MODELS["primary"]),
         ("google", GOOGLE_MODELS["default"]),
-        ("together", TOGETHER_MODELS["primary"]),
         ("openrouter", None),
     ],
     "explanation": [
         ("cerebras", CEREBRAS_MODELS["primary"]),
         ("groq", GROQ_MODELS["primary"]),
         ("google", GOOGLE_MODELS["default"]),
-        ("together", TOGETHER_MODELS["primary"]),
         ("openrouter", None),
     ],
     "grievance": [
         ("cerebras", CEREBRAS_MODELS["primary"]),
         ("groq", GROQ_MODELS["primary"]),
         ("google", GOOGLE_MODELS["default"]),
-        ("together", TOGETHER_MODELS["primary"]),
         ("openrouter", None),
     ],
     "chat": [
@@ -140,7 +126,6 @@ DEFAULT_ROUTING = [
     ("cerebras", CEREBRAS_MODELS["primary"]),
     ("groq", GROQ_MODELS["primary"]),
     ("google", GOOGLE_MODELS["default"]),
-    ("together", TOGETHER_MODELS["primary"]),
     ("openrouter", None),
 ]
 
