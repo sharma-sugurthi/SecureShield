@@ -17,7 +17,7 @@
 
 > **Claim Guardian Architecture:** 5 Specialized Agents · 18 Custom Tools · Deterministic Decision Engine · Zero-Hallucination Verdicts · **IRDAI 2024 (June) Compliant**
 
-</div>
+> **Patient-Centric UI:** Dribbble-inspired 'Bento Grid' Dashboard, deeply integrated with the agentic pipeline while abstracting technical complexity away from the patient.
 
 ---
 
@@ -52,6 +52,7 @@
 | 🔄 **Multi-Model Failover** | Auto-switches across 10+ models (Cerebras, Groq, Gemini) — never goes down |
 | ⚡ **Response Caching** | Local disk-based cache + Cloudflare AI Gateway semantic caching |
 | 🏥 **Medical Chatbot** | 🆕 3-Tier Assistant: FAQ → Cerebras (Free) → Gemini (Complex) |
+| 🎨 **Premium UI/UX** | Dribbble-inspired Bento Grid layout with Deep Indigo styling for a patient-centric experience |
 
 ---
 
