@@ -58,15 +58,17 @@ export default function DisputePage() {
         }, 1500);
 
         try {
-            // Parse the stored check data to build the request
-            const checkData = typeof selectedCheck.result === 'string'
-                ? JSON.parse(selectedCheck.result)
-                : selectedCheck.result || {};
+            // Parse the stored check data from API response format
+            let verdict = {};
+            let caseInput = {};
 
-            const verdict = checkData.verdict || {};
-            const caseInput = typeof selectedCheck.case_input === 'string'
-                ? JSON.parse(selectedCheck.case_input)
-                : selectedCheck.case_input || {};
+            try {
+                verdict = JSON.parse(selectedCheck.verdict_json || '{}');
+            } catch { /* empty */ }
+
+            try {
+                caseInput = JSON.parse(selectedCheck.case_json || '{}');
+            } catch { /* empty */ }
 
             const grievanceData = {
                 policy_id: selectedCheck.policy_id || 0,
@@ -81,11 +83,11 @@ export default function DisputePage() {
                 patient_age: caseInput.patient_age || null,
                 procedure: caseInput.procedure || '',
                 hospital_name: caseInput.hospital_name || '',
-                insurer: checkData.insurer || selectedCheck.insurer || '',
-                policy_name: checkData.policy_name || selectedCheck.policy_name || '',
+                insurer: selectedCheck.insurer || '',
+                policy_name: selectedCheck.policy_name || '',
                 matched_rules: verdict.matched_rules || [],
-                explanation: checkData.explanation || '',
-                suggestions: checkData.suggestions || [],
+                explanation: selectedCheck.explanation || '',
+                suggestions: [],
             };
 
             const data = await disputeClaim(grievanceData);
@@ -102,9 +104,9 @@ export default function DisputePage() {
     const verdictColor = (v) => {
         if (!v) return 'var(--gray-400)';
         const upper = v.toUpperCase();
-        if (upper === 'APPROVED') return 'var(--teal-600)';
-        if (upper === 'DENIED') return '#e74c3c';
-        return '#f39c12';
+        if (upper === 'APPROVED') return 'var(--green-500)';
+        if (upper === 'DENIED') return 'var(--red-500)';
+        return 'var(--amber-500)';
     };
 
     return (
@@ -131,28 +133,26 @@ export default function DisputePage() {
                 ) : (
                     <div style={{ maxHeight: 300, overflowY: 'auto' }}>
                         {checks.map((check, i) => {
-                            const checkResult = typeof check.result === 'string'
-                                ? JSON.parse(check.result || '{}')
-                                : check.result || {};
-                            const verdict = checkResult.verdict || {};
-                            const caseInput = typeof check.case_input === 'string'
-                                ? JSON.parse(check.case_input || '{}')
-                                : check.case_input || {};
+                            let verdict = {};
+                            let caseInput = {};
+                            try { verdict = JSON.parse(check.verdict_json || '{}'); } catch { /* empty */ }
+                            try { caseInput = JSON.parse(check.case_json || '{}'); } catch { /* empty */ }
+
                             const isSelected = selectedCheck?.id === check.id;
-                            const isAppoved = (verdict.overall_verdict || '').toUpperCase() === 'APPROVED'
+                            const isApproved = (verdict.overall_verdict || '').toUpperCase() === 'APPROVED'
                                 && (verdict.coverage_percentage || 0) >= 95;
 
                             return (
                                 <div
                                     key={check.id || i}
-                                    onClick={() => !isAppoved && selectCheck(check)}
+                                    onClick={() => !isApproved && selectCheck(check)}
                                     style={{
                                         padding: '12px 16px',
-                                        borderBottom: '1px solid var(--gray-800)',
-                                        cursor: isAppoved ? 'not-allowed' : 'pointer',
-                                        opacity: isAppoved ? 0.4 : 1,
+                                        borderBottom: '1px solid var(--gray-100)',
+                                        cursor: isApproved ? 'not-allowed' : 'pointer',
+                                        opacity: isApproved ? 0.4 : 1,
                                         background: isSelected
-                                            ? 'rgba(0, 206, 209, 0.08)'
+                                            ? 'rgba(20, 184, 166, 0.06)'
                                             : 'transparent',
                                         borderLeft: isSelected ? '3px solid var(--teal-500)' : '3px solid transparent',
                                         display: 'flex',
@@ -162,12 +162,12 @@ export default function DisputePage() {
                                     }}
                                 >
                                     <div>
-                                        <div style={{ fontWeight: 600, fontSize: 14 }}>
+                                        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--navy-700)' }}>
                                             {caseInput.procedure || 'Unknown Procedure'}
                                         </div>
-                                        <div style={{ fontSize: 12, color: 'var(--gray-400)', marginTop: 2 }}>
+                                        <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 2 }}>
                                             {caseInput.patient_name || 'Patient'} •{' '}
-                                            {checkResult.insurer || 'Insurer'} •{' '}
+                                            Policy #{check.policy_id} •{' '}
                                             {check.created_at ? new Date(check.created_at).toLocaleDateString() : ''}
                                         </div>
                                     </div>
@@ -182,13 +182,13 @@ export default function DisputePage() {
                                         <div style={{ fontSize: 11, color: 'var(--gray-500)' }}>
                                             {(verdict.coverage_percentage || 0).toFixed(0)}% covered
                                         </div>
-                                        {isAppoved && (
-                                            <div style={{ fontSize: 10, color: 'var(--gray-500)' }}>
+                                        {isApproved && (
+                                            <div style={{ fontSize: 10, color: 'var(--gray-400)' }}>
                                                 (Fully approved)
                                             </div>
                                         )}
                                         {verdict.requires_manual_review && (
-                                            <div style={{ fontSize: 10, color: '#e74c3c', fontWeight: 700, marginTop: 4 }}>
+                                            <div style={{ fontSize: 10, color: 'var(--red-500)', fontWeight: 700, marginTop: 4 }}>
                                                 ⚠️ REVIEW REQD
                                             </div>
                                         )}
@@ -216,7 +216,7 @@ export default function DisputePage() {
                         )}
                     </button>
                     {loading && pipelineStep && (
-                        <span style={{ fontSize: 13, color: '#f39c12', fontWeight: 500 }}>
+                        <span style={{ fontSize: 13, color: 'var(--amber-500)', fontWeight: 500 }}>
                             {pipelineStep}
                         </span>
                     )}
@@ -236,7 +236,7 @@ export default function DisputePage() {
 
                     {/* Compliance Violations */}
                     {result.compliance_violations && result.compliance_violations.length > 0 && (
-                        <div className="card" style={{ marginBottom: 24, borderLeft: '4px solid #e74c3c' }}>
+                        <div className="card" style={{ marginBottom: 24, borderLeft: '4px solid var(--red-500)' }}>
                             <div className="card-header">
                                 <h2 className="card-title">🚨 Compliance Violations Detected</h2>
                             </div>
@@ -245,11 +245,11 @@ export default function DisputePage() {
                                     <div key={i} style={{
                                         padding: '10px 14px',
                                         marginBottom: 8,
-                                        background: 'rgba(231, 76, 60, 0.08)',
+                                        background: 'rgba(239, 68, 68, 0.06)',
                                         borderRadius: 8,
                                         fontSize: 13,
                                         lineHeight: 1.5,
-                                        color: 'var(--gray-200)',
+                                        color: 'var(--navy-700)',
                                     }}>
                                         ⚠️ {v}
                                     </div>
@@ -269,27 +269,27 @@ export default function DisputePage() {
                                     <div key={i} style={{
                                         padding: '12px 14px',
                                         marginBottom: 8,
-                                        background: 'rgba(0, 206, 209, 0.05)',
+                                        background: 'rgba(20, 184, 166, 0.04)',
                                         borderRadius: 8,
-                                        borderLeft: `3px solid ${p.relevance === 'high' ? 'var(--teal-500)' : 'var(--gray-600)'}`,
+                                        borderLeft: `3px solid ${p.relevance === 'high' ? 'var(--teal-500)' : 'var(--gray-300)'}`,
                                     }}>
-                                        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
+                                        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4, color: 'var(--navy-700)' }}>
                                             {p.title}
                                             <span style={{
                                                 marginLeft: 8,
                                                 fontSize: 10,
                                                 padding: '2px 6px',
                                                 borderRadius: 4,
-                                                background: p.relevance === 'high' ? 'rgba(0,206,209,0.2)' : 'rgba(150,150,150,0.2)',
-                                                color: p.relevance === 'high' ? 'var(--teal-400)' : 'var(--gray-400)',
+                                                background: p.relevance === 'high' ? 'rgba(20,184,166,0.1)' : 'rgba(150,150,150,0.1)',
+                                                color: p.relevance === 'high' ? 'var(--teal-600)' : 'var(--gray-500)',
                                             }}>
                                                 {p.relevance}
                                             </span>
                                         </div>
-                                        <div style={{ fontSize: 12, color: 'var(--gray-300)', lineHeight: 1.5 }}>
+                                        <div style={{ fontSize: 12, color: 'var(--gray-600)', lineHeight: 1.5 }}>
                                             {p.summary}
                                         </div>
-                                        <div style={{ fontSize: 10, color: 'var(--gray-500)', marginTop: 4 }}>
+                                        <div style={{ fontSize: 10, color: 'var(--gray-400)', marginTop: 4 }}>
                                             Source: {p.source}
                                         </div>
                                     </div>
@@ -315,16 +315,17 @@ export default function DisputePage() {
                             </div>
                             <div style={{
                                 padding: '20px',
-                                background: 'rgba(255,255,255,0.03)',
+                                background: 'var(--gray-50)',
                                 borderRadius: 8,
                                 margin: '0 16px 16px',
                                 fontFamily: '"Georgia", serif',
                                 fontSize: 13,
                                 lineHeight: 1.8,
                                 whiteSpace: 'pre-wrap',
-                                color: 'var(--gray-200)',
+                                color: 'var(--navy-700)',
                                 maxHeight: 500,
                                 overflowY: 'auto',
+                                border: '1px solid var(--gray-200)',
                             }}>
                                 {result.grievance_letter}
                             </div>
@@ -340,7 +341,7 @@ export default function DisputePage() {
                             </div>
                             <div style={{ padding: '16px', textAlign: 'center' }}>
                                 <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-                                <div style={{ fontWeight: 600, marginBottom: 8 }}>
+                                <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--navy-700)' }}>
                                     {result.pdf_filename || 'Report Generated'}
                                 </div>
                                 {result.pdf_filename && (
@@ -371,16 +372,16 @@ export default function DisputePage() {
                                         fontSize: 12,
                                         fontWeight: 700,
                                         background: result.email_status.status === 'sent'
-                                            ? 'rgba(46, 204, 113, 0.15)'
-                                            : 'rgba(231, 76, 60, 0.15)',
+                                            ? 'rgba(34, 197, 94, 0.1)'
+                                            : 'rgba(239, 68, 68, 0.1)',
                                         color: result.email_status.status === 'sent'
-                                            ? '#2ecc71'
-                                            : '#e74c3c',
+                                            ? 'var(--green-500)'
+                                            : 'var(--red-500)',
                                         marginBottom: 12,
                                     }}>
                                         {result.email_status.status === 'sent' ? '✅ SENT' : '❌ FAILED'}
                                     </div>
-                                    <div style={{ fontSize: 13, lineHeight: 2 }}>
+                                    <div style={{ fontSize: 13, lineHeight: 2, color: 'var(--navy-700)' }}>
                                         <div><strong>Tracking ID:</strong> {result.email_status.tracking_id}</div>
                                         <div><strong>Recipient:</strong> {result.email_status.recipient}</div>
                                         <div><strong>Sent At:</strong> {result.email_status.sent_at}</div>
@@ -388,11 +389,12 @@ export default function DisputePage() {
                                     <div style={{
                                         marginTop: 12,
                                         padding: '10px 14px',
-                                        background: 'rgba(0,206,209,0.05)',
+                                        background: 'rgba(20, 184, 166, 0.04)',
                                         borderRadius: 8,
                                         fontSize: 12,
-                                        color: 'var(--gray-300)',
+                                        color: 'var(--gray-600)',
                                         lineHeight: 1.5,
+                                        border: '1px solid var(--gray-100)',
                                     }}>
                                         {result.email_status.message}
                                     </div>
@@ -409,14 +411,9 @@ export default function DisputePage() {
                             </div>
                             <div style={{ padding: '12px 16px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                 {result.tools_used.map((tool, i) => (
-                                    <span key={i} style={{
+                                    <span key={i} className="tool-tag" style={{
                                         padding: '6px 14px',
-                                        background: 'rgba(0, 206, 209, 0.08)',
-                                        borderRadius: 20,
                                         fontSize: 12,
-                                        fontWeight: 600,
-                                        color: 'var(--teal-400)',
-                                        border: '1px solid rgba(0, 206, 209, 0.15)',
                                     }}>
                                         {i + 1}. {tool}
                                     </span>

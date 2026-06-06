@@ -19,7 +19,6 @@ import time
 import asyncio
 from collections import deque
 import os
-from importlib import import_module
 from typing import Dict, Deque, Tuple, List
 import logging
 
@@ -156,19 +155,8 @@ if REDIS_URL:
         from .redis_rate_tracker import redis_tracker as _redis_tracker
 
         if _redis_tracker:
-            # Delegate functions to redis tracker
-            async def record_call(provider: str) -> None:
-                await _redis_tracker.record_call(provider)
-
-            async def can_call(provider: str) -> bool:
-                return await _redis_tracker.can_call(provider)
-
-            async def get_available_providers() -> List[Tuple[str, int]]:
-                return await _redis_tracker.get_available_providers()
-
-            async def get_status() -> Dict[str, Dict]:
-                return await _redis_tracker.get_status()
-
+            # Overwrite the singleton instance, so the wrapper functions
+            # above will automatically delegate to the Redis tracker.
             rate_tracker = _redis_tracker
             logger.info("[RateTracker] Using Redis-backed rate tracker")
     except Exception:

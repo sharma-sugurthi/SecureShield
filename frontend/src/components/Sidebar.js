@@ -13,8 +13,10 @@ const NAV_ITEMS = [
     { label: 'Upload Policy', icon: '📄', href: '/upload' },
     { label: 'Check Eligibility', icon: '🔍', href: '/check' },
     { label: 'Dispute Claim', icon: '⚖️', href: '/dispute' },
+    { label: 'Chat Assistant', icon: '💬', href: '/chat' },
     { label: 'History', icon: '📋', href: '/history' },
     { label: 'Audit Trail', icon: '🛡️', href: '/audit' },
+    { label: 'How It Works', icon: '📚', href: '/how-it-works' },
 ];
 
 export default function Sidebar() {
@@ -26,7 +28,7 @@ export default function Sidebar() {
                 <div className="sidebar-logo-icon">🛡️</div>
                 <div>
                     <div className="sidebar-logo-text">SecureShield</div>
-                    <div className="sidebar-logo-badge">AGENTIC AI</div>
+                    <div className="sidebar-logo-badge">SECURE HEALTH PORTAL</div>
                 </div>
             </Link>
 
@@ -50,10 +52,13 @@ export default function Sidebar() {
                     <span className="nav-icon">⚙️</span>
                     Settings
                 </Link>
-                <div className="sidebar-footer-text" style={{ marginTop: 16 }}>
-                    SecureShield v2.0<br />
-                    Agentic Insurance Engine<br />
-                    16 Custom Tools • ReAct Pipeline
+                
+                <div className="sidebar-profile" style={{ marginTop: 24 }}>
+                    <div className="avatar">JD</div>
+                    <div className="profile-info">
+                        <span className="profile-name">John Doe</span>
+                        <span className="profile-role">Patient ID: #90412</span>
+                    </div>
                 </div>
             </div>
         </aside>

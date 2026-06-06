@@ -222,7 +222,6 @@ async def test_list_all_seeded():
         )
     
     # List all
-    from db.database import get_all_policies
     all_policies = await get_all_policies()
     
     print(f"✓ Total policies in database: {len(all_policies)}")
@@ -262,7 +261,6 @@ async def test_reset_functionality():
         )
         initial_count += 1
     
-    from db.database import get_all_policies
     before_reset = len(await get_all_policies())
     print(f"✓ Policies before reset: {before_reset}")
     
@@ -327,13 +325,12 @@ async def test_demo_startup_time():
     start = time.time()
     accessed = 0
     
-    from db.database import get_all_policies
     all_policies = await get_all_policies()
     
     for policy in all_policies[:10]:
         # Try to retrieve by hash (this would be PDF hash in real scenario)
         hash_val = hashlib.sha256(f"startup_test_{accessed+1}".encode()).hexdigest()
-        cached = await get_policy_by_hash(hash_val)
+        await get_policy_by_hash(hash_val)
         accessed += 1
     
     access_time = (time.time() - start) * 1000

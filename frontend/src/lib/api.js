@@ -21,6 +21,26 @@ export function getApiKey() {
   return apiKey;
 }
 
+/**
+ * Auto-fetch the master API key from the backend.
+ * This avoids the need to manually copy-paste from backend logs.
+ */
+export async function autoFetchApiKey() {
+  try {
+    const res = await fetch(`${API_BASE}/api/auto-key`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.api_key) {
+        setApiKey(data.api_key);
+        return data.api_key;
+      }
+    }
+  } catch (e) {
+    // Backend not running — silently fail
+  }
+  return null;
+}
+
 async function apiFetch(path, options = {}) {
   const key = getApiKey();
   const headers = {
@@ -48,6 +68,13 @@ async function apiFetch(path, options = {}) {
 // --- Health ---
 export async function healthCheck() {
   return apiFetch('/api/health');
+}
+
+// --- System Info ---
+export async function getSystemInfo() {
+  const res = await fetch(`${API_BASE}/api/system-info`);
+  if (res.ok) return res.json();
+  return null;
 }
 
 // --- Policies ---
@@ -95,6 +122,14 @@ export async function disputeClaim(grievanceData) {
   return apiFetch('/api/dispute-claim', {
     method: 'POST',
     body: JSON.stringify(grievanceData),
+  });
+}
+
+// --- Chat ---
+export async function chatWithAssistant(query) {
+  return apiFetch('/api/chat', {
+    method: 'POST',
+    body: JSON.stringify({ query }),
   });
 }
 

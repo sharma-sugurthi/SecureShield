@@ -82,9 +82,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://0.0.0.0:3000",
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
     expose_headers=["X-Request-Id"],
 )
@@ -100,6 +101,37 @@ async def health_check():
         "app": APP_NAME,
         "version": APP_VERSION,
         "security": "enabled",
+    }
+
+
+@app.get("/api/auto-key")
+async def get_auto_key():
+    """Return the master API key for local development.
+    
+    This allows the frontend to auto-configure without manual copy-paste.
+    In production, this endpoint should be disabled or protected.
+    """
+    return {"api_key": get_or_create_master_key()}
+
+
+@app.get("/api/system-info")
+async def get_system_info():
+    """Return system-level stats for the dashboard."""
+    from db.llm_cache import get_cache_stats
+    
+    policies = await get_all_policies()
+    history = await get_check_history(100)
+    cache_stats = await get_cache_stats()
+    
+    return {
+        "app": APP_NAME,
+        "version": APP_VERSION,
+        "total_policies": len(policies),
+        "total_checks": len(history),
+        "agents": 5,
+        "tools": 18,
+        "cache": cache_stats,
+        "providers": ["Cerebras", "Groq", "Gemini", "xAI", "OpenRouter"],
     }
 
 

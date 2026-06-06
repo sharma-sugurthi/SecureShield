@@ -1,12 +1,5 @@
 import logging
-import base64
-import os
-
-logger = logging.getLogger(__name__)
-
 from google.cloud import vision
-import io
-import os
 
 logger = logging.getLogger(__name__)
 

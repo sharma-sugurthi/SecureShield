@@ -447,7 +447,6 @@ async def search_irdai_precedents(
 
 def _get_curated_precedents(procedure: str, denial_reason: str) -> list[dict]:
     """Return curated IRDAI precedents based on common denial patterns."""
-    proc_lower = procedure.lower()
     reason_lower = denial_reason.lower()
     
     all_precedents = [

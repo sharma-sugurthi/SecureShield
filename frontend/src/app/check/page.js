@@ -29,6 +29,7 @@ const INITIAL_FORM = {
     room_cost_per_day: '', stay_duration_days: '', admission_type: 'planned',
     procedure: '', procedure_cost: '', pre_existing_conditions: '',
     hospital_name: '', city: '', total_claimed_amount: '',
+    policy_start_date: '', policy_tenure_years: '1', is_renewal: false,
 };
 
 export default function CheckPage() {
@@ -87,6 +88,9 @@ export default function CheckPage() {
                 stay_duration_days: form.stay_duration_days ? parseInt(form.stay_duration_days) : undefined,
                 procedure_cost: form.procedure_cost ? parseFloat(form.procedure_cost) : undefined,
                 total_claimed_amount: parseFloat(form.total_claimed_amount),
+                policy_tenure_years: form.policy_tenure_years ? parseInt(form.policy_tenure_years) : 1,
+                is_renewal: form.is_renewal,
+                policy_start_date: form.policy_start_date || undefined,
                 pre_existing_conditions: form.pre_existing_conditions
                     ? form.pre_existing_conditions.split(',').map(s => s.trim()).filter(Boolean)
                     : [],
@@ -209,6 +213,34 @@ export default function CheckPage() {
                             <input className="form-input" placeholder="e.g. Diabetes, Hypertension (comma-separated)"
                                 value={form.pre_existing_conditions}
                                 onChange={e => updateField('pre_existing_conditions', e.target.value)} />
+                        </div>
+                    </div>
+
+                    {/* Policy Tenure Section */}
+                    <div style={{ marginTop: 20, padding: '16px 20px', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy-700)', marginBottom: 12 }}>📅 Policy Tenure (for Moratorium Period / Waiting Period calculations)</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                            <div className="form-group">
+                                <label className="form-label">Policy Start Date</label>
+                                <input className="form-input" type="date"
+                                    value={form.policy_start_date}
+                                    onChange={e => updateField('policy_start_date', e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Continuous Tenure (years)</label>
+                                <input className="form-input" type="number" min="1" max="50" placeholder="e.g. 3"
+                                    value={form.policy_tenure_years}
+                                    onChange={e => updateField('policy_tenure_years', e.target.value)} />
+                                <span className="form-hint">Years with same insurer (IRDAI Moratorium: 8+ years)</span>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Is Renewal?</label>
+                                <select className="form-select" value={form.is_renewal ? 'yes' : 'no'}
+                                    onChange={e => updateField('is_renewal', e.target.value === 'yes')}>
+                                    <option value="no">No — First Year</option>
+                                    <option value="yes">Yes — Renewal</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 

@@ -28,10 +28,13 @@ from config import DATABASE_PATH
 logger = logging.getLogger(__name__)
 
 # Database URL: prefer DATABASE_URL env var, otherwise use sqlite file path
+# For production, set DATABASE_URL to a PostgreSQL/MySQL connection string:
+#   DATABASE_URL=postgresql+asyncpg://user:pass@host/dbname
+#   DATABASE_URL=mysql+aiomysql://user:pass@host/dbname
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    # Use aiosqlite driver for SQLAlchemy async
-    sqlite_path = os.path.join(os.path.dirname(__file__), "secureshield.db")
+    # Use aiosqlite driver for SQLAlchemy async (development default)
+    sqlite_path = os.path.join(os.path.dirname(__file__), "secureshield_new.db")
     DATABASE_URL = f"sqlite+aiosqlite:///{sqlite_path}"
 
 # Async engine and session
@@ -205,11 +208,12 @@ async def get_check_history(limit: int = 20) -> List[dict]:
 async def clear_policies_and_checks() -> None:
     """Delete all rows from `eligibility_checks` and `policies` tables.
 
-    Useful for tests and demo reset. This uses raw SQL for simplicity.
+    Useful for tests and demo reset. Uses SQLAlchemy ORM (database-agnostic).
     """
-    from sqlalchemy import text
+    from sqlalchemy import delete as sa_delete
 
-    async with engine.begin() as conn:
-        await conn.execute(text("DELETE FROM eligibility_checks"))
-        await conn.execute(text("DELETE FROM policies"))
+    async with AsyncSessionLocal() as session:
+        await session.execute(sa_delete(EligibilityCheck))
+        await session.execute(sa_delete(Policy))
+        await session.commit()
     logger.info("[Database] Cleared policies and eligibility_checks tables")

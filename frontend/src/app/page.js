@@ -1,12 +1,13 @@
 'use client';
 
 /**
- * Dashboard — Home page with system stats and quick actions
+ * Dashboard — Home page with hero section, system stats, pipeline visualization,
+ * and quick actions for the SecureShield Agentic Insurance Engine.
  */
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { healthCheck, listPolicies, getHistory, getApiKey } from '@/lib/api';
+import { healthCheck, listPolicies, getHistory, getApiKey, getSystemInfo } from '@/lib/api';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -16,6 +17,7 @@ export default function DashboardPage() {
     avgCoverage: 0,
     serverStatus: 'checking...',
   });
+  const [sysInfo, setSysInfo] = useState(null);
   const [recentChecks, setRecentChecks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,6 +31,12 @@ export default function DashboardPage() {
       const health = await healthCheck();
       let policies = 0, checksToday = 0, approvalRate = 0, avgCoverage = 0;
       let recent = [];
+
+      // Fetch system info (no auth needed)
+      try {
+        const info = await getSystemInfo();
+        if (info) setSysInfo(info);
+      } catch (e) { /* not critical */ }
 
       if (getApiKey()) {
         try {
@@ -71,15 +79,29 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="page-header">
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">
-          SecureShield Agentic Insurance Engine — {stats.serverStatus}
-        </p>
+      {/* Top Bar Greeting */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--navy-800)', letterSpacing: '-0.02em' }}>
+            Good morning, John
+          </h1>
+          <p style={{ color: 'var(--gray-500)', fontSize: 15, marginTop: 4 }}>
+            Here is your health insurance overview. {stats.serverStatus}
+          </p>
+        </div>
+        <div style={{ position: 'relative' }}>
+          <span style={{ position: 'absolute', left: 14, top: 12, color: 'var(--gray-400)' }}>🔍</span>
+          <input 
+            type="text" 
+            placeholder="Search policies or claims..." 
+            className="form-input"
+            style={{ paddingLeft: 40, width: 300, borderRadius: 100 }}
+          />
+        </div>
       </div>
 
-      {/* Stat Cards */}
-      <div className="stat-grid">
+      {/* Stat Cards (Top Row) */}
+      <div className="stat-grid stagger-in">
         <div className="stat-card teal">
           <div className="stat-icon teal">📄</div>
           <div className="stat-value">{stats.policies}</div>
@@ -102,57 +124,90 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 32 }}>
-        <Link href="/upload" className="card" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div className="stat-icon teal" style={{ fontSize: 28, width: 56, height: 56 }}>📄</div>
-          <div>
-            <div className="card-title">Upload Policy PDF</div>
-            <p style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>
-              Upload and extract rules from insurance policy documents
-            </p>
+      {/* Bento Grid: Middle Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, marginBottom: 32 }}>
+        
+        {/* Left Column: Recent Activity */}
+        <div className="card" style={{ height: '100%' }}>
+          <div className="card-header">
+            <h2 className="card-title">Recent Activity</h2>
+            <Link href="/history" style={{ fontSize: 13, color: 'var(--primary-600)', textDecoration: 'none', fontWeight: 600 }}>
+              View All
+            </Link>
           </div>
-        </Link>
-        <Link href="/check" className="card" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div className="stat-icon blue" style={{ fontSize: 28, width: 56, height: 56 }}>🔍</div>
-          <div>
-            <div className="card-title">Check Eligibility</div>
-            <p style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>
-              Run a patient claim through the agentic eligibility pipeline
-            </p>
+          <div className="card-body">
+            {recentChecks.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {recentChecks.slice(0, 5).map((check, i) => {
+                  let verdict = null;
+                  try { verdict = JSON.parse(check.verdict_json); } catch (e) {}
+                  
+                  const vStatus = verdict?.overall_verdict?.toLowerCase() || 'unknown';
+                  const badgeClass = `verdict-badge ${vStatus === 'approved' ? 'approved' : vStatus === 'denied' ? 'denied' : 'partial'}`;
+                  
+                  return (
+                    <Link href={`/history`} key={i} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <div style={{ padding: 16, border: '1px solid var(--gray-100)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--gray-50)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-sm)', background: 'var(--primary-50)', color: 'var(--primary-500)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+                            📄
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 600, color: 'var(--navy-800)' }}>{check.policy_name}</div>
+                            <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>
+                              Claim: ₹{check.claimed_amount.toLocaleString()} • {new Date(check.created_at).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                        <div className={badgeClass}>
+                          {verdict?.overall_verdict || 'Unknown'}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ padding: 32, textAlign: 'center', color: 'var(--gray-500)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
+                <div style={{ fontWeight: 600, color: 'var(--navy-700)' }}>No recent activity</div>
+                <div style={{ fontSize: 14 }}>Start by uploading a policy or running a check.</div>
+              </div>
+            )}
           </div>
-        </Link>
-      </div>
+        </div>
 
-      {/* Agentic Pipeline Overview */}
-      <div className="card">
-        <div className="card-header">
-          <h2 className="card-title">🤖 Agentic Pipeline Overview</h2>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-          {[
-            { step: '1', name: 'Policy Agent', desc: 'PDF extraction, IRDAI lookup, rule validation', tools: 4, icon: '📄' },
-            { step: '2', name: 'Case Agent', desc: 'Medical normalizer, ICD lookup, cost estimation', tools: 4, icon: '🏥' },
-            { step: '3', name: 'Decision Engine', desc: 'Deterministic rule application (no LLM)', tools: 1, icon: '⚖️' },
-            { step: '4', name: 'Explanation Agent', desc: 'Clause explainer, savings calculator', tools: 3, icon: '💬' },
-          ].map(({ step, name, desc, tools, icon }) => (
-            <div key={step} style={{ textAlign: 'center', padding: 20 }}>
-              <div style={{
-                width: 56, height: 56, borderRadius: '50%', margin: '0 auto 12px',
-                background: 'linear-gradient(135deg, var(--teal-500), var(--teal-400))',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 24, color: 'white', boxShadow: 'var(--shadow-glow)',
-              }}>
-                {icon}
-              </div>
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{name}</div>
-              <div style={{ fontSize: 12, color: 'var(--gray-500)', lineHeight: 1.4 }}>{desc}</div>
-              <div className="tool-tag" style={{ marginTop: 8, display: 'inline-block' }}>
-                {tools} tools
-              </div>
+        {/* Right Column: Quick Actions */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div className="card" style={{ flex: 1, padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: 24, borderBottom: '1px solid var(--gray-100)' }}>
+              <h2 className="card-title">Quick Actions</h2>
             </div>
-          ))}
+            
+            <Link href="/upload" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 20, padding: '24px', borderBottom: '1px solid var(--gray-100)', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--gray-50)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+              <div className="stat-icon teal" style={{ width: 48, height: 48, marginBottom: 0 }}>📄</div>
+              <div>
+                <div style={{ fontWeight: 600, color: 'var(--navy-800)' }}>Upload Policy</div>
+                <p style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>
+                  Add a new insurance document
+                </p>
+              </div>
+              <div style={{ marginLeft: 'auto', color: 'var(--gray-400)' }}>→</div>
+            </Link>
+
+            <Link href="/check" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 20, padding: '24px', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--gray-50)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+              <div className="stat-icon blue" style={{ width: 48, height: 48, marginBottom: 0 }}>🔍</div>
+              <div>
+                <div style={{ fontWeight: 600, color: 'var(--navy-800)' }}>Check Eligibility</div>
+                <p style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>
+                  Run a new claim check
+                </p>
+              </div>
+              <div style={{ marginLeft: 'auto', color: 'var(--gray-400)' }}>→</div>
+            </Link>
+          </div>
         </div>
+
       </div>
     </>
   );
