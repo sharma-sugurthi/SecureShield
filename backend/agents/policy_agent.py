@@ -124,7 +124,8 @@ def _validate_and_clean_rules(raw_rules: list[dict]) -> list[PolicyRule]:
     return validated
 
 
-async def ingest_policy(pdf_bytes: bytes, filename: str = "policy.pdf") -> PolicyDocument:
+async def ingest_policy(pdf_bytes: bytes, filename: str = "policy.pdf",
+                        pdf_storage_url: str = None) -> PolicyDocument:
     """
     Full policy ingestion pipeline with tool-calling ReAct pattern:
     
@@ -352,6 +353,7 @@ INSTRUCTIONS:
         policy_type=policy_type,
         rules=[r.model_dump() for r in validated_rules],
         raw_text_hash=pdf_hash,  # TASK 3: Store PDF hash for future cache lookups
+        pdf_storage_url=pdf_storage_url,
     )
 
     pipeline_end = time.time()

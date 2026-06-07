@@ -31,14 +31,29 @@ logger = logging.getLogger(__name__)
 # For production, set DATABASE_URL to a PostgreSQL/MySQL connection string:
 #   DATABASE_URL=postgresql+asyncpg://user:pass@host/dbname
 #   DATABASE_URL=mysql+aiomysql://user:pass@host/dbname
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
+_raw_db_url = os.getenv("DATABASE_URL")
+if not _raw_db_url:
     # Use aiosqlite driver for SQLAlchemy async (development default)
     sqlite_path = os.path.join(os.path.dirname(__file__), "secureshield_new.db")
     DATABASE_URL = f"sqlite+aiosqlite:///{sqlite_path}"
+else:
+    # Use make_url to properly handle special characters in passwords
+    from sqlalchemy.engine import make_url
+    DATABASE_URL = make_url(_raw_db_url)
 
 # Async engine and session
-engine: AsyncEngine = create_async_engine(DATABASE_URL, echo=False, future=True)
+# For Supabase Connection Pooler (pgbouncer in transaction mode),
+# we must disable asyncpg's prepared statement cache.
+_connect_args = {}
+if _raw_db_url and "pooler.supabase.com" in _raw_db_url:
+    _connect_args = {
+        "statement_cache_size": 0,
+        "prepared_statement_cache_size": 0,
+    }
+
+engine: AsyncEngine = create_async_engine(
+    DATABASE_URL, echo=False, future=True, connect_args=_connect_args
+)
 AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
 Base = declarative_base()
@@ -54,6 +69,7 @@ class Policy(Base):
     policy_type: Mapped[str] = mapped_column(String, default="individual")
     rules_json: Mapped[str] = mapped_column(Text, nullable=False)
     raw_text_hash: Mapped[Optional[str]] = mapped_column(String, unique=True, index=True, nullable=True)
+    pdf_storage_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     is_reviewed: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -77,7 +93,8 @@ async def init_db():
 
 
 async def save_policy(insurer: str, plan_name: str, sum_insured: float,
-                      policy_type: str, rules: List[dict], raw_text_hash: Optional[str]) -> int:
+                      policy_type: str, rules: List[dict], raw_text_hash: Optional[str],
+                      pdf_storage_url: Optional[str] = None) -> int:
     """Save an ingested policy and return its ID."""
     async with AsyncSessionLocal() as session:
         policy = Policy(
@@ -87,6 +104,7 @@ async def save_policy(insurer: str, plan_name: str, sum_insured: float,
             policy_type=policy_type,
             rules_json=json.dumps(rules),
             raw_text_hash=raw_text_hash,
+            pdf_storage_url=pdf_storage_url,
         )
         session.add(policy)
         await session.commit()
@@ -109,6 +127,7 @@ async def get_policy(policy_id: int) -> Optional[dict]:
             "policy_type": policy.policy_type,
             "rules": json.loads(policy.rules_json),
             "raw_text_hash": policy.raw_text_hash,
+            "pdf_storage_url": policy.pdf_storage_url,
             "is_reviewed": policy.is_reviewed,
             "created_at": str(policy.created_at),
         }

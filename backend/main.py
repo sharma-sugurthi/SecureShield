@@ -41,10 +41,17 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialize database and security on startup."""
+    """Initialize database, vector store, and security on startup."""
     await init_db()
     await init_llm_cache()
     master_key = get_or_create_master_key()
+    
+    # Index IRDAI knowledge base into pgvector (idempotent)
+    try:
+        from utils.vector_store import index_irdai_knowledge
+        index_irdai_knowledge()
+    except Exception as e:
+        logger.warning(f"Vector store indexing skipped: {e}")
     
     # Activate local Ollama if USE_OLLAMA=true (git-ignored, demo only)
     try:
@@ -172,7 +179,17 @@ async def upload_policy(
 
         logger.info(f"[API] Policy upload: {file.filename} ({len(pdf_bytes)/1024:.0f}KB)")
 
-        policy = await ingest_policy(pdf_bytes, file.filename)
+        # Upload PDF to Supabase Storage (cloud)
+        pdf_url = None
+        try:
+            from utils.storage import upload_pdf
+            storage_result = upload_pdf(pdf_bytes, file.filename)
+            pdf_url = storage_result.get("public_url")
+            logger.info(f"[API] PDF stored in cloud: {pdf_url}")
+        except Exception as e:
+            logger.warning(f"[API] Cloud storage failed, continuing without: {e}")
+
+        policy = await ingest_policy(pdf_bytes, file.filename, pdf_storage_url=pdf_url)
 
         return PolicyUploadResponse(
             policy_id=policy.id,
@@ -390,6 +407,18 @@ async def download_report(
         media_type="application/pdf",
         filename=safe_filename,
     )
+
+
+# --- MCP Server (Model Context Protocol) ---
+# Exposes all API endpoints as tools callable by AI assistants
+# (Claude Desktop, Cursor, etc.) via the /mcp endpoint.
+try:
+    from fastapi_mcp import FastApiMCP
+    mcp = FastApiMCP(app)
+    mcp.mount()
+    logger.info("[MCP] MCP server mounted at /mcp")
+except ImportError:
+    logger.info("[MCP] fastapi-mcp not installed, MCP server disabled")
 
 
 if __name__ == "__main__":
