@@ -131,6 +131,15 @@ body {
   overflow-y: auto;
 }
 
+body.auth-page .sidebar {
+  display: none !important;
+}
+
+body.auth-page .main-content {
+  margin-left: 0 !important;
+  padding: 0 !important;
+}
+
 .sidebar-logo {
   display: flex;
   align-items: center;

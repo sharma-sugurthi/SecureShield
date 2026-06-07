@@ -4,6 +4,7 @@
  */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { supabase } from './supabase';
 
 let apiKey = '';
 
@@ -42,11 +43,20 @@ export async function autoFetchApiKey() {
 }
 
 async function apiFetch(path, options = {}) {
-  const key = getApiKey();
-  const headers = {
-    'X-API-Key': key,
-    ...options.headers,
-  };
+  // First check if we have a Supabase session (JWT)
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  const headers = { ...options.headers };
+  
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+  } else {
+    // Fallback to API Key for local development/testing without auth
+    const key = getApiKey();
+    if (key) {
+      headers['X-API-Key'] = key;
+    }
+  }
 
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
@@ -133,7 +143,14 @@ export async function chatWithAssistant(query) {
   });
 }
 
+export async function sendWelcomeEmail() {
+  return apiFetch('/api/users/welcome', {
+    method: 'POST',
+  });
+}
+
 export function getReportDownloadUrl(filename) {
+  // Use API key if logged out, otherwise wait for frontend to pass token
   const key = getApiKey();
   return `${API_BASE}/api/download-report/${encodeURIComponent(filename)}?api_key=${key}`;
 }

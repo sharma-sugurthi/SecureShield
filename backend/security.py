@@ -16,7 +16,9 @@ from collections import defaultdict
 from fastapi import Request, HTTPException, Depends
 from fastapi.security import APIKeyHeader
 from starlette.middleware.base import BaseHTTPMiddleware
-from config import OPENROUTER_API_KEY
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import jwt
+from config import OPENROUTER_API_KEY, SUPABASE_JWT_SECRET
 
 logger = logging.getLogger(__name__)
 
@@ -50,16 +52,54 @@ def validate_api_key(key: str) -> bool:
 
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
+security_bearer = HTTPBearer(auto_error=False)
 
 async def require_api_key(api_key: str = Depends(api_key_header)):
-    """Dependency that requires a valid API key."""
+    """Legacy dependency that requires a valid API key (for development/scripts)."""
     if api_key is None:
         raise HTTPException(status_code=401, detail="Missing API key. Include X-API-Key header.")
     if not validate_api_key(api_key):
         raise HTTPException(status_code=403, detail="Invalid API key.")
     return api_key
 
+
+async def verify_jwt_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security_bearer),
+    api_key: str = Depends(api_key_header),
+):
+    """
+    Validates either a Supabase JWT (Authorization: Bearer <token>) OR a valid API Key.
+    Returns a dict with user context if authenticated via JWT, or string if API key.
+    """
+    # 1. Check for API key (backward compatibility for local scripts/MCP)
+    if api_key and validate_api_key(api_key):
+        return {"type": "api_key", "sub": "api_client"}
+        
+    # 2. Check for JWT (Production Frontend)
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Missing authentication token.")
+        
+    token = credentials.credentials
+    
+    if not SUPABASE_JWT_SECRET:
+        # If no JWT secret is configured, fallback to accepting the master key only,
+        # but since we got here, they didn't provide a valid API key.
+        raise HTTPException(status_code=500, detail="Server not configured for JWT auth (missing SUPABASE_JWT_SECRET).")
+        
+    try:
+        # Supabase signs with HS256 by default.
+        payload = jwt.decode(
+            token, 
+            SUPABASE_JWT_SECRET, 
+            algorithms=["HS256"], 
+            options={"verify_aud": False}
+        )
+        # payload contains sub (user id), email, role, etc.
+        return {"type": "jwt", "sub": payload.get("sub"), "email": payload.get("email")}
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired.")
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
 # --- Rate Limiting ---
 

@@ -1,6 +1,7 @@
 import './globals.css';
 import Sidebar from '@/components/Sidebar';
 import AutoKeyProvider from '@/components/AutoKeyProvider';
+import AuthProvider from '@/components/AuthProvider';
 
 export const metadata = {
   title: 'SecureShield — AI Insurance Eligibility Engine',
@@ -24,12 +25,14 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AutoKeyProvider />
-        <div className="app-layout">
-          <Sidebar />
-          <main className="main-content">
-            {children}
-          </main>
-        </div>
+        <AuthProvider>
+          <div className="app-layout">
+            <Sidebar />
+            <main className="main-content">
+              {children}
+            </main>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

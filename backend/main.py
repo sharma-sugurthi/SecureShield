@@ -23,7 +23,7 @@ from models.grievance import GrievanceRequest, GrievanceResponse
 from models.chat import ChatRequest, ChatResponse
 from security import (
     get_or_create_master_key,
-    require_api_key,
+    verify_jwt_token,
     RateLimitMiddleware,
     sanitize_case_input,
     validate_pdf_upload,
@@ -142,6 +142,19 @@ async def get_system_info():
     }
 
 
+# --- User Endpoints ---
+
+@app.post("/api/users/welcome")
+async def send_welcome(user: dict = Depends(verify_jwt_token)):
+    """Trigger a welcome email (zero-cost mailing)."""
+    from utils.mailer import send_welcome_email
+    email = user.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="No email associated with user.")
+    await send_welcome_email(email)
+    return {"status": "ok", "message": "Welcome email dispatched."}
+
+
 # --- Authenticated Endpoints ---
 
 @app.get("/health")
@@ -153,7 +166,7 @@ async def health():
 @app.post("/api/upload-policy", response_model=PolicyUploadResponse)
 async def upload_policy(
     file: UploadFile = File(...),
-    _api_key: str = Depends(require_api_key),
+    user: dict = Depends(verify_jwt_token),
 ):
     """
     Upload and process a health insurance policy PDF.
@@ -211,8 +224,8 @@ async def upload_policy(
 
 
 @app.get("/api/policies")
-async def list_policies(_api_key: str = Depends(require_api_key)):
-    """List all ingested policies. Requires: X-API-Key header"""
+async def list_policies(user: dict = Depends(verify_jwt_token)):
+    """List all ingested policies."""
     policies = await get_all_policies()
     return {"policies": policies, "count": len(policies)}
 
@@ -220,7 +233,7 @@ async def list_policies(_api_key: str = Depends(require_api_key)):
 @app.get("/api/policies/{policy_id}")
 async def get_policy_details(
     policy_id: int,
-    _api_key: str = Depends(require_api_key),
+    user: dict = Depends(verify_jwt_token),
 ):
     """Get full details of a specific policy including extracted rules."""
     policy = await get_policy(policy_id)
@@ -232,7 +245,7 @@ async def get_policy_details(
 @app.post("/api/check-eligibility", response_model=EligibilityResponse)
 async def check_eligibility(
     request: EligibilityCheckRequest,
-    _api_key: str = Depends(require_api_key),
+    user: dict = Depends(verify_jwt_token),
 ):
     """
     Check claim eligibility against an ingested policy.
@@ -271,9 +284,9 @@ async def check_eligibility(
 @app.get("/api/history")
 async def get_history(
     limit: int = 20,
-    _api_key: str = Depends(require_api_key),
+    user: dict = Depends(verify_jwt_token),
 ):
-    """Get recent eligibility check history. Requires: X-API-Key header"""
+    """Get recent eligibility check history."""
     if limit < 1 or limit > 100:
         raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
     history = await get_check_history(limit)
@@ -283,7 +296,7 @@ async def get_history(
 @app.get("/api/audit-trail")
 async def get_audit_trail(
     limit: int = 50,
-    _api_key: str = Depends(require_api_key),
+    user: dict = Depends(verify_jwt_token),
 ):
     """
     Get the agent audit trail — every tool call, LLM invocation, and decision
@@ -308,7 +321,7 @@ async def get_audit_trail(
 @app.post("/api/dispute-claim", response_model=GrievanceResponse)
 async def dispute_claim(
     request: GrievanceRequest,
-    _api_key: str = Depends(require_api_key),
+    user: dict = Depends(verify_jwt_token),
 ):
     """
     Trigger the Grievance Agent pipeline for a denied/partial claim.
@@ -351,6 +364,14 @@ async def dispute_claim(
             suggestions=request.suggestions,
         )
         
+        # Email the grievance package if user has an email
+        if user.get("type") == "jwt" and user.get("email"):
+            import os
+            from utils.mailer import send_grievance_email
+            from tools.grievance_tools import REPORTS_DIR
+            pdf_path = os.path.join(REPORTS_DIR, result["pdf_filename"])
+            await send_grievance_email(user["email"], pdf_path)
+            
         return GrievanceResponse(**result)
     
     except Exception as e:
@@ -364,7 +385,7 @@ async def dispute_claim(
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_with_assistant(
     request: ChatRequest,
-    _api_key: str = Depends(require_api_key),
+    user: dict = Depends(verify_jwt_token),
 ):
     """
     Chat with the SecureShield AI Medical Assistant.
@@ -387,12 +408,30 @@ async def chat_with_assistant(
 @app.get("/api/download-report/{filename}")
 async def download_report(
     filename: str,
-    _api_key: str = Depends(require_api_key),
+    # Allow passing token via query param for direct download links
+    token: str = None,
+    api_key: str = None,
 ):
     """
     Download a generated PDF claim report.
-    Requires: X-API-Key header
+    Since it's a GET request often used in a href, we accept token/api_key via query params.
     """
+    from security import validate_api_key, SUPABASE_JWT_SECRET
+    import jwt
+    
+    # Custom auth for this endpoint
+    authenticated = False
+    if api_key and validate_api_key(api_key):
+        authenticated = True
+    elif token and SUPABASE_JWT_SECRET:
+        try:
+            jwt.decode(token, SUPABASE_JWT_SECRET, algorithms=["HS256"], options={"verify_aud": False})
+            authenticated = True
+        except:
+            pass
+            
+    if not authenticated:
+        raise HTTPException(status_code=401, detail="Unauthorized download")
     from tools.grievance_tools import REPORTS_DIR
     
     # Security: prevent path traversal

@@ -17,3 +17,5 @@ redis>=4.6.0
 supabase>=2.0.0
 sentence-transformers>=2.2.0
 fastapi-mcp>=0.1.0
+fastapi-mail>=1.4.1
+PyJWT>=2.8.0
