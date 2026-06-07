@@ -2,14 +2,14 @@
 
 # 🛡️ SecureShield
 
-### Agentic AI - Health Insurance Eligibility & Grievance Engine
+### Agentic AI — Health Insurance Eligibility & Grievance Engine
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB.svg)](https://www.python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000.svg)](https://nextjs.org)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL+pgvector-3ECF8E.svg)](https://supabase.com)
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.2-1C3C3C.svg)](https://langchain-ai.github.io/langgraph/)
-[![Gemini](https://img.shields.io/badge/Gemini-2.0_Flash-4285F4.svg)](https://aistudio.google.com)
 [![Cerebras](https://img.shields.io/badge/Cerebras-1M_Tokens/Day-FFCC00.svg)](https://cloud.cerebras.ai)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-AI_Gateway-F38020.svg)](https://developers.cloudflare.com/ai-gateway)
 
@@ -17,22 +17,7 @@
 
 > **Claim Guardian Architecture:** 5 Specialized Agents · 18 Custom Tools · Deterministic Decision Engine · Zero-Hallucination Verdicts · **IRDAI 2024 (June) Compliant**
 
-> **Patient-Centric UI:** Dribbble-inspired 'Bento Grid' Dashboard, deeply integrated with the agentic pipeline while abstracting technical complexity away from the patient.
-
----
-
-## 📑 Table of Contents
-
-- [✨ Features](#-features)
-- [🏗️ Architecture](#️-architecture)
-- [🤖 Agents & Tools](#-agents--tools)
-- [⚖️ Compliance Guardrails](#️-compliance-guardrails)
-- [🧪 Verified Test Results](#-verified-test-results)
-- [🛠️ Tech Stack](#️-tech-stack)
-- [🚀 Quick Start](#-quick-start)
-- [📡 API Reference](#-api-reference)
-- [📂 Project Structure](#-project-structure)
-- [🔐 Security](#-security)
+</div>
 
 ---
 
@@ -48,11 +33,10 @@
 | 💰 **Agentic Savings** | `what_if_analyzer` finds cheaper alternatives (e.g., room downgrade tips) |
 | ⚖️ **Grievance Agent** | Denied claim? Agent generates PDF report, formal letter & sends grievance email |
 | 📚 **IRDAI Precedents** | Searches real Ombudsman/NCDRC rulings to strengthen your dispute |
-| 🔍 **51-Point Audit Trail** | Every agent step logged for compliance transparency |
+| 🔐 **User Authentication** | Supabase JWT-based signup/login with protected routes |
+| 📧 **Transactional Emails** | Zero-cost Gmail SMTP — Welcome emails & Grievance PDF delivery |
 | 🔄 **Multi-Model Failover** | Auto-switches across 10+ models (Cerebras, Groq, Gemini) — never goes down |
-| ⚡ **Response Caching** | Local disk-based cache + Cloudflare AI Gateway semantic caching |
-| 🏥 **Medical Chatbot** | 🆕 3-Tier Assistant: FAQ → Cerebras (Free) → Gemini (Complex) |
-| 🎨 **Premium UI/UX** | Dribbble-inspired Bento Grid layout with Deep Indigo styling for a patient-centric experience |
+| 🎨 **Premium UI/UX** | Dribbble-inspired Deep Indigo dashboard with micro-animations |
 
 ---
 
@@ -60,113 +44,115 @@
 
 ### Full System Flow
 
-```mermaid
-flowchart TB
-    subgraph INPUT["📄 Input Layer"]
-        PDF["Insurance Policy PDF"]
-        CASE["Patient Case Facts"]
-    end
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        📄 INPUT LAYER                                   │
+│                                                                         │
+│  Insurance Policy PDF  ──►  Patient Case Facts                          │
+└─────────┬───────────────────────────┬───────────────────────────────────┘
+          │                           │
+          ▼                           ▼
+┌─────────────────────────┐ ┌─────────────────────────┐
+│ 🤖 AGENT 1              │ │ 🤖 AGENT 2              │
+│ Policy Agent (ReAct)    │ │ Case Agent (ReAct)      │
+│                         │ │                         │
+│ ├─ pdf_text_extractor   │ │ ├─ medical_normalizer   │
+│ ├─ pdf_table_extractor  │ │ ├─ icd_procedure_lookup │
+│ ├─ irdai_regulation_lkp │ │ ├─ city_tier_classifier │
+│ └─ rule_validator       │ │ └─ hospital_cost_est    │
+│                         │ │                         │
+│  LLM: Gemini Flash      │ │  LLM: Cerebras/Groq     │
+└──────────┬──────────────┘ └──────────┬──────────────┘
+           │  Frozen Rules (JSON)       │  Structured Facts
+           │                            │
+           ▼                            ▼
+┌─────────────────────────────────────────────────────┐
+│           ⚙️  DETERMINISTIC DECISION ENGINE          │
+│                                                     │
+│  ① Exclusions → ② Room Rent → ③ Sub-limits         │
+│  ④ Waiting Periods → ⑤ Deductibles → ⑥ Co-pays    │
+│                                                     │
+│          ⚠️  ZERO LLM — ZERO HALLUCINATION           │
+└──────────┬──────────────────────────┬───────────────┘
+           │                          │
+           ▼                          ▼ (if Denied/Partial)
+┌─────────────────────────┐ ┌─────────────────────────┐
+│ 🤖 AGENT 3              │ │ 🤖 AGENT 4              │
+│ Explanation Agent       │ │ Grievance Agent         │
+│                         │ │                         │
+│ ├─ clause_explainer     │ │ ├─ search_irdai_prcdnts │
+│ ├─ savings_calculator   │ │ ├─ draft_grv_letter     │
+│ └─ what_if_analyzer     │ │ ├─ generate_pdf_report  │
+│                         │ │ └─ send_grievance_email  │
+│  LLM: Cerebras/Groq     │ │                         │
+└──────────┬──────────────┘ │  LLM: Cerebras/Groq     │
+           │                └──────────┬──────────────┘
+           ▼                           ▼
+┌─────────────────────────────────────────────────────┐
+│                     📋 OUTPUT LAYER                  │
+│                                                     │
+│  ✅ Verdict    📝 Explanation    💰 Savings Tips     │
+│  📄 PDF Report   ✉️ Grievance Letter   📧 Email     │
+└─────────────────────────────────────────────────────┘
 
-    subgraph POLICY_AGENT["🤖 Agent 1 — Policy Agent (ReAct)"]
-        direction TB
-        PT1["📝 pdf_text_extractor"]
-        PT2["📊 pdf_table_extractor"]
-        PT3["⚖️ irdai_regulation_lookup"]
-        PT4["✅ rule_validator"]
-        LLM1["🧠 Gemini 2.5 Flash\n(JSON Rule Extraction)"]
-        PT1 --> LLM1
-        PT2 --> LLM1
-        PT3 --> LLM1
-        LLM1 --> PT4
-    end
-
-    subgraph CASE_AGENT["🤖 Agent 2 — Case Agent (ReAct)"]
-        direction TB
-        CT1["🏥 medical_term_normalizer"]
-        CT2["🔬 icd_procedure_lookup"]
-        CT3["🏙️ city_tier_classifier"]
-        CT4["💰 hospital_cost_estimator"]
-        CT1 --> CT2 --> CT3 --> CT4
-    end
-
-    subgraph ENGINE["⚙️ Decision Engine (Deterministic)"]
-        direction TB
-        DE["6-Phase Rule Evaluator\n(Zero LLM — Zero Hallucination)"]
-        PHASE["① Exclusions → ② Room Rent → ③ Sub-limits\n④ Waiting Periods → ⑤ Deductibles → ⑥ Co-pays"]
-        DE --> PHASE
-    end
-
-    subgraph EXPLAIN_AGENT["🤖 Agent 3 — Explanation Agent (ReAct)"]
-        direction TB
-        ET1["📖 clause_explainer"]
-        ET2["💡 savings_calculator"]
-        ET3["🔄 what_if_analyzer"]
-        LLM2["🧠 Gemini 2.5 Flash\n(Patient-Friendly Language)"]
-        ET1 --> ET2 --> ET3 --> LLM2
-    end
-
-    subgraph GRIEVANCE_AGENT["🤖 Agent 4 — Grievance Agent (ReAct)"]
-        direction TB
-        GA1["🔍 search_irdai_precedents"]
-        GA2["✍️ draft_grievance_letter"]
-        GA3["📄 generate_claim_report_pdf"]
-        GA4["📧 send_grievance_email"]
-        GA1 --> GA2 --> GA3 --> GA4
-    end
-
-    subgraph OUTPUT["📋 Output"]
-        VERDICT["✅ Verdict (Approved / Partial / Denied)"]
-        EXPLAIN["📝 Plain-English Explanation"]
-        SAVINGS["💰 Cost-Saving Suggestions"]
-        PDF_R["📄 PDF Claim Report"]
-        LETTER["✉️ Formal Grievance Letter"]
-        CHAT["💬 Medical Chat Assistant"]
-    end
-
-    subgraph OPTIMIZATION["⚡ Optimization Layers"]
-        FAQ["Local FAQ Cache\n(knowledge/faq.json)"]
-        RULE["Rule-Based Extraction\n(policy_tools.py)"]
-        CF["Cloudflare AI Gateway\n(Semantic Caching)"]
-    end
-
-    PDF --> POLICY_AGENT
-    POLICY_AGENT -->|"Frozen Rules (JSON)"| DB[(SQLite)]
-    CASE --> CASE_AGENT
-    DB --> ENGINE
-    CASE_AGENT -->|"Structured Facts"| ENGINE
-    ENGINE -->|"Rule-by-Rule Verdict"| EXPLAIN_AGENT
-    EXPLAIN_AGENT --> VERDICT & EXPLAIN & SAVINGS
-    ENGINE -->|"Partial/Denied"| GRIEVANCE_AGENT
-    GRIEVANCE_AGENT --> PDF_R & LETTER
-
-    style POLICY_AGENT fill:#0f3460,stroke:#e94560,color:#ffffff
-    style CASE_AGENT fill:#0f3460,stroke:#16213e,color:#ffffff
-    style ENGINE fill:#533483,stroke:#e94560,color:#ffffff
-    style EXPLAIN_AGENT fill:#0f3460,stroke:#16213e,color:#ffffff
-    style GRIEVANCE_AGENT fill:#7b2d00,stroke:#e94560,color:#ffffff
-    style OUTPUT fill:#1a1a2e,stroke:#00d2ff,color:#ffffff
+┌─────────────────────────────────────────────────────┐
+│              ⚡ OPTIMIZATION LAYERS                  │
+│                                                     │
+│  🗄️ Supabase PostgreSQL + pgvector (Semantic Search)│
+│  ☁️ Cloudflare AI Gateway (Semantic Caching)        │
+│  🔄 6-Provider LLM Failover Chain                   │
+│  📧 Gmail SMTP (Zero-Cost Transactional Emails)     │
+└─────────────────────────────────────────────────────┘
 ```
 
 ### LangGraph State Machine
 
-```mermaid
-stateDiagram-v2
-    [*] --> LoadPolicy: Start
-    LoadPolicy --> AnalyzeCase: Policy loaded
-    AnalyzeCase --> DecisionEngine: Facts structured
-    DecisionEngine --> ExplainVerdict: Verdict produced
-    ExplainVerdict --> GrievanceAgent: Claim denied/partial
-    ExplainVerdict --> [*]: Claim approved
-    GrievanceAgent --> [*]: Grievance package sent
-
-    state DecisionEngine {
-        [*] --> CheckExclusions
-        CheckExclusions --> ApplyRoomRent
-        ApplyRoomRent --> ApplySublimits
-        ApplySublimits --> CheckWaiting
-        CheckWaiting --> ApplyDeductibles
-        ApplyDeductibles --> ApplyCopay
-    }
+```
+  ┌─────────┐
+  │  START  │
+  └────┬────┘
+       ▼
+┌──────────────┐
+│ Load Policy  │  Agent 1: Extract & freeze rules from PDF
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│ Analyze Case │  Agent 2: Normalize medical terms, ICD codes, costs
+└──────┬───────┘
+       ▼
+┌──────────────────────────────────────────────┐
+│         DECISION ENGINE (Deterministic)       │
+│                                              │
+│  ┌─────────────┐  ┌─────────────┐            │
+│  │ Exclusions  │─►│ Room Rent   │            │
+│  └─────────────┘  └──────┬──────┘            │
+│                          ▼                   │
+│  ┌─────────────┐  ┌─────────────┐            │
+│  │ Sub-limits  │─►│ Waiting Per │            │
+│  └─────────────┘  └──────┬──────┘            │
+│                          ▼                   │
+│  ┌─────────────┐  ┌─────────────┐            │
+│  │ Deductibles │─►│  Co-pays    │            │
+│  └─────────────┘  └─────────────┘            │
+└──────────────────────┬───────────────────────┘
+                       ▼
+                ┌──────────────┐
+                │   Verdict    │
+                └──────┬───────┘
+                       │
+          ┌────────────┼────────────┐
+          ▼            ▼            ▼
+     ✅ Approved   ⚠️ Partial   ❌ Denied
+          │            │            │
+          ▼            └─────┬──────┘
+       [DONE]                ▼
+                  ┌──────────────────┐
+                  │ Grievance Agent  │
+                  │ PDF + Letter +   │
+                  │ Email Dispatch   │
+                  └────────┬─────────┘
+                           ▼
+                        [DONE]
 ```
 
 ---
@@ -175,7 +161,7 @@ stateDiagram-v2
 
 SecureShield has **5 specialized agents** with **18 custom domain tools**.
 
-### Agent 1 - Policy Agent
+### Agent 1 — Policy Agent
 > Reads insurance PDF → extracts & validates structured rules
 
 | # | Tool | Purpose |
@@ -183,9 +169,9 @@ SecureShield has **5 specialized agents** with **18 custom domain tools**.
 | 1 | `pdf_text_extractor` | Extract raw text from insurance PDF (PyMuPDF) |
 | 2 | `pdf_table_extractor` | Extract tables from PDF (premium plans, limits) |
 | 3 | `irdai_regulation_lookup` | Cross-reference clauses with IRDAI regulations KB |
-| 4 | `rule_validator` | Validate and freeze extracted rules into SQLite |
+| 4 | `rule_validator` | Validate and freeze extracted rules into Supabase |
 
-### Agent 2 - Case Agent
+### Agent 2 — Case Agent
 > Enriches raw patient case with medical coding and location intelligence
 
 | # | Tool | Purpose |
@@ -195,7 +181,7 @@ SecureShield has **5 specialized agents** with **18 custom domain tools**.
 | 7 | `city_tier_classifier` | Auto-classify city → IRDAI Tier 1/2/3 for room rent |
 | 8 | `hospital_cost_estimator` | Benchmark procedure cost vs regional market rates |
 
-### Agent 3 - Explanation Agent
+### Agent 3 — Explanation Agent
 > Translates verdict into plain language + finds savings
 
 | # | Tool | Purpose |
@@ -205,17 +191,17 @@ SecureShield has **5 specialized agents** with **18 custom domain tools**.
 | 11 | `what_if_analyzer` | Re-run engine with modified params to show options |
 | 12 | `audit_trail_logger` | Log every agent step for compliance traceability |
 
-### Agent 4 - Grievance Agent 
+### Agent 4 — Grievance Agent
 > Turns a "No" into a formal dispute with legal backing
 
 | # | Tool | Purpose |
 |:--|:-----|:--------|
-| 13 | `search_irdai_precedents` | Google Search + curated IRDAI/NCDRC/SC rulings |
+| 13 | `search_irdai_precedents` | Semantic search across 49 IRDAI/NCDRC/SC rulings (pgvector) |
 | 14 | `draft_grievance_letter` | LLM drafts formal letter citing IRDAI regulations |
 | 15 | `generate_claim_report_pdf` | Professional PDF report with rule-by-rule breakdown |
-| 16 | `send_grievance_email` | Sends grievance to insurer GRO (mocked with tracking ID) |
+| 16 | `send_grievance_email` | Emails the grievance PDF directly to the user's inbox |
 
-### Agent 5 - Medical Chat Assistant 
+### Agent 5 — Medical Chat Assistant
 > Instant answers to policy & medical queries via 3-tier hierarchy
 
 | # | Tool | Purpose |
@@ -229,89 +215,23 @@ SecureShield has **5 specialized agents** with **18 custom domain tools**.
 
 SecureShield enforces **IRDAI 2024 Master Circular** rules deterministically — no LLM guesswork.
 
-### 🏛️ The "Symbolic Shield" (Why We Don't Hallucinate)
+### The "Symbolic Shield" (Why We Don't Hallucinate)
 
 ```
-LLM Agent        →   Extracts parameters from unstructured PDF
-Deterministic Engine →   Applies EXACT financial math (no LLM)
-Guardrail        →   LLM never performs final math or verdict
+LLM Agent             →   Extracts parameters from unstructured PDF
+Deterministic Engine  →   Applies EXACT financial math (no LLM)
+Guardrail             →   LLM never performs final math or verdict
 ```
 
 ### Key Regulatory Rules Implemented
 
 | Rule | Implementation |
 |:-----|:--------------|
-| **5-Year Moratorium** | **Moratorium Period (IRDAI June 2024)**: Claims after 60 continuous months cannot be denied for PED/non-disclosure. |
-| **Waiting Periods** | Procedure-specific validation (e.g., Joint Replacement: 4yr, Cataract: 2yr) per 2024 norms. |
-| **Room Rent Proportional Deduction** | Correctly applied per IRDAI PPHI Regulations 2017 (Section 7) |
+| **5-Year Moratorium** | Claims after 60 continuous months cannot be denied for PED/non-disclosure |
+| **Waiting Periods** | Procedure-specific validation (e.g., Joint Replacement: 4yr, Cataract: 2yr) |
+| **Room Rent Deduction** | Correctly applied per IRDAI PPHI Regulations 2017 (Section 7) |
 | **Age-Based Co-pay** | 20% co-payment auto-triggered for patients aged 60+ |
 | **City-Tier Limits** | Tier 1/2/3 room rent caps automatically applied based on hospital location |
-
-### IRDAI Regulations Cited in Grievance Letters
-- IRDAI (Protection of Policyholders' Interests) Regulations 2017
-- IRDAI Health Insurance Master Circular 2024
-- IRDAI (Insurance Ombudsman) Rules 2017
-- Consumer Protection Act 2019 (Section 2(46))
-
----
-
-## 🧪 Verified Test Results
-
-### ✅ Case 1 - Star Health Premier Gold (₹10L SI)
-
-| Parameter | Value |
-|:----------|:------|
-| **Patient** | Rajesh Kumar, 45M |
-| **Procedure** | Total Knee Arthroplasty |
-| **Hospital** | Apollo Hospital, Hyderabad (Tier 1) |
-| **Room** | Semi-Private @ ₹4,500/day × 5 days |
-| **Total Claim** | ₹3,25,000 |
-| **Rules Extracted** | 32 |
-| **Verdict** | ✅ **APPROVED — 100% coverage** |
-| **Eligible Amount** | ₹3,25,000 |
-| **Pipeline Time** | ~16.5 sec (12 tools) |
-
----
-
-### ⚠️ Case 2 - ICICI Lombard Basic Shield (₹3L SI)
-
-| Parameter | Value |
-|:----------|:------|
-| **Patient** | Amit Shah, 32M |
-| **Procedure** | Appendectomy (Emergency) |
-| **Hospital** | Fortis Hospital, Jaipur (Tier 2) |
-| **Room** | Private @ ₹10,000/day × 3 days |
-| **Total Claim** | ₹1,50,000 |
-| **Rules Extracted** | 23 |
-| **Verdict** | ⚠️ **PARTIAL — 66.4% coverage** |
-| **Eligible Amount** | ₹99,600 (room rent capped at 1% SI/day) |
-| **Agentic Savings** | 💡 Switch to Semi-Private → **+₹18,000 saved** |
-
----
-
-### ⚖️ Case 3 - ICICI Lombard (Dispute Flow)
-
-| Parameter | Value |
-|:----------|:------|
-| **Verdict** | PARTIAL (flagged for dispute) |
-| **Grievance Tools** | `search_irdai_precedents` → `draft_grievance_letter` → `generate_claim_report_pdf` → `send_grievance_email` |
-| **PDF Report** | Generated (~3KB, professional layout) |
-| **Email Status** | Sent to `grievance@icicilombard.com` (Tracking: `GRV-B780AED2`) |
-| **IRDAI Precedents** | 4 relevant Ombudsman rulings cited |
-
----
-
-### 🔄 LLM Resilience — Multi-Model Failover
-
-```
-cerebras/llama-3.3-70b → groq/llama-3.3-70b → gemini-2.0-flash → gemini-2.0-flash-lite
-       ↓ (if all exhausted)
-xai/grok-3-mini → openrouter (4-model fallback chain)
-```
-
-All providers routed through **Cloudflare AI Gateway** for semantic caching & analytics.
-
-**Global retry**: 3 attempts × 60s exponential backoff. The pipeline self-heals on rate limits.
 
 ---
 
@@ -320,14 +240,15 @@ All providers routed through **Cloudflare AI Gateway** for semantic caching & an
 | Layer | Technology |
 |:------|:-----------|
 | **Backend** | Python 3.11+, FastAPI, Pydantic v2, LangGraph 0.2 |
-| **LLM Provider** | Cerebras (Fast/Free), Groq (Llama 3.3), Google Gemini (Flash/Pro), xAI Grok |
+| **Frontend** | Next.js 16, React 19, Vanilla CSS (Deep Indigo Design System) |
+| **Database** | Supabase PostgreSQL + pgvector (semantic search over 49 IRDAI regulation chunks) |
+| **Auth** | Supabase Auth (JWT), protected routes, session management |
+| **Email** | Gmail SMTP via `fastapi-mail` (zero-cost transactional emails) |
+| **LLM Providers** | Cerebras, Groq, Google Gemini, xAI Grok, OpenRouter (10+ models) |
 | **Edge Cache** | Cloudflare AI Gateway (Semantic Caching & Analytics) |
-| **Frontend** | Next.js 16, React 19, Vanilla CSS |
-| **Database** | Async SQLite (`aiosqlite`) |
 | **PDF Parsing** | PyMuPDF (text + table extraction) |
 | **PDF Generation** | ReportLab (professional claim reports) |
-| **Knowledge Bases** | IRDAI regulations, ICD-10-PCS procedures, Indian city tiers |
-| **Security** | HMAC API keys, rate limiting, PDF sanitization |
+| **DevOps** | Docker, GitHub Actions CI/CD (lint + test + build) |
 
 ---
 
@@ -335,66 +256,55 @@ All providers routed through **Cloudflare AI Gateway** for semantic caching & an
 
 ### Prerequisites
 - Python 3.11+
-- Node.js 18+
-- Docker + Docker Compose plugin (optional, recommended for containerized deployment)
-- [Google AI Studio API key](https://aistudio.google.com/apikey) (free tier: 1,500 req/day)
-- [Cerebras API key](https://cloud.cerebras.ai) (free tier: 1M tokens/day)
-- [Groq API key](https://console.groq.com) (free tier: 14,400 req/day)
+- Node.js 20+
+- API Keys: [Cerebras](https://cloud.cerebras.ai) (free), [Groq](https://console.groq.com) (free), [Google AI Studio](https://aistudio.google.com/apikey) (free)
+- [Supabase](https://supabase.com) project (free tier)
 
-### 1. Backend (Local)
+### 1. Backend
 
 ```bash
 cd backend
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# Add your API keys
+# Configure environment
 cp .env.example .env
-# Then edit backend/.env with your keys
-# Required: GOOGLE_API_KEY, CEREBRAS_API_KEY, GROQ_API_KEY
-# Optional: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_GATEWAY_NAME
+# Edit .env with your API keys, Supabase credentials, and Gmail App Password
 
-# Start the backend server
+# Start the server
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-### 2. Frontend (Local)
+### 2. Frontend
 
 ```bash
 cd frontend
 npm install
+
+# Configure Supabase Auth
+cat > .env.local << EOF
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+EOF
+
 npm run dev
 # Open http://localhost:3000
 ```
 
-### 3. Docker Deployment (Recommended)
+### 3. Docker Deployment
 
 ```bash
-# Build and start both backend and frontend together
 docker compose up --build
+# Backend: http://localhost:8000 | Frontend: http://localhost:3000
 ```
-
-If your environment uses the legacy Compose command:
-
-```bash
-docker-compose up --build
-```
-
-The stack exposes:
-- Backend: http://localhost:8000
-- Frontend: http://localhost:3000
-
-The Docker setup uses:
-- `backend/Dockerfile` to build the FastAPI backend
-- `frontend/Dockerfile` to build the Next.js frontend
-- `docker-compose.yml` to wire both services together
 
 ### 4. Usage
 
-1. Open the frontend at **http://localhost:3000**
-2. In **Settings**, paste the backend `X-API-Key` from startup logs
-3. **Upload Policy** → drag any health insurance PDF
-4. **Check Eligibility** → submit patient details
-5. For partial/denied claims, run **Dispute Claim** to generate a PDF report and grievance letter
+1. Open **http://localhost:3000** → Create an account (check your email for the welcome message!)
+2. **Upload Policy** → Drag any health insurance PDF
+3. **Check Eligibility** → Submit patient details and watch the 5-agent pipeline
+4. **Dispute Claim** → Generate a formal grievance PDF (auto-emailed to you)
+5. **Chat Assistant** → Ask any policy or medical question
 
 ---
 
@@ -403,71 +313,18 @@ The Docker setup uses:
 | Method | Endpoint | Description | Auth |
 |:-------|:---------|:------------|:----:|
 | `GET` | `/api/health` | Health check | ❌ |
-| `POST` | `/api/upload-policy` | Upload & ingest policy PDF | ✅ |
-| `GET` | `/api/policies` | List ingested policies | ✅ |
-| `GET` | `/api/policies/{id}` | Policy details + extracted rules | ✅ |
-| `POST` | `/api/check-eligibility` | Run full agentic eligibility pipeline | ✅ |
-| `GET` | `/api/history` | Recent eligibility check history | ✅ |
-| `GET` | `/api/audit-trail` | 51-point agent audit trail | ✅ |
-| `POST` | `/api/chat` | 🆕 Medical Chat Assistant (3-tier) | ✅ |
-| `POST` | `/api/dispute-claim` | Run Grievance Agent pipeline | ✅ |
-| `GET` | `/api/download-report/{file}` | Download generated PDF report | ✅ |
+| `POST` | `/api/upload-policy` | Upload & ingest policy PDF | 🔐 |
+| `GET` | `/api/policies` | List ingested policies | 🔐 |
+| `GET` | `/api/policies/{id}` | Policy details + extracted rules | 🔐 |
+| `POST` | `/api/check-eligibility` | Run full agentic eligibility pipeline | 🔐 |
+| `GET` | `/api/history` | Recent eligibility check history | 🔐 |
+| `GET` | `/api/audit-trail` | Agent audit trail | 🔐 |
+| `POST` | `/api/chat` | Medical Chat Assistant (3-tier) | 🔐 |
+| `POST` | `/api/dispute-claim` | Run Grievance Agent pipeline | 🔐 |
+| `GET` | `/api/download-report/{file}` | Download generated PDF report | 🔐 |
+| `POST` | `/api/users/welcome` | Trigger welcome email | 🔐 |
 
-> All authenticated endpoints require the `X-API-Key` header.
-
----
-
-## 📂 Project Structure
-
-```
-SecureShield/
-├── backend/
-│   ├── agents/
-│   │   ├── orchestrator.py        # LangGraph state machine (main pipeline)
-│   │   ├── policy_agent.py        # Agent 1: PDF → structured rules
-│   │   ├── case_agent.py          # Agent 2: Patient case analysis
-│   │   ├── explanation_agent.py   # Agent 3: Verdict explanation + savings
-│   │   ├── grievance_agent.py     # Agent 4: Dispute letter + PDF + email
-│   │   ├── chat_agent.py          # Agent 5: Medical Chat Assistant (3-tier)
-│   │   └── model_router.py        # Multi-model LLM failover chain
-│   ├── engine/
-│   │   └── decision_engine.py     # 6-phase deterministic evaluator
-│   ├── tools/
-│   │   ├── policy_tools.py        # Tools 1-4: PDF extraction, rule validation
-│   │   ├── case_tools.py          # Tools 5-8: Medical coding, cost estimation
-│   │   ├── explanation_tools.py   # Tools 9-12: Clause explainer, what-if
-│   │   ├── grievance_tools.py     # Tools 13-16: PDF, letter, search, email
-│   │   ├── faq_tools.py           # Tool 17: Local FAQ keyword search
-│   │   ├── vision_tools.py        # Tool 18: Google Vision OCR
-│   │   └── audit_tools.py         # Compliance audit logging
-│   ├── knowledge/
-│   │   ├── irdai_rules.json       # IRDAI Master Circular 2024 clause KB
-│   │   ├── icd_procedures.json    # 500+ ICD-10-PCS procedures
-│   │   └── faq.json               # Medical & insurance FAQ cache
-│   ├── models/
-│   │   ├── policy.py              # Policy schema
-│   │   ├── case.py                # CaseFacts schema (with tenure, renewal)
-│   │   ├── verdict.py             # Verdict, RuleMatch schemas
-│   │   ├── grievance.py           # GrievanceRequest/Response
-│   │   └── chat.py                # ChatRequest/Response
-│   ├── db/                        # Async SQLite
-│   ├── generated_reports/         # PDF claim reports (auto-created)
-│   ├── security.py                # HMAC keys, rate limiting, sanitization
-│   ├── config.py                  # LLM + Cloudflare Gateway configuration
-│   ├── main.py                    # FastAPI application (10 endpoints)
-│   └── requirements.txt
-├── frontend/
-│   └── src/app/
-│       ├── page.js                # Dashboard
-│       ├── upload/                # Policy upload (drag-and-drop)
-│       ├── check/                 # Eligibility check form
-│       ├── dispute/               # Grievance Agent UI
-│       ├── history/               # Past check results
-│       ├── audit/                 # Agent audit trail viewer
-│       └── settings/              # API key configuration
-├── LICENSE
-└── README.md
-```
+> 🔐 = Requires `Authorization: Bearer <JWT>` or `X-API-Key` header.
 
 ---
 
@@ -475,24 +332,12 @@ SecureShield/
 
 | Layer | Implementation |
 |:------|:--------------|
-| **API Auth** | HMAC-SHA256 generated keys with constant-time comparison |
-| **Rate Limiting** | Per-IP request throttling middleware |
-| **PDF Validation** | Size check (20MB), magic bytes, MIME type before processing |
-| **Log Masking** | API keys never appear in log output |
+| **Authentication** | Supabase JWT (RS256/HS256) with cryptographic verification |
+| **API Key Fallback** | HMAC-SHA256 generated keys for CLI/MCP tool access |
+| **Rate Limiting** | Per-IP sliding window: 30 req/min, 200 req/hr |
+| **PDF Validation** | Size check (20MB), magic bytes, MIME type enforcement |
+| **Input Sanitization** | Prompt injection detection with compiled regex patterns |
 | **Path Traversal** | `os.path.basename()` enforced on all file downloads |
-
----
-
-## 🏆 Hackathon Alignment
-
-| Criteria | SecureShield Implementation |
-|:---------|:----------------------------|
-| **Innovation** | Neuro-symbolic ReAct + LangGraph + **Consumer Advocacy Agent** |
-| **Domain Depth** | ICD-10 coding, IRDAI 2024 compliance, City-Tier classification |
-| **Technical Depth** | 18 custom tools, 6-provider failover, Cloudflare AI Gateway, async SQLite |
-| **Feasibility** | Deterministic engine — zero hallucination risk in financial math |
-| **Scalability** | 5-provider LLM chain (Cerebras + Groq + Gemini + xAI + OpenRouter) |
-| **Compliance** | IRDAI 2024 guardrails, 5-yr moratorium, Ombudsman escalation path |
 
 ---
 
@@ -502,21 +347,24 @@ SecureShield/
 |:---------|:----|
 | **Deterministic Decision Engine** | Financial verdicts must be reproducible & auditable — LLMs hallucinate numbers |
 | **LLM only for NLP tasks** | AI does what it excels at (extraction/explanation); math stays in code |
-| **Frozen rules in SQLite** | Once extracted, rules are immutable — same case always → same verdict |
-| **18 domain-specific tools** | Purpose-built tools (IRDAI lookup, ICD-10 resolver, Vision OCR) beat generic search |
+| **Frozen rules in Supabase** | Once extracted, rules are immutable — same case always → same verdict |
+| **18 domain-specific tools** | Purpose-built tools (IRDAI lookup, ICD-10 resolver) beat generic search |
 | **Grievance Agent** | Transforms "Denied" into a legally-backed action — unique differentiator |
 | **Multi-model failover** | 10+ models across 6 providers — free-tier rate limits are never a showstopper |
+| **Zero-cost emails** | Gmail SMTP delivers real emails without any paid service |
 
 ---
 
 ## 📜 License
 
-Licensed under the **MIT License** - see [LICENSE](LICENSE) for details.
+Licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
 
 ---
 
 <div align="center">
 
-*5 Agents · 18 Tools · Zero Hallucination · Full Compliance*
+*5 Agents · 18 Tools · Zero Hallucination · Full IRDAI Compliance*
+
+**Built with ❤️ for Indian patients who deserve transparency in health insurance.**
 
 </div>
