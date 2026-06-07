@@ -1,0 +1,43 @@
+# SecureShield Backend — Docker build context exclusions
+# Keep the build context small and secure
+
+# Version control
+.git
+.github
+
+# Python
+__pycache__
+**/__pycache__
+**/*.pyc
+**/*.pyo
+*.egg-info
+.venv
+.cache
+
+# Environment (secrets)
+.env
+.env.local
+
+# Database files (use Supabase in production)
+*.db
+*.sqlite3
+
+# Test artifacts
+.pytest_cache
+tests/
+htmlcov/
+.coverage
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/

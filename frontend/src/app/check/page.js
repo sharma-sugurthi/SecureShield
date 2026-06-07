@@ -64,14 +64,14 @@ export default function CheckPage() {
 
         // Simulate pipeline step updates
         const steps = [
-            'Running medical_term_normalizer...',
-            'Running icd_procedure_lookup...',
-            'Running city_tier_classifier...',
-            'Running hospital_cost_estimator...',
-            'Running decision_engine...',
-            'Running clause_explainer...',
-            'Running savings_calculator...',
-            'Generating explanation...',
+            '🏥 Running medical_term_normalizer...',
+            '🔬 Running icd_procedure_lookup...',
+            '🏙️ Running city_tier_classifier...',
+            '💰 Running hospital_cost_estimator...',
+            '⚖️ Running decision_engine...',
+            '📝 Running clause_explainer...',
+            '💡 Running savings_calculator...',
+            '✨ Generating explanation...',
         ];
         let stepI = 0;
         const stepTimer = setInterval(() => {
@@ -246,7 +246,8 @@ export default function CheckPage() {
 
                     {/* Submit */}
                     <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
-                        <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
+                        <button type="submit" className="btn btn-primary btn-lg" disabled={loading}
+                            style={{ background: loading ? 'var(--gray-300)' : 'var(--primary-500)' }}>
                             {loading ? (
                                 <><div className="spinner" /> Running Pipeline...</>
                             ) : (
@@ -254,9 +255,14 @@ export default function CheckPage() {
                             )}
                         </button>
                         {loading && pipelineStep && (
-                            <span style={{ fontSize: 13, color: 'var(--teal-600)', fontWeight: 500 }}>
+                            <div style={{
+                                padding: '8px 16px', borderRadius: 100, fontSize: 13,
+                                fontWeight: 600, color: 'var(--primary-600)',
+                                background: 'var(--primary-50)', border: '1px solid var(--primary-100)',
+                                animation: 'pulse 1.5s infinite',
+                            }}>
                                 {pipelineStep}
-                            </span>
+                            </div>
                         )}
                     </div>
                 </div>

@@ -152,9 +152,9 @@ export default function DisputePage() {
                                         cursor: isApproved ? 'not-allowed' : 'pointer',
                                         opacity: isApproved ? 0.4 : 1,
                                         background: isSelected
-                                            ? 'rgba(20, 184, 166, 0.06)'
+                                            ? 'var(--primary-50)'
                                             : 'transparent',
-                                        borderLeft: isSelected ? '3px solid var(--teal-500)' : '3px solid transparent',
+                                        borderLeft: isSelected ? '3px solid var(--primary-500)' : '3px solid transparent',
                                         display: 'flex',
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
@@ -207,7 +207,7 @@ export default function DisputePage() {
                         className="btn btn-primary btn-lg"
                         onClick={handleDispute}
                         disabled={loading}
-                        style={{ background: 'linear-gradient(135deg, #e74c3c, #c0392b)' }}
+                        style={{ background: 'linear-gradient(135deg, var(--primary-600), var(--primary-500))' }}
                     >
                         {loading ? (
                             <><div className="spinner" /> Running Grievance Agent...</>
@@ -216,9 +216,14 @@ export default function DisputePage() {
                         )}
                     </button>
                     {loading && pipelineStep && (
-                        <span style={{ fontSize: 13, color: 'var(--amber-500)', fontWeight: 500 }}>
+                        <div style={{
+                            padding: '8px 16px', borderRadius: 100, fontSize: 13,
+                            fontWeight: 600, color: 'var(--primary-600)',
+                            background: 'var(--primary-50)', border: '1px solid var(--primary-100)',
+                            animation: 'pulse 1.5s infinite',
+                        }}>
                             {pipelineStep}
-                        </span>
+                        </div>
                     )}
                 </div>
             )}
