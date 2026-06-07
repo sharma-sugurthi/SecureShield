@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { healthCheck, listPolicies, getHistory, getApiKey, getSystemInfo } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -20,9 +21,22 @@ export default function DashboardPage() {
   const [sysInfo, setSysInfo] = useState(null);
   const [recentChecks, setRecentChecks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     loadDashboard();
+    
+    // Get initial user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+        setUser(user);
+    });
+
+    // Listen for login/logout events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function loadDashboard() {
@@ -83,7 +97,7 @@ export default function DashboardPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--navy-800)', letterSpacing: '-0.02em' }}>
-            Good morning, John
+            Good morning, {user?.user_metadata?.full_name?.split(' ')[0] || 'User'}
           </h1>
           <p style={{ color: 'var(--gray-500)', fontSize: 15, marginTop: 4 }}>
             Here is your health insurance overview. {stats.serverStatus}
