@@ -6,7 +6,9 @@
  */
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 const NAV_ITEMS = [
     { label: 'Dashboard', icon: '📊', href: '/' },
@@ -21,6 +23,32 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        // Get initial user
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            setUser(user);
+        });
+
+        // Listen for login/logout events so the sidebar updates in real-time
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+        router.push('/login');
+    };
+
+    const getInitials = (name) => {
+        if (!name) return 'U';
+        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    };
 
     return (
         <aside className="sidebar">
@@ -53,12 +81,24 @@ export default function Sidebar() {
                     Settings
                 </Link>
                 
-                <div className="sidebar-profile" style={{ marginTop: 24 }}>
-                    <div className="avatar">JD</div>
-                    <div className="profile-info">
-                        <span className="profile-name">John Doe</span>
-                        <span className="profile-role">Patient ID: #90412</span>
+                <div className="sidebar-profile" style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div className="avatar">{getInitials(user?.user_metadata?.full_name || user?.email)}</div>
+                        <div className="profile-info" style={{ overflow: 'hidden' }}>
+                            <span className="profile-name" style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', display: 'block' }}>
+                                {user?.user_metadata?.full_name || 'User'}
+                            </span>
+                            <span className="profile-role" style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', display: 'block' }}>
+                                {user?.email || 'Patient'}
+                            </span>
+                        </div>
                     </div>
+                    <button 
+                        onClick={handleSignOut} 
+                        style={{ background: 'transparent', border: '1px solid var(--gray-200)', borderRadius: 'var(--radius-sm)', padding: '6px 12px', fontSize: 12, color: 'var(--gray-600)', cursor: 'pointer', textAlign: 'center', width: '100%', fontWeight: 500 }}
+                    >
+                        Sign out
+                    </button>
                 </div>
             </div>
         </aside>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { sendWelcomeEmail } from '@/lib/api';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -32,6 +33,12 @@ export default function LoginPage() {
             setError(error.message);
             setLoading(false);
         } else {
+            // Check if this is a new signup — if so, send welcome email
+            if (typeof window !== 'undefined' && sessionStorage.getItem('secureshield_new_signup')) {
+                sessionStorage.removeItem('secureshield_new_signup');
+                // Fire and forget — don't block login
+                sendWelcomeEmail().catch((err) => console.error('Welcome email failed:', err));
+            }
             router.push('/');
         }
     };

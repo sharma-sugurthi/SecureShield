@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { sendWelcomeEmail } from '@/lib/api';
 
 export default function SignupPage() {
     const [email, setEmail] = useState('');
@@ -43,14 +42,9 @@ export default function SignupPage() {
             setSuccess(true);
             setLoading(false);
             
-            // Trigger welcome email (fire and forget)
-            try {
-                // Wait briefly for the session to be established locally
-                setTimeout(() => {
-                    sendWelcomeEmail().catch(console.error);
-                }, 2000);
-            } catch (e) {
-                console.error('Welcome email trigger failed', e);
+            // Mark this as a new signup so the login page can trigger the welcome email
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('secureshield_new_signup', 'true');
             }
         }
     };
