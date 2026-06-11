@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 
 const NAV_ITEMS = [
     { label: 'Dashboard', icon: '📊', href: '/' },
+    { label: 'About', icon: '💡', href: '/about' },
     { label: 'Upload Policy', icon: '📄', href: '/upload' },
     { label: 'Check Eligibility', icon: '🔍', href: '/check' },
     { label: 'Dispute Claim', icon: '⚖️', href: '/dispute' },
