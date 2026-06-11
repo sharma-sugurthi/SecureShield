@@ -68,7 +68,7 @@ export default function DashboardPage() {
               try { return JSON.parse(c.verdict_json); } catch { return null; }
             }).filter(Boolean);
 
-            const approved = verdicts.filter(v => v.overall_verdict === 'approved').length;
+            const approved = verdicts.filter(v => v.overall_verdict?.toLowerCase() === 'approved').length;
             approvalRate = verdicts.length ? Math.round((approved / verdicts.length) * 100) : 0;
             avgCoverage = verdicts.length
               ? Math.round(verdicts.reduce((s, v) => s + (v.coverage_percentage || 0), 0) / verdicts.length)

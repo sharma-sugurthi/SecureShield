@@ -122,12 +122,13 @@ async def get_auto_key():
 
 
 @app.get("/api/system-info")
-async def get_system_info():
-    """Return system-level stats for the dashboard."""
+async def get_system_info(user: dict = Depends(verify_jwt_token)):
+    """Return system-level stats for the dashboard (scoped to user)."""
     from db.llm_cache import get_cache_stats
     
-    policies = await get_all_policies()
-    history = await get_check_history(100)
+    user_id = user.get("sub", "")
+    policies = await get_all_policies(user_id=user_id)
+    history = await get_check_history(100, user_id=user_id)
     cache_stats = await get_cache_stats()
     
     return {
@@ -202,7 +203,8 @@ async def upload_policy(
         except Exception as e:
             logger.warning(f"[API] Cloud storage failed, continuing without: {e}")
 
-        policy = await ingest_policy(pdf_bytes, file.filename, pdf_storage_url=pdf_url)
+        policy = await ingest_policy(pdf_bytes, file.filename, pdf_storage_url=pdf_url,
+                                     user_id=user.get("sub", ""))
 
         return PolicyUploadResponse(
             policy_id=policy.id,
@@ -225,8 +227,9 @@ async def upload_policy(
 
 @app.get("/api/policies")
 async def list_policies(user: dict = Depends(verify_jwt_token)):
-    """List all ingested policies."""
-    policies = await get_all_policies()
+    """List all ingested policies for the authenticated user."""
+    user_id = user.get("sub", "")
+    policies = await get_all_policies(user_id=user_id)
     return {"policies": policies, "count": len(policies)}
 
 
@@ -236,7 +239,8 @@ async def get_policy_details(
     user: dict = Depends(verify_jwt_token),
 ):
     """Get full details of a specific policy including extracted rules."""
-    policy = await get_policy(policy_id)
+    user_id = user.get("sub", "")
+    policy = await get_policy(policy_id, user_id=user_id)
     if policy is None:
         raise HTTPException(status_code=404, detail=f"Policy #{policy_id} not found")
     return policy
@@ -267,6 +271,7 @@ async def check_eligibility(
         result = await run_eligibility_check(
             policy_id=request.policy_id,
             case_input=sanitized_case,
+            user_id=user.get("sub", ""),
         )
         
         return result
@@ -286,10 +291,11 @@ async def get_history(
     limit: int = 20,
     user: dict = Depends(verify_jwt_token),
 ):
-    """Get recent eligibility check history."""
+    """Get recent eligibility check history for the authenticated user."""
     if limit < 1 or limit > 100:
         raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
-    history = await get_check_history(limit)
+    user_id = user.get("sub", "")
+    history = await get_check_history(limit, user_id=user_id)
     return {"checks": history, "count": len(history)}
 
 

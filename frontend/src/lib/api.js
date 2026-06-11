@@ -82,9 +82,11 @@ export async function healthCheck() {
 
 // --- System Info ---
 export async function getSystemInfo() {
-  const res = await fetch(`${API_BASE}/api/system-info`);
-  if (res.ok) return res.json();
-  return null;
+  try {
+    return await apiFetch('/api/system-info');
+  } catch (e) {
+    return null;
+  }
 }
 
 // --- Policies ---

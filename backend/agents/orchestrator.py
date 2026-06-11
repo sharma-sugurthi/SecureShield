@@ -31,6 +31,7 @@ class PipelineState(TypedDict):
     """State passed through the orchestrator pipeline."""
     # Identity
     pipeline_run_id: str
+    user_id: str
     
     # Input
     policy_id: int
@@ -59,7 +60,7 @@ async def load_policy_node(state: PipelineState) -> dict:
     logger.info(f"[Orchestrator:{run_id}] Step 1: Loading policy #{state['policy_id']}")
     
     t0 = time.time()
-    policy = await get_policy(state["policy_id"])
+    policy = await get_policy(state["policy_id"], user_id=state.get("user_id", ""))
     t1 = time.time()
     
     if policy is None:
@@ -224,6 +225,7 @@ async def explanation_node(state: PipelineState) -> dict:
             case_json=json.dumps(state["case_facts"]),
             verdict_json=json.dumps(state["verdict"]),
             explanation=result["explanation"],
+            user_id=state.get("user_id", ""),
         )
         
         audit_trail_logger(
@@ -318,7 +320,7 @@ def build_pipeline() -> StateGraph:
 pipeline = build_pipeline()
 
 
-async def run_eligibility_check(policy_id: int, case_input: dict) -> EligibilityResponse:
+async def run_eligibility_check(policy_id: int, case_input: dict, user_id: str = "") -> EligibilityResponse:
     """
     Run the full agentic eligibility check pipeline.
     
@@ -346,6 +348,7 @@ async def run_eligibility_check(policy_id: int, case_input: dict) -> Eligibility
     
     initial_state: PipelineState = {
         "pipeline_run_id": run_id,
+        "user_id": user_id,
         "policy_id": policy_id,
         "case_input": case_input,
         "policy_data": None,

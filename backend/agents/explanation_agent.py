@@ -131,7 +131,7 @@ async def generate_explanation(
     if verdict.overall_verdict == VerdictStatus.APPROVED:
         template = _EXPLANATION_TEMPLATES[VerdictStatus.APPROVED]
         explanation = template["explanation"].format(
-            procedure=verdict.procedure or "your treatment",
+            procedure=original_facts.get("procedure", "your treatment") if original_facts else "your treatment",
             hospital=original_facts.get("hospital_name", "the hospital") if original_facts else "the hospital",
             amount=verdict.total_eligible,
             plan=policy_name

@@ -63,6 +63,7 @@ class Policy(Base):
     __tablename__ = "policies"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     insurer: Mapped[str] = mapped_column(String, nullable=False)
     plan_name: Mapped[str] = mapped_column(String, nullable=False)
     sum_insured: Mapped[float] = mapped_column(Float, nullable=False)
@@ -78,6 +79,7 @@ class EligibilityCheck(Base):
     __tablename__ = "eligibility_checks"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     policy_id: Mapped[int] = mapped_column(Integer)
     case_json: Mapped[str] = mapped_column(Text, nullable=False)
     verdict_json: Mapped[str] = mapped_column(Text, nullable=False)
@@ -94,10 +96,12 @@ async def init_db():
 
 async def save_policy(insurer: str, plan_name: str, sum_insured: float,
                       policy_type: str, rules: List[dict], raw_text_hash: Optional[str],
-                      pdf_storage_url: Optional[str] = None) -> int:
+                      pdf_storage_url: Optional[str] = None,
+                      user_id: str = "") -> int:
     """Save an ingested policy and return its ID."""
     async with AsyncSessionLocal() as session:
         policy = Policy(
+            user_id=user_id,
             insurer=insurer,
             plan_name=plan_name,
             sum_insured=sum_insured,
@@ -109,18 +113,24 @@ async def save_policy(insurer: str, plan_name: str, sum_insured: float,
         session.add(policy)
         await session.commit()
         await session.refresh(policy)
-        logger.info(f"[Database] Saved policy #{policy.id}: {insurer} - {plan_name}")
+        logger.info(f"[Database] Saved policy #{policy.id}: {insurer} - {plan_name} (user: {user_id[:8]}...)")
         return policy.id
 
 
-async def get_policy(policy_id: int) -> Optional[dict]:
-    """Retrieve a policy by ID."""
+async def get_policy(policy_id: int, user_id: str = "") -> Optional[dict]:
+    """Retrieve a policy by ID, scoped to user if user_id is provided."""
     async with AsyncSessionLocal() as session:
-        policy = await session.get(Policy, policy_id)
+        if user_id:
+            stmt = select(Policy).where(Policy.id == policy_id, Policy.user_id == user_id).limit(1)
+            result = await session.execute(stmt)
+            policy = result.scalar_one_or_none()
+        else:
+            policy = await session.get(Policy, policy_id)
         if not policy:
             return None
         return {
             "id": policy.id,
+            "user_id": policy.user_id,
             "insurer": policy.insurer,
             "plan_name": policy.plan_name,
             "sum_insured": policy.sum_insured,
@@ -154,8 +164,8 @@ async def get_policy_by_hash(pdf_hash: str) -> Optional[dict]:
         }
 
 
-async def get_all_policies() -> List[dict]:
-    """Retrieve all ingested policies (without full rules for listing)."""
+async def get_all_policies(user_id: str = "") -> List[dict]:
+    """Retrieve all ingested policies for a specific user (without full rules for listing)."""
     async with AsyncSessionLocal() as session:
         stmt = select(
             Policy.id,
@@ -166,6 +176,8 @@ async def get_all_policies() -> List[dict]:
             Policy.is_reviewed,
             Policy.created_at,
         ).order_by(Policy.created_at.desc())
+        if user_id:
+            stmt = stmt.where(Policy.user_id == user_id)
         q = await session.execute(stmt)
         rows = q.fetchall()
         return [
@@ -183,10 +195,12 @@ async def get_all_policies() -> List[dict]:
 
 
 async def save_eligibility_check(policy_id: int, case_json: str,
-                                  verdict_json: str, explanation: Optional[str]) -> int:
+                                  verdict_json: str, explanation: Optional[str],
+                                  user_id: str = "") -> int:
     """Save an eligibility check result."""
     async with AsyncSessionLocal() as session:
         check = EligibilityCheck(
+            user_id=user_id,
             policy_id=policy_id,
             case_json=case_json,
             verdict_json=verdict_json,
@@ -198,8 +212,8 @@ async def save_eligibility_check(policy_id: int, case_json: str,
         return check.id
 
 
-async def get_check_history(limit: int = 20) -> List[dict]:
-    """Retrieve recent eligibility check history."""
+async def get_check_history(limit: int = 20, user_id: str = "") -> List[dict]:
+    """Retrieve recent eligibility check history for a specific user."""
     async with AsyncSessionLocal() as session:
         stmt = select(
             EligibilityCheck.id,
@@ -209,6 +223,8 @@ async def get_check_history(limit: int = 20) -> List[dict]:
             EligibilityCheck.explanation,
             EligibilityCheck.created_at,
         ).order_by(EligibilityCheck.created_at.desc()).limit(limit)
+        if user_id:
+            stmt = stmt.where(EligibilityCheck.user_id == user_id)
         q = await session.execute(stmt)
         rows = q.fetchall()
         return [
