@@ -169,7 +169,7 @@ export default function DashboardPage() {
                           <div>
                             <div style={{ fontWeight: 600, color: 'var(--navy-800)' }}>{check.policy_name}</div>
                             <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>
-                              Claim: ₹{check.claimed_amount.toLocaleString()} • {new Date(check.created_at).toLocaleDateString()}
+                              Claim: ₹{(check.claimed_amount || 0).toLocaleString()} • {new Date(check.created_at).toLocaleDateString()}
                             </div>
                           </div>
                         </div>
