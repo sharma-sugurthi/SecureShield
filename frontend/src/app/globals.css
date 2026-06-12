@@ -80,6 +80,41 @@
   --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* --- Dark Mode Palette --- */
+html.dark {
+  --navy-900: #F8FAFC;
+  --navy-800: #F1F5F9;
+  --navy-700: #E2E8F0;
+  --navy-600: #CBD5E1;
+  --navy-500: #94A3B8;
+
+  --gray-50: #0F172A; /* Deep Navy Background */
+  --gray-100: #1E293B; /* Card & Sidebar background */
+  --gray-200: #334155; /* Borders */
+  --gray-300: #475569;
+  --gray-400: #64748B;
+  --gray-500: #94A3B8;
+  --gray-600: #CBD5E1;
+  --gray-700: #E2E8F0;
+  
+  --white: #1E293B;
+  
+  --primary-50: rgba(79, 70, 229, 0.15);
+  --primary-100: rgba(79, 70, 229, 0.25);
+  
+  --green-50: rgba(34, 197, 94, 0.1);
+  --green-100: rgba(34, 197, 94, 0.2);
+  
+  --red-50: rgba(239, 68, 68, 0.1);
+  --red-100: rgba(239, 68, 68, 0.2);
+  
+  --amber-50: rgba(245, 158, 11, 0.1);
+  --amber-100: rgba(245, 158, 11, 0.2);
+  
+  --blue-50: rgba(59, 130, 246, 0.1);
+  --blue-100: rgba(59, 130, 246, 0.2);
+}
+
 /* --- Reset & Base --- */
 *, *::before, *::after {
   box-sizing: border-box;

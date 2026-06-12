@@ -30,6 +30,10 @@ export default function SettingsPage() {
     const [darkMode, setDarkMode] = useState(false);
 
     useEffect(() => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            setDarkMode(true);
+        }
         loadUser();
     }, []);
 
@@ -136,6 +140,17 @@ export default function SettingsPage() {
             setProfileMessage(`Error: ${error.message}`);
         }
         setSavingProfile(false);
+    };
+
+    const toggleDarkMode = (checked) => {
+        setDarkMode(checked);
+        if (checked) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
     };
 
     const handleChangePassword = async (e) => {
@@ -347,7 +362,7 @@ export default function SettingsPage() {
                                 <input 
                                     type="checkbox" 
                                     checked={darkMode} 
-                                    onChange={(e) => setDarkMode(e.target.checked)} 
+                                    onChange={(e) => toggleDarkMode(e.target.checked)} 
                                     style={{ width: 20, height: 20 }}
                                 />
                             </label>
