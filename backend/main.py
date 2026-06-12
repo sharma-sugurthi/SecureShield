@@ -10,8 +10,18 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from typing import Optional
 
 from config import APP_NAME, APP_VERSION
+
+class ProfileUpdate(BaseModel):
+    full_name: str
+    phone: str
+    dob: str
+    address: str
+    avatar_base64: Optional[str] = None
+
 from db.database import init_db, get_all_policies, get_policy, get_check_history
 from db.llm_cache import init_llm_cache
 from agents.policy_agent import ingest_policy
@@ -154,6 +164,31 @@ async def send_welcome(user: dict = Depends(verify_jwt_token)):
         raise HTTPException(status_code=400, detail="No email associated with user.")
     await send_welcome_email(email)
     return {"status": "ok", "message": "Welcome email dispatched."}
+
+@app.get("/api/profile")
+async def get_profile(user: dict = Depends(verify_jwt_token)):
+    """Retrieve user profile from Postgres."""
+    user_id = user.get("sub", "")
+    from db.database import get_user_profile
+    profile = await get_user_profile(user_id)
+    if not profile:
+        return {}
+    return profile
+
+@app.post("/api/profile")
+async def update_profile(data: ProfileUpdate, user: dict = Depends(verify_jwt_token)):
+    """Save user profile to Postgres."""
+    user_id = user.get("sub", "")
+    from db.database import save_user_profile
+    await save_user_profile(
+        user_id=user_id,
+        full_name=data.full_name,
+        phone=data.phone,
+        dob=data.dob,
+        address=data.address,
+        avatar_base64=data.avatar_base64
+    )
+    return {"status": "ok", "message": "Profile updated in Postgres"}
 
 
 # --- Authenticated Endpoints ---
@@ -391,7 +426,6 @@ async def dispute_claim(
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_with_assistant(
     request: ChatRequest,
-    user: dict = Depends(verify_jwt_token),
 ):
     """
     Chat with the SecureShield AI Medical Assistant.

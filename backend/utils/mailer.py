@@ -28,23 +28,17 @@ else:
 
 async def send_welcome_email(to_email: str):
     """Send a welcome email to new users after signup."""
-    subject = "Welcome to SecureShield! 🛡️"
+    subject = "Welcome to SecureShield - Account Verified"
     
     html_content = f"""
     <html>
-      <body style="font-family: 'Inter', sans-serif; color: #1E293B; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #4F46E5;">Welcome to SecureShield!</h2>
+      <body style="font-family: sans-serif; color: #333333; line-height: 1.5; padding: 20px;">
         <p>Hello,</p>
-        <p>Thank you for signing up for SecureShield! You can now use our GenAI-powered engine to check your health insurance eligibility against IRDAI regulations instantly.</p>
-        <div style="background-color: #EEF2FF; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h4 style="margin-top: 0; color: #4338CA;">Get Started:</h4>
-          <ol style="margin-bottom: 0;">
-            <li>Upload your insurance policy PDF</li>
-            <li>Run an eligibility check for any medical procedure</li>
-            <li>Generate an official Grievance Package if your claim is unfairly denied</li>
-          </ol>
-        </div>
-        <p>Stay protected,<br><strong>The SecureShield Team</strong></p>
+        <p>Your SecureShield account has been successfully verified.</p>
+        <p>You can now log in and start uploading your health insurance policies to check claim eligibility.</p>
+        <p>If you have any questions, feel free to reply to this email.</p>
+        <br>
+        <p>Best regards,<br>The SecureShield Team</p>
       </body>
     </html>
     """

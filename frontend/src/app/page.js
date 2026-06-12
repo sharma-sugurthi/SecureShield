@@ -103,14 +103,29 @@ export default function DashboardPage() {
             Here is your health insurance overview. {stats.serverStatus}
           </p>
         </div>
-        <div style={{ position: 'relative' }}>
-          <span style={{ position: 'absolute', left: 14, top: 12, color: 'var(--gray-400)' }}>🔍</span>
-          <input 
-            type="text" 
-            placeholder="Search policies or claims..." 
-            className="form-input"
-            style={{ paddingLeft: 40, width: 300, borderRadius: 100 }}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: 14, top: 12, color: 'var(--gray-400)' }}>🔍</span>
+            <input 
+              type="text" 
+              placeholder="Search policies or claims..." 
+              className="form-input"
+              style={{ paddingLeft: 40, width: 300, borderRadius: 100 }}
+            />
+          </div>
+          <Link href="/settings" style={{ textDecoration: 'none' }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: '50%', background: 'var(--primary-100)',
+              color: 'var(--primary-600)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 600, border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden'
+            }}>
+              {user?.user_metadata?.avatar_url ? (
+                <img src={user.user_metadata.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                user?.user_metadata?.full_name ? user.user_metadata.full_name.charAt(0).toUpperCase() : 'U'
+              )}
+            </div>
+          </Link>
         </div>
       </div>
 

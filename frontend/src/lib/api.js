@@ -89,6 +89,23 @@ export async function getSystemInfo() {
   }
 }
 
+// --- User Profile ---
+export async function getProfile() {
+  try {
+    return await apiFetch('/api/profile');
+  } catch (e) {
+    return {};
+  }
+}
+
+export async function updateProfile(profileData) {
+  return apiFetch('/api/profile', {
+    method: 'POST',
+    body: JSON.stringify(profileData),
+  });
+}
+
+
 // --- Policies ---
 export async function uploadPolicy(file) {
   const form = new FormData();

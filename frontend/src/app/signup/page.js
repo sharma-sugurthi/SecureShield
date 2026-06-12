@@ -12,7 +12,9 @@ export default function SignupPage() {
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(false);
+    const [otpMode, setOtpMode] = useState(false);
+    const [otpCode, setOtpCode] = useState('');
+    const [verifying, setVerifying] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -40,11 +42,29 @@ export default function SignupPage() {
             setError(error.message);
             setLoading(false);
         } else {
-            setSuccess(true);
+            setOtpMode(true);
             setLoading(false);
-            
-            // Send welcome email directly after signup (fire and forget)
+        }
+    };
+
+    const handleVerifyOtp = async (e) => {
+        e.preventDefault();
+        setVerifying(true);
+        setError(null);
+
+        const { data, error } = await supabase.auth.verifyOtp({
+            email,
+            token: otpCode,
+            type: 'signup'
+        });
+
+        if (error) {
+            setError(error.message);
+            setVerifying(false);
+        } else {
+            // Success! Send welcome email
             sendWelcomeEmail().catch((err) => console.error('Welcome email failed:', err));
+            router.push('/');
         }
     };
 
@@ -67,15 +87,28 @@ export default function SignupPage() {
                     </div>
                 )}
 
-                {success ? (
-                    <div style={{ textAlign: 'center' }}>
-                        <div style={{ padding: 16, background: 'var(--green-50)', color: 'var(--green-600)', borderRadius: 'var(--radius-sm)', fontSize: 14, border: '1px solid var(--green-100)', marginBottom: 24 }}>
-                            ✅ Account created successfully! Please check your email to verify your account before signing in.
+                {otpMode ? (
+                    <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div style={{ padding: 16, background: 'var(--blue-50)', color: 'var(--blue-600)', borderRadius: 'var(--radius-sm)', fontSize: 14, border: '1px solid var(--blue-100)', marginBottom: 12 }}>
+                            We sent a verification code to <strong>{email}</strong>. This code is valid for 10 minutes.
                         </div>
-                        <Link href="/login" className="btn btn-primary" style={{ textDecoration: 'none', display: 'inline-block' }}>
-                            Go to Login
-                        </Link>
-                    </div>
+                        <div className="form-group">
+                            <label className="form-label">Verification Code</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={otpCode}
+                                onChange={(e) => setOtpCode(e.target.value)}
+                                required
+                                placeholder="12345678"
+                                maxLength={8}
+                                style={{ letterSpacing: 8, fontSize: 20, textAlign: 'center' }}
+                            />
+                        </div>
+                        <button type="submit" className="btn btn-primary" disabled={verifying} style={{ marginTop: 8, height: 44, background: 'var(--primary-500)' }}>
+                            {verifying ? 'Verifying...' : 'Verify Email & Login'}
+                        </button>
+                    </form>
                 ) : (
                     <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                         <div className="form-group">
@@ -118,7 +151,7 @@ export default function SignupPage() {
                     </form>
                 )}
 
-                {!success && (
+                {!otpMode && (
                     <div style={{ textAlign: 'center', marginTop: 24, fontSize: 14, color: 'var(--gray-500)' }}>
                         Already have an account? <Link href="/login" style={{ color: 'var(--primary-600)', fontWeight: 600, textDecoration: 'none' }}>Sign in</Link>
                     </div>

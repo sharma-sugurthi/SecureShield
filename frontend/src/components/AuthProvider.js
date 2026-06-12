@@ -11,35 +11,36 @@ export default function AuthProvider({ children }) {
     const pathname = usePathname();
 
     const isAuthPage = pathname === '/login' || pathname === '/signup';
+    const isPublicPage = pathname === '/chat' || pathname === '/about' || pathname === '/how-it-works';
 
     useEffect(() => {
+        const handleAuth = (session) => {
+            if (!session) {
+                if (pathname === '/') {
+                    router.push('/chat');
+                } else if (!isAuthPage && !isPublicPage) {
+                    router.push('/login');
+                }
+            } else if (session && isAuthPage) {
+                router.push('/');
+            }
+        };
+
         // Initial session check
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setLoading(false);
-            
-            if (!session && !isAuthPage) {
-                // If not logged in and trying to access a protected route
-                router.push('/login');
-            } else if (session && isAuthPage) {
-                // If logged in and trying to access login/signup
-                router.push('/');
-            }
+            handleAuth(session);
         });
 
         // Listen for auth changes (login, logout, token refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
-            
-            if (!session && !isAuthPage) {
-                router.push('/login');
-            } else if (session && isAuthPage) {
-                router.push('/');
-            }
+            handleAuth(session);
         });
 
         return () => subscription.unsubscribe();
-    }, [pathname, isAuthPage, router]);
+    }, [pathname, isAuthPage, isPublicPage, router]);
 
     if (loading) {
         return <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--gray-50)' }}>

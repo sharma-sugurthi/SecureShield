@@ -59,6 +59,17 @@ AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_com
 Base = declarative_base()
 
 
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    user_id: Mapped[str] = mapped_column(String, primary_key=True)
+    full_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    dob: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    avatar_base64: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
 class Policy(Base):
     __tablename__ = "policies"
 
@@ -115,6 +126,56 @@ async def save_policy(insurer: str, plan_name: str, sum_insured: float,
         await session.refresh(policy)
         logger.info(f"[Database] Saved policy #{policy.id}: {insurer} - {plan_name} (user: {user_id[:8]}...)")
         return policy.id
+
+
+async def save_user_profile(user_id: str, full_name: str, phone: str, dob: str, address: str, avatar_base64: str) -> bool:
+    """Upsert user profile."""
+    async with AsyncSessionLocal() as session:
+        stmt = select(UserProfile).where(UserProfile.user_id == user_id).limit(1)
+        result = await session.execute(stmt)
+        profile = result.scalar_one_or_none()
+        
+        if profile:
+            profile.full_name = full_name
+            profile.phone = phone
+            profile.dob = dob
+            profile.address = address
+            if avatar_base64 is not None:
+                profile.avatar_base64 = avatar_base64
+        else:
+            profile = UserProfile(
+                user_id=user_id,
+                full_name=full_name,
+                phone=phone,
+                dob=dob,
+                address=address,
+                avatar_base64=avatar_base64
+            )
+            session.add(profile)
+            
+        await session.commit()
+        logger.info(f"[Database] Saved user profile for {user_id[:8]}...")
+        return True
+
+
+async def get_user_profile(user_id: str) -> Optional[dict]:
+    """Retrieve user profile by ID."""
+    async with AsyncSessionLocal() as session:
+        stmt = select(UserProfile).where(UserProfile.user_id == user_id).limit(1)
+        result = await session.execute(stmt)
+        profile = result.scalar_one_or_none()
+        
+        if not profile:
+            return None
+            
+        return {
+            "user_id": profile.user_id,
+            "full_name": profile.full_name,
+            "phone": profile.phone,
+            "dob": profile.dob,
+            "address": profile.address,
+            "avatar_base64": profile.avatar_base64,
+        }
 
 
 async def get_policy(policy_id: int, user_id: str = "") -> Optional[dict]:
