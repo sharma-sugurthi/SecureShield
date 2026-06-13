@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from typing import Optional
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from config import APP_NAME, APP_VERSION
+from core.config import APP_NAME, APP_VERSION
 
 class ProfileUpdate(BaseModel):
     full_name: str
@@ -32,7 +32,7 @@ from models.case import EligibilityCheckRequest
 from models.verdict import EligibilityResponse
 from models.grievance import GrievanceRequest, GrievanceResponse
 from models.chat import ChatRequest, ChatResponse
-from security import (
+from core.security import (
     get_or_create_master_key,
     verify_jwt_token,
     verify_jwt_token_optional,
@@ -514,7 +514,7 @@ async def download_report(
     Download a generated PDF claim report.
     Since it's a GET request often used in a href, we accept token/api_key via query params.
     """
-    from security import validate_api_key, SUPABASE_JWT_SECRET
+    from core.security import validate_api_key, SUPABASE_JWT_SECRET
     import jwt
     
     # Custom auth for this endpoint

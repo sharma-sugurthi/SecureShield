@@ -23,7 +23,7 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker, Mapped, mapped_column
 from sqlalchemy import Integer, String, Float, Text, DateTime, func, select
-from config import DATABASE_PATH
+from core.config import DATABASE_PATH
 
 logger = logging.getLogger(__name__)
 

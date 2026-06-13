@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pytest
 from fastapi.testclient import TestClient
 from main import app
-from security import get_or_create_master_key
+from core.security import get_or_create_master_key
 
 
 @pytest.fixture(scope="module")

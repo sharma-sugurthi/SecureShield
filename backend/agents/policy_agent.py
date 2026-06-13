@@ -17,7 +17,7 @@ import time
 from agents.model_router import router
 from models.policy import PolicyDocument, PolicyRule, LimitType
 from db.database import save_policy, get_policy_by_hash
-from security import validate_pdf_upload
+from core.security import validate_pdf_upload
 from tools.policy_tools import (
     pdf_text_extractor, pdf_table_extractor,
     irdai_regulation_lookup, rule_validator,

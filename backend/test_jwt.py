@@ -1,4 +1,0 @@
-import jwt
-
-token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlanBmdW1rZHVwb2RseHJldGFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzUwNTgsImV4cCI6MjA5NjM1MTA1OH0.ScPpusPWyCdhGtpCXyY-LU7-Ajk4_9rQOcY8JlRyzwA"
-print(jwt.get_unverified_header(token))

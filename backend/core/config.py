@@ -130,14 +130,14 @@ DEFAULT_ROUTING = [
 ]
 
 # --- Database ---
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), "secureshield.db")
+DATABASE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "secureshield.db")
 
 # --- App ---
 APP_NAME = "SecureShield"
 APP_VERSION = "1.0.0"
 
 # --- Cache ---
-CACHE_DIR = os.path.join(os.path.dirname(__file__), ".cache")
+CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".cache")
 ENABLE_CACHE = os.getenv("ENABLE_CACHE", "true").lower() == "true"
 
 # --- Authentication ---

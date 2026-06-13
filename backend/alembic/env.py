@@ -27,7 +27,7 @@ target_metadata = Base.metadata
 db_url = os.getenv('DATABASE_URL')
 if not db_url:
     # fallback to default sqlite path
-    db_file = os.path.join(os.path.dirname(__file__), '..', 'secureshield.db')
+    db_file = os.path.join(os.path.dirname(__file__), '..', 'data', 'secureshield.db')
     db_url = f'sqlite+aiosqlite:///{db_file}'
 
 config.set_main_option('sqlalchemy.url', db_url)

@@ -22,7 +22,7 @@ import logging
 import re
 import hashlib
 import os
-from config import (
+from core.config import (
     GOOGLE_API_KEY, GOOGLE_BASE_URL,
     GROQ_API_KEY, GROQ_BASE_URL,
     XAI_API_KEY, XAI_BASE_URL,
