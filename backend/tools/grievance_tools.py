@@ -6,6 +6,7 @@ Tools:
 14. draft_grievance_letter — LLM-powered formal complaint letter
 15. search_irdai_precedents — Search for similar IRDAI Ombudsman rulings
 16. send_grievance_email — Mocked email send to insurer's GRO
+17. search_insurer_gro_email — Dynamic web search for official GRO email
 """
 
 import os
@@ -122,9 +123,9 @@ def generate_claim_report_pdf(
     elements.append(Paragraph(f"💰 Financial Summary", heading_style))
     
     fin_data = [
-        ["Total Claimed", f"₹{total_claimed:,.0f}"],
-        ["Total Eligible", f"₹{total_eligible:,.0f}"],
-        ["Total Denied", f"₹{total_denied:,.0f}"],
+        ["Total Claimed", f"Rs. {total_claimed:,.0f}"],
+        ["Total Eligible", f"Rs. {total_eligible:,.0f}"],
+        ["Total Denied", f"Rs. {total_denied:,.0f}"],
         ["Coverage", f"{coverage_percentage:.1f}%"],
         ["Verdict", f"{verdict_emoji} {overall_verdict}"],
     ]
@@ -156,9 +157,9 @@ def generate_claim_report_pdf(
                 str(i),
                 rule.get("rule_category", ""),
                 f"{status_symbol} {status}",
-                f"₹{rule.get('claimed_amount', 0):,.0f}",
-                f"₹{rule.get('eligible_amount', 0):,.0f}",
-                Paragraph(rule.get("reason", "")[:80], ParagraphStyle('RuleReason', fontSize=7, leading=9)),
+                f"Rs. {rule.get('claimed_amount', 0):,.0f}",
+                f"Rs. {rule.get('eligible_amount', 0):,.0f}",
+                Paragraph(rule.get("reason", "").replace("₹", "Rs. ")[:100], ParagraphStyle('RuleReason', fontSize=7, leading=9)),
             ])
         
         rule_table = Table(rule_rows, colWidths=[20, 65, 55, 65, 65, 190])
@@ -265,19 +266,19 @@ async def draft_grievance_letter(
             f"- {p.get('title', 'Unknown')}: {p.get('summary', '')}" for p in precedents[:3]
         )
 
-    prompt = f"""Draft a formal grievance letter to the insurance company on behalf of the policyholder.
+    prompt = f"""Draft a highly professional, well-formatted grievance letter to the insurance company on behalf of the policyholder.
 
 PATIENT DETAILS:
 - Name: {patient_name}
 - Age: {patient_age or 'N/A'}
 - Procedure: {procedure}
 
-POLICY: {policy_name} by {insurer}
+POLICY: {policy_name or '[Insert Policy Number]'} by {insurer or '[Insert Insurer Name]'}
 
 CLAIM DETAILS:
-- Total Claimed: ₹{total_claimed:,.0f}
-- Amount Approved: ₹{total_eligible:,.0f}
-- Amount Denied: ₹{total_denied:,.0f}
+- Total Claimed: Rs. {total_claimed:,.0f}
+- Amount Approved: Rs. {total_eligible:,.0f}
+- Amount Denied: Rs. {total_denied:,.0f}
 - Verdict: {overall_verdict}
 
 RULES THAT CAUSED DENIAL/REDUCTION:
@@ -286,16 +287,16 @@ RULES THAT CAUSED DENIAL/REDUCTION:
 {precedents_text}
 
 INSTRUCTIONS:
-1. Write a formal letter addressed to "The Grievance Redressal Officer, {insurer}"
-2. Cite specific IRDAI regulations:
+1. Write a formal letter addressed to "The Grievance Redressal Officer, {insurer or '[Insert Insurer]'}"
+2. Use clear spacing and bullet points for readability. DO NOT leave blanks like `""`, use `[Insert Policy Number]` instead if data is missing.
+3. Cite specific IRDAI regulations strongly:
    - IRDAI (Protection of Policyholders' Interests) Regulations 2017
    - IRDAI Health Insurance Regulations 2024 Master Circular
    - If PED-related: Moratorium Period (5 years / 60 months, Clause 4.4)
    - If waiting-period related: Clause 4.2 limits
-3. State that the policyholder reserves the right to escalate to the Insurance Ombudsman
-4. Request a written response within 15 days as per IRDAI guidelines
-5. Use a structured, professional tone. Ensure all matching facts from the claim record are directly linked to the regulation.
-6. End with "Yours faithfully" and the patient's name
+4. State that the policyholder reserves the right to escalate to the Insurance Ombudsman under the IRDAI (Insurance Ombudsman) Rules 2017.
+5. Request a written response within 15 days as per IRDAI guidelines.
+6. End with "Yours faithfully" and the patient's name.
 
 Return ONLY a JSON object: {{"letter_text": "...", "regulations_cited": ["regulation 1", "regulation 2"]}}"""
 
@@ -344,16 +345,16 @@ To,
 The Grievance Redressal Officer,
 {insurer}
 
-Subject: Formal Grievance — Partial/Denied Claim under {policy_name}
+Subject: Formal Grievance — Partial/Denied Claim under {policy_name or '[Insert Policy Name/Number]'}
 
 Dear Sir/Madam,
 
-I, {patient_name}, am writing to formally dispute the partial approval of my recent health insurance claim for the procedure "{procedure}" under my policy "{policy_name}".
+I, {patient_name}, am writing to formally dispute the partial approval of my recent health insurance claim for the procedure "{procedure}" under my policy "{policy_name or '[Insert Policy Name/Number]'}".
 
 CLAIM DETAILS:
-- Total Amount Claimed: ₹{total_claimed:,.0f}
-- Amount Approved: ₹{total_eligible:,.0f}
-- Amount Denied: ₹{total_denied:,.0f}
+- Total Amount Claimed: Rs. {total_claimed:,.0f}
+- Amount Approved: Rs. {total_eligible:,.0f}
+- Amount Denied: Rs. {total_denied:,.0f}
 
 The following rules were applied to reduce/deny my claim:
 {rules_text}
@@ -494,13 +495,113 @@ def _get_curated_precedents(procedure: str, denial_reason: str) -> list[dict]:
     return sorted(all_precedents, key=lambda x: order.get(x["relevance"], 3))[:4]
 
 
-# --- Tool 16: Send Grievance Email (Mocked) ---
+# --- Tool 17: Search Insurer GRO Email ---
+
+async def search_insurer_gro_email(insurer: str) -> dict:
+    """
+    Search the web for the official Grievance Redressal Officer (GRO) email address
+    of the specified insurance company.
+    
+    Returns:
+        {
+            "email": str,
+            "source": str,
+            "found": bool
+        }
+    """
+    import httpx
+    import re
+    
+    query = f"official grievance redressal officer email {insurer} health insurance india"
+    logger.info(f"[Tool:search_insurer_gro_email] Searching: {query}")
+    
+    google_api_key = os.environ.get("GOOGLE_API_KEY", "")
+    search_engine_id = os.environ.get("GOOGLE_CSE_ID", "")
+    
+    found_email = None
+    source_url = "Web Search"
+    
+    if google_api_key and search_engine_id:
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.get(
+                    "https://www.googleapis.com/customsearch/v1",
+                    params={
+                        "key": google_api_key,
+                        "cx": search_engine_id,
+                        "q": query,
+                        "num": 5,
+                    }
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    combined_text = ""
+                    for item in data.get("items", [])[:5]:
+                        combined_text += item.get("snippet", "") + " "
+                    
+                    # Regex to find email addresses
+                    email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+                    emails = re.findall(email_pattern, combined_text)
+                    
+                    # Filter out common false positives (e.g., example@domain.com)
+                    valid_emails = [e for e in emails if "example" not in e.lower() and "yourdomain" not in e.lower()]
+                    
+                    if valid_emails:
+                        # Prioritize grievance/gro emails if multiple are found
+                        for e in valid_emails:
+                            if "grievance" in e.lower() or "gro" in e.lower():
+                                found_email = e.lower()
+                                break
+                        
+                        if not found_email:
+                            found_email = valid_emails[0].lower()
+                        
+                        # Find the source URL for the chosen snippet
+                        for item in data.get("items", []):
+                            if found_email in item.get("snippet", "").lower():
+                                source_url = item.get("link", "")
+                                break
+        except Exception as e:
+            logger.warning(f"[Tool:search_insurer_gro_email] Google search failed: {e}")
+
+    # Fallback to dictionary
+    if not found_email:
+        gro_emails = {
+            "star health": "grievances@starhealth.in",
+            "icici lombard": "grievance@icicilombard.com",
+            "hdfc ergo": "grievance@hdfcergo.com",
+            "bajaj allianz": "gro@bajajallianz.co.in",
+            "niva bupa": "grievance@nivabupa.com",
+            "care health": "gro@careinsurance.com",
+            "max bupa": "grievance@maxbupa.com",
+            "new india": "nia.grievance@newindia.co.in"
+        }
+        insurer_lower = insurer.lower()
+        for key, email in gro_emails.items():
+            if key in insurer_lower:
+                found_email = email
+                source_url = "Internal Database"
+                break
+                
+    if not found_email:
+        found_email = "grievance@insurer.co.in"
+        source_url = "Simulated Fallback"
+
+    logger.info(f"[Tool:search_insurer_gro_email] Extracted Email: {found_email} (Source: {source_url})")
+    
+    return {
+        "email": found_email,
+        "source": source_url,
+        "found": source_url != "Simulated Fallback"
+    }
+
 
 def send_grievance_email(
     patient_name: str,
     insurer: str,
     letter_text: str,
     pdf_filepath: str = "",
+    recipient_email: str = "grievance@insurer.co.in",
 ) -> dict:
     """
     MOCKED: Simulate sending the grievance letter via email to the insurer's GRO.
@@ -515,23 +616,7 @@ def send_grievance_email(
             "message": str
         }
     """
-    # Mock insurer GRO email addresses
-    gro_emails = {
-        "star health": "grievance@starhealth.in",
-        "icici lombard": "grievance@icicilombard.com",
-        "hdfc ergo": "grievance@hdfcergo.com",
-        "bajaj allianz": "grievance@bajajallianz.co.in",
-        "niva bupa": "grievance@nivabupa.com",
-        "care health": "grievance@careinsurance.com",
-        "max bupa": "grievance@maxbupa.com",
-    }
-    
-    insurer_lower = insurer.lower()
-    recipient = "grievance@insurer.co.in"
-    for key, email in gro_emails.items():
-        if key in insurer_lower:
-            recipient = email
-            break
+    recipient = recipient_email
     
     tracking_id = f"GRV-{uuid.uuid4().hex[:8].upper()}"
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S IST")

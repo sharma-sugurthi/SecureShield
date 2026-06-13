@@ -21,8 +21,8 @@ _AUDIT_COUNTER = 0
 def audit_trail_logger(
     agent_name: str,
     action: str,
-    input_summary: str,
-    output_summary: str,
+    input_summary: str | dict = "",
+    output_summary: str | dict = "",
     tools_used: list[str] | None = None,
     duration_ms: float | None = None,
     status: str = "success",
@@ -31,23 +31,6 @@ def audit_trail_logger(
     """
     Log an agent action for compliance and auditability.
     Every step in the pipeline is recorded with full traceability.
-    
-    Args:
-        agent_name: Name of the agent (e.g., "PolicyAgent", "CaseAgent")
-        action: What the agent did (e.g., "extract_rules", "normalize_facts")
-        input_summary: Brief summary of the input (masked for PII)
-        output_summary: Brief summary of the output
-        tools_used: List of tools the agent invoked
-        duration_ms: How long the action took
-        status: "success", "failure", or "partial"
-        metadata: Additional context (rule counts, model used, etc.)
-    
-    Returns:
-        {
-            "audit_id": str,
-            "logged": True,
-            "timestamp": str
-        }
     """
     global _AUDIT_COUNTER
     _AUDIT_COUNTER += 1
@@ -60,8 +43,8 @@ def audit_trail_logger(
         "timestamp": timestamp,
         "agent_name": agent_name,
         "action": action,
-        "input_summary": input_summary[:500],  # Truncate for storage
-        "output_summary": output_summary[:500],
+        "input_summary": str(input_summary)[:500] if input_summary else "",
+        "output_summary": str(output_summary)[:500] if output_summary else "",
         "tools_used": tools_used or [],
         "duration_ms": duration_ms,
         "status": status,

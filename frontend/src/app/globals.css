@@ -1924,3 +1924,29 @@ body.auth-page .main-content {
   .about-flow-connector { display: none; }
   .about-section { padding: 24px !important; }
 }
+
+/* --- Markdown Chat Body --- */
+.markdown-body {
+  font-size: 14px;
+}
+.markdown-body p {
+  margin-bottom: 8px;
+}
+.markdown-body p:last-child {
+  margin-bottom: 0;
+}
+.markdown-body ul, .markdown-body ol {
+  margin-left: 20px;
+  margin-bottom: 8px;
+}
+.markdown-body li {
+  margin-bottom: 4px;
+}
+.markdown-body strong {
+  font-weight: 700;
+  color: var(--navy-800);
+}
+.dark .markdown-body strong {
+  color: var(--white);
+}
+

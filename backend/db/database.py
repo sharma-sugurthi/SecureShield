@@ -98,6 +98,27 @@ class EligibilityCheck(Base):
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class ChatThread(Base):
+    __tablename__ = "chat_threads"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    thread_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    role: Mapped[str] = mapped_column(String, nullable=False) # 'user' or 'assistant'
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    method: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    duration_ms: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 async def init_db():
     """Create tables if they don't exist (async)."""
     async with engine.begin() as conn:
@@ -299,6 +320,63 @@ async def get_check_history(limit: int = 20, user_id: str = "") -> List[dict]:
             }
             for r in rows
         ]
+
+
+async def create_chat_thread(user_id: str, title: str) -> int:
+    """Create a new chat thread."""
+    async with AsyncSessionLocal() as session:
+        thread = ChatThread(user_id=user_id, title=title)
+        session.add(thread)
+        await session.commit()
+        await session.refresh(thread)
+        return thread.id
+
+
+async def get_chat_threads(user_id: str) -> List[dict]:
+    """Get all chat threads for a user."""
+    async with engine.begin() as conn:
+        result = await conn.execute(
+            select(ChatThread)
+            .where(ChatThread.user_id == user_id)
+            .order_by(ChatThread.created_at.desc())
+        )
+        rows = result.fetchall()
+        return [{"id": r.id, "title": r.title, "created_at": str(r.created_at)} for r in rows]
+
+async def delete_chat_thread(thread_id: int):
+    """Delete a chat thread and its messages."""
+    from sqlalchemy import delete
+    async with engine.begin() as conn:
+        await conn.execute(
+            delete(ChatThread)
+            .where(ChatThread.id == thread_id)
+        )
+
+
+async def save_chat_message(thread_id: int, role: str, content: str, method: Optional[str] = None, duration_ms: Optional[float] = None) -> int:
+    """Save a chat message to a thread."""
+    async with AsyncSessionLocal() as session:
+        msg = ChatMessage(thread_id=thread_id, role=role, content=content, method=method, duration_ms=duration_ms)
+        session.add(msg)
+        await session.commit()
+        await session.refresh(msg)
+        return msg.id
+
+
+async def get_chat_messages(thread_id: int) -> List[dict]:
+    """Get all messages for a thread."""
+    async with AsyncSessionLocal() as session:
+        stmt = select(ChatMessage).where(ChatMessage.thread_id == thread_id).order_by(ChatMessage.created_at.asc())
+        q = await session.execute(stmt)
+        rows = q.scalars().all()
+        return [{
+            "id": r.id, 
+            "role": r.role, 
+            "content": r.content, 
+            "method": r.method, 
+            "duration_ms": r.duration_ms, 
+            "created_at": str(r.created_at)
+        } for r in rows]
 
 
 async def clear_policies_and_checks() -> None:

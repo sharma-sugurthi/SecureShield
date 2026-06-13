@@ -22,6 +22,7 @@ export default function DashboardPage() {
   const [recentChecks, setRecentChecks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -85,10 +86,40 @@ export default function DashboardPage() {
         serverStatus: health.status === 'healthy' ? '🟢 Online' : '🔴 Offline',
       });
       setRecentChecks(recent);
+      setFetchError(false);
     } catch (e) {
       setStats(prev => ({ ...prev, serverStatus: '🔴 Offline' }));
+      setFetchError(true);
     }
     setLoading(false);
+  }
+
+  if (fetchError) {
+    return (
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: '#f8fafc',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        zIndex: 99999, textAlign: 'center', color: 'var(--gray-600)'
+      }}>
+        <style>{`
+          @keyframes pulse-icon {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+        `}</style>
+        <div style={{ fontSize: 64, marginBottom: 24, animation: 'pulse-icon 2s infinite ease-in-out' }}>⚠️</div>
+        <h2 style={{ fontSize: 32, fontWeight: 800, color: 'var(--navy-800)', marginBottom: 12, letterSpacing: '-0.02em' }}>Server Busy</h2>
+        <p style={{ fontSize: 18, maxWidth: 450, lineHeight: 1.6, color: 'var(--gray-500)', marginBottom: 32 }}>
+          Something went wrong. It's not you, it's us. We are sorry for the inconvenience. 
+          The SecureShield servers might be busy, unreachable, or under maintenance.
+        </p>
+        <button onClick={loadDashboard} className="btn-primary" style={{ padding: '12px 32px', fontSize: 16 }}>
+          Try Again
+        </button>
+      </div>
+    );
   }
 
   return (

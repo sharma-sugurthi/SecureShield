@@ -12,6 +12,7 @@ import re
 import hashlib
 import logging
 import secrets
+import os
 from collections import defaultdict
 from fastapi import Request, HTTPException, Depends
 from fastapi.security import APIKeyHeader
@@ -21,6 +22,18 @@ import jwt
 from config import OPENROUTER_API_KEY, SUPABASE_JWT_SECRET
 
 logger = logging.getLogger(__name__)
+
+# Initialize a global Supabase client for RS256 token verification
+_supabase_client = None
+def get_supabase_client():
+    global _supabase_client
+    if _supabase_client is None:
+        from supabase import create_client
+        supabase_url = os.environ.get("SUPABASE_URL")
+        supabase_key = os.environ.get("SUPABASE_KEY")
+        if supabase_url and supabase_key:
+            _supabase_client = create_client(supabase_url, supabase_key)
+    return _supabase_client
 
 # --- API Key Management ---
 
@@ -87,7 +100,6 @@ async def verify_jwt_token(
         raise HTTPException(status_code=500, detail="Server not configured for JWT auth (missing SUPABASE_JWT_SECRET).")
         
     try:
-        # Get algorithm from header
         unverified_header = jwt.get_unverified_header(token)
         alg = unverified_header.get("alg", "HS256")
         
@@ -99,22 +111,49 @@ async def verify_jwt_token(
                 algorithms=["HS256"], 
                 options={"verify_aud": False}
             )
+            return {"type": "jwt", "sub": payload.get("sub"), "email": payload.get("email")}
         else:
-            # RS256 or others: For the hackathon, we bypass signature verification
-            # because Supabase's JWKS endpoint requires the Anon Key in headers,
-            # which we don't have in the backend .env.
-            # PyJWT still verifies expiration (exp) automatically.
-            payload = jwt.decode(
-                token,
-                options={"verify_signature": False, "verify_aud": False}
-            )
-
-        # payload contains sub (user id), email, role, etc.
-        return {"type": "jwt", "sub": payload.get("sub"), "email": payload.get("email")}
+            # For RS256 tokens, verify securely via Supabase Auth network call
+            supabase = get_supabase_client()
+            if not supabase:
+                raise HTTPException(status_code=500, detail="Missing Supabase URL/Key to verify RS256 tokens securely.")
+                
+            try:
+                from fastapi.concurrency import run_in_threadpool
+                import asyncio
+                
+                user_res = None
+                for attempt in range(3):
+                    try:
+                        user_res = await run_in_threadpool(supabase.auth.get_user, token)
+                        break
+                    except Exception as e:
+                        if attempt == 2:
+                            raise e
+                        await asyncio.sleep(0.2)
+                
+                if user_res and user_res.user:
+                    return {"type": "jwt", "sub": user_res.user.id, "email": user_res.user.email}
+                else:
+                    raise HTTPException(status_code=401, detail="Invalid token.")
+            except Exception as e:
+                logger.error(f"Supabase Auth verification failed: {e}")
+                raise HTTPException(status_code=401, detail=f"Token verification failed: {str(e)}")
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired.")
     except jwt.InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+
+
+async def verify_jwt_token_optional(
+    credentials: HTTPAuthorizationCredentials = Depends(security_bearer),
+    api_key: str = Depends(api_key_header),
+):
+    """Same as verify_jwt_token, but returns None instead of raising an error if auth fails."""
+    try:
+        return await verify_jwt_token(credentials, api_key)
+    except HTTPException:
+        return None
 
 # --- Rate Limiting ---
 
@@ -124,34 +163,56 @@ class RateLimiter:
     Limits: 30 requests/minute, 200 requests/hour.
     """
 
-    def __init__(self, per_minute: int = 30, per_hour: int = 200):
-        self.per_minute = per_minute
-        self.per_hour = per_hour
+    def __init__(self, default_per_minute: int = 60, default_per_hour: int = 300):
+        self.default_per_minute = default_per_minute
+        self.default_per_hour = default_per_hour
+        # Track by key: f"{ip}:{path}"
         self._requests: dict[str, list[float]] = defaultdict(list)
+        
+        # Strict endpoint limits
+        self.endpoint_limits = {
+            "/api/check-eligibility": {"min": 5, "hour": 20},
+            "/api/chat": {"min": 15, "hour": 60},
+            "/api/upload-policy": {"min": 10, "hour": 30},
+        }
 
-    def _cleanup(self, ip: str, now: float):
+    def _cleanup(self, key: str, now: float):
         """Remove timestamps older than 1 hour."""
         cutoff = now - 3600
-        self._requests[ip] = [t for t in self._requests[ip] if t > cutoff]
+        self._requests[key] = [t for t in self._requests[key] if t > cutoff]
 
-    def check(self, ip: str) -> tuple[bool, str]:
+    def check(self, ip: str, path: str) -> tuple[bool, str]:
         """Check if the request is allowed. Returns (allowed, reason)."""
         now = time.time()
-        self._cleanup(ip, now)
+        
+        # We apply rate limits globally per IP, and per IP+path
+        global_key = ip
+        path_key = f"{ip}:{path}"
+        
+        self._cleanup(global_key, now)
+        self._cleanup(path_key, now)
 
-        timestamps = self._requests[ip]
+        # Global limits check
+        global_timestamps = self._requests[global_key]
+        if len([t for t in global_timestamps if t > now - 60]) >= self.default_per_minute:
+            return False, "Global rate limit exceeded."
+        if len(global_timestamps) >= self.default_per_hour:
+            return False, "Global rate limit exceeded."
 
-        # Per-minute check
-        recent_minute = [t for t in timestamps if t > now - 60]
-        if len(recent_minute) >= self.per_minute:
-            return False, f"Rate limit exceeded: {self.per_minute} requests/minute"
-
-        # Per-hour check
-        if len(timestamps) >= self.per_hour:
-            return False, f"Rate limit exceeded: {self.per_hour} requests/hour"
+        # Path limits check
+        path_limits = self.endpoint_limits.get(path)
+        if path_limits:
+            path_timestamps = self._requests[path_key]
+            if len([t for t in path_timestamps if t > now - 60]) >= path_limits["min"]:
+                return False, f"Rate limit exceeded for {path}: {path_limits['min']} requests/minute allowed."
+            if len(path_timestamps) >= path_limits["hour"]:
+                return False, f"Rate limit exceeded for {path}: {path_limits['hour']} requests/hour allowed."
 
         # Allow
-        self._requests[ip].append(now)
+        self._requests[global_key].append(now)
+        if path_limits:
+            self._requests[path_key].append(now)
+            
         return True, "OK"
 
 
@@ -169,7 +230,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         client_ip = request.client.host if request.client else "unknown"
-        allowed, reason = rate_limiter.check(client_ip)
+        allowed, reason = rate_limiter.check(client_ip, request.url.path)
 
         if not allowed:
             logger.warning(f"[RateLimit] {client_ip} — {reason}")
@@ -192,6 +253,9 @@ _INJECTION_PATTERNS = [
     r"\{\{\s*.*\s*\}\}",  # Template injection
     r"IGNORE_PREVIOUS",
     r"OVERRIDE_SYSTEM",
+    r"base64[=:]",        # Catch base64 encoded attacks
+    r"hex\s*(decode|encode)",
+    r"(exec|eval|os\.system|subprocess)\(",
 ]
 
 _compiled_patterns = [re.compile(p, re.IGNORECASE) for p in _INJECTION_PATTERNS]

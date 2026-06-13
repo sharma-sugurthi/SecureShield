@@ -60,8 +60,8 @@ async def send_welcome_email(to_email: str):
         logger.info(f"[Mailer Mock] Sending Welcome Email to {to_email}")
 
 
-async def send_grievance_email(to_email: str, pdf_path: str):
-    """Send the generated grievance PDF to the user."""
+async def send_grievance_email(to_email: str, pdf_path: str, cc_email: str = None):
+    """Send the generated grievance PDF to the user and CC the insurer."""
     subject = "Your SecureShield Grievance Package is Ready 🛡️"
     
     html_content = f"""
@@ -82,6 +82,7 @@ async def send_grievance_email(to_email: str, pdf_path: str):
     message = MessageSchema(
         subject=subject,
         recipients=[to_email],
+        cc=[cc_email] if cc_email else None,
         body=html_content,
         subtype=MessageType.html,
         attachments=[pdf_path] if os.path.exists(pdf_path) else None

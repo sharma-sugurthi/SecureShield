@@ -19,6 +19,7 @@ from tools.grievance_tools import (
     draft_grievance_letter,
     search_irdai_precedents,
     send_grievance_email,
+    search_insurer_gro_email,
 )
 from tools.audit_tools import audit_trail_logger
 
@@ -168,7 +169,19 @@ async def run_grievance_pipeline(
                         "filename": pdf_result.get("filename", ""),
                         "size_kb": pdf_result.get("size_kb", 0)})
 
-    # --- Step 5: Send Grievance Email (Mocked) ---
+    # --- Step 5: Search for Official GRO Email ---
+    audit_trail_logger("grievance_agent", "tool_call",
+                       {"tool": "search_insurer_gro_email", "action": f"Searching for official GRO email for {insurer}"})
+    
+    gro_search_result = await search_insurer_gro_email(insurer=insurer)
+    tools_used.append("search_insurer_gro_email")
+    
+    audit_trail_logger("grievance_agent", "tool_result",
+                       {"tool": "search_insurer_gro_email",
+                        "email": gro_search_result.get("email", ""),
+                        "source": gro_search_result.get("source", "")})
+
+    # --- Step 6: Send Grievance Email (Mocked) ---
     audit_trail_logger("grievance_agent", "tool_call",
                        {"tool": "send_grievance_email", "action": "Sending grievance to insurer GRO"})
     
@@ -177,6 +190,7 @@ async def run_grievance_pipeline(
         insurer=insurer,
         letter_text=letter_result.get("letter_text", ""),
         pdf_filepath=pdf_result.get("filepath", ""),
+        recipient_email=gro_search_result.get("email", "grievance@insurer.co.in")
     )
     tools_used.append("send_grievance_email")
     

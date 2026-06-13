@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from config import APP_NAME, APP_VERSION
 
@@ -34,6 +35,7 @@ from models.chat import ChatRequest, ChatResponse
 from security import (
     get_or_create_master_key,
     verify_jwt_token,
+    verify_jwt_token_optional,
     RateLimitMiddleware,
     sanitize_case_input,
     validate_pdf_upload,
@@ -90,19 +92,25 @@ app = FastAPI(
 
 # --- Middleware ---
 
-# Rate limiting
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        return response
+
+# Note: Middlewares are executed in reverse order of addition.
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
 # CORS for Next.js frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://0.0.0.0:3000",
-    ],
+    allow_origins=["http://localhost:3000", "http://192.168.1.13:3000"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["X-Request-Id"],
 )
@@ -411,7 +419,10 @@ async def dispute_claim(
             from utils.mailer import send_grievance_email
             from tools.grievance_tools import REPORTS_DIR
             pdf_path = os.path.join(REPORTS_DIR, result["pdf_filename"])
-            await send_grievance_email(user["email"], pdf_path)
+            insurer_email = result.get("email_status", {}).get("recipient", None)
+            
+            # Send email to user, CC the insurer
+            await send_grievance_email(user["email"], pdf_path, cc_email=insurer_email)
             
         return GrievanceResponse(**result)
     
@@ -423,19 +434,66 @@ async def dispute_claim(
         )
 
 
+@app.get("/api/chat/threads")
+async def get_threads(user: dict = Depends(verify_jwt_token)):
+    from db.database import get_chat_threads
+    user_id = user.get("sub", "")
+    threads = await get_chat_threads(user_id)
+    return {"threads": threads}
+
+@app.post("/api/chat/threads/{thread_id}/delete")
+async def delete_thread(thread_id: int, user: dict = Depends(verify_jwt_token)):
+    from db.database import delete_chat_thread
+    await delete_chat_thread(thread_id)
+    return {"status": "success"}
+
+
+@app.get("/api/chat/threads/{thread_id}")
+async def get_thread_messages(thread_id: int, user: dict = Depends(verify_jwt_token)):
+    from db.database import get_chat_messages
+    messages = await get_chat_messages(thread_id)
+    return {"messages": messages}
+
+
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_with_assistant(
     request: ChatRequest,
+    user: dict = Depends(verify_jwt_token_optional),
 ):
     """
     Chat with the SecureShield AI Medical Assistant.
     Uses a 3-tier hierarchy: FAQ Cache -> Cerebras (Free) -> Gemini.
     """
     from agents.chat_agent import handle_chat_query
+    from db.database import create_chat_thread, save_chat_message, get_chat_messages
     
     try:
         logger.info(f"[API] Chat query: '{request.query[:50]}...'")
-        result = await handle_chat_query(request.query)
+        
+        thread_id = request.thread_id
+        history = []
+        user_id = None
+        
+        if user and user.get("sub"):
+            user_id = user.get("sub")
+            if not thread_id:
+                # Generate a quick title
+                title = " ".join(request.query.split()[:5]) + "..."
+                thread_id = await create_chat_thread(user_id, title)
+            else:
+                # Load history
+                history = await get_chat_messages(thread_id)
+            
+            # Save user message
+            await save_chat_message(thread_id, "user", request.query)
+            
+        result = await handle_chat_query(request.query, history=history, user_id=user_id)
+        
+        if thread_id:
+            # Save assistant message
+            await save_chat_message(thread_id, "assistant", result["answer"], result.get("method"), result.get("duration_ms"))
+            result["thread_id"] = thread_id
+            
         return result
     except Exception as e:
         logger.error(f"[API] Chat failed: {e}", exc_info=True)

@@ -3,7 +3,14 @@
  * Handles all communication with the FastAPI backend.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+let API_BASE = process.env.NEXT_PUBLIC_API_URL;
+if (!API_BASE) {
+  if (typeof window !== 'undefined') {
+    API_BASE = `http://${window.location.hostname}:8000`;
+  } else {
+    API_BASE = 'http://localhost:8000';
+  }
+}
 import { supabase } from './supabase';
 
 let apiKey = '';
@@ -62,17 +69,28 @@ async function apiFetch(path, options = {}) {
     headers['Content-Type'] = 'application/json';
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
+  console.log(`[apiFetch] Attempting to fetch: ${API_BASE}${path}`, options);
+  
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+    });
 
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.detail || `Request failed (${res.status})`);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `Request failed (${res.status})`);
+    }
+
+    return res.json();
+  } catch (err) {
+    if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+      console.warn(`[API] Server unreachable at ${API_BASE}${path}. Backend might be down or starting up.`);
+      throw new Error("Cannot connect to the server. Please check your internet connection or try again later.");
+    }
+    console.error(`[apiFetch Error] URL: ${API_BASE}${path} | Error:`, err);
+    throw err;
   }
-
-  return res.json();
 }
 
 // --- Health ---
@@ -155,10 +173,24 @@ export async function disputeClaim(grievanceData) {
 }
 
 // --- Chat ---
-export async function chatWithAssistant(query) {
+export async function getChatThreads() {
+  return apiFetch('/api/chat/threads');
+}
+
+export async function deleteChatThread(threadId) {
+  return apiFetch(`/api/chat/threads/${threadId}/delete`, {
+    method: 'POST',
+  });
+}
+
+export async function getChatMessages(threadId) {
+  return apiFetch(`/api/chat/threads/${threadId}`);
+}
+
+export async function chatWithAssistant(query, threadId = null) {
   return apiFetch('/api/chat', {
     method: 'POST',
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query, thread_id: threadId }),
   });
 }
 
