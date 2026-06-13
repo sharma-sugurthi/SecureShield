@@ -19,7 +19,7 @@ from fastapi.security import APIKeyHeader
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
-from config import OPENROUTER_API_KEY, SUPABASE_JWT_SECRET
+from core.config import OPENROUTER_API_KEY, SUPABASE_JWT_SECRET
 
 logger = logging.getLogger(__name__)
 
