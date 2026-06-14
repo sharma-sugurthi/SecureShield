@@ -32,12 +32,19 @@ export default function DashboardPage() {
         setUser(user);
     });
 
+    const handleKeyUpdate = () => loadDashboard();
+    window.addEventListener('apikey_updated', handleKeyUpdate);
+
     // Listen for login/logout events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null);
+        loadDashboard();
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+        subscription.unsubscribe();
+        window.removeEventListener('apikey_updated', handleKeyUpdate);
+    };
   }, []);
 
   async function loadDashboard() {

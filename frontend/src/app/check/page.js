@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { checkEligibility, listPolicies, getApiKey } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import CoverageRing from '@/components/CoverageRing';
 
 const ROOM_TYPES = [
@@ -42,9 +43,24 @@ export default function CheckPage() {
     const [pipelineStep, setPipelineStep] = useState('');
 
     useEffect(() => {
-        if (getApiKey()) {
+        const fetchPolicies = () => {
             listPolicies().then(d => setPolicies(d.policies || [])).catch(() => { });
-        }
+        };
+        
+        fetchPolicies();
+
+        const handleKeyUpdate = () => fetchPolicies();
+        const handlePolicyUploaded = () => fetchPolicies();
+        window.addEventListener('apikey_updated', handleKeyUpdate);
+        window.addEventListener('policy_uploaded', handlePolicyUploaded);
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(() => fetchPolicies());
+
+        return () => {
+            window.removeEventListener('apikey_updated', handleKeyUpdate);
+            window.removeEventListener('policy_uploaded', handlePolicyUploaded);
+            subscription.unsubscribe();
+        };
     }, []);
 
     function updateField(field, value) {

@@ -259,7 +259,8 @@ async def get_all_policies(user_id: str = "") -> List[dict]:
             Policy.created_at,
         ).order_by(Policy.created_at.desc())
         if user_id:
-            stmt = stmt.where(Policy.user_id == user_id)
+            from sqlalchemy import or_
+            stmt = stmt.where(or_(Policy.user_id == user_id, Policy.user_id == "api_client"))
         q = await session.execute(stmt)
         rows = q.fetchall()
         return [

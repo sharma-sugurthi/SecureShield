@@ -50,11 +50,23 @@ export async function autoFetchApiKey() {
 }
 
 async function apiFetch(path, options = {}) {
-  // First check if we have a Supabase session (JWT)
-  const { data: { session } } = await supabase.auth.getSession();
-  
+  // Safely get Supabase session — stale tokens must NOT crash the fetch
+  let session = null;
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (!error) {
+      session = data?.session;
+    } else {
+      // Session is stale/invalid — sign out cleanly so user is redirected to login
+      console.warn('[Auth] Stale session detected, signing out:', error.message);
+      await supabase.auth.signOut();
+    }
+  } catch (e) {
+    console.warn('[Auth] Could not get session:', e.message);
+  }
+
   const headers = { ...options.headers };
-  
+
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`;
   } else {
@@ -69,8 +81,6 @@ async function apiFetch(path, options = {}) {
     headers['Content-Type'] = 'application/json';
   }
 
-  console.log(`[apiFetch] Attempting to fetch: ${API_BASE}${path}`, options);
-  
   try {
     const res = await fetch(`${API_BASE}${path}`, {
       ...options,
@@ -78,6 +88,12 @@ async function apiFetch(path, options = {}) {
     });
 
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        // Clear stale api key — force re-fetch on next call
+        if (typeof window !== 'undefined' && apiKey) {
+          setApiKey('');
+        }
+      }
       const errData = await res.json().catch(() => ({}));
       throw new Error(errData.detail || `Request failed (${res.status})`);
     }
@@ -201,7 +217,6 @@ export async function sendWelcomeEmail() {
 }
 
 export function getReportDownloadUrl(filename) {
-  // Use API key if logged out, otherwise wait for frontend to pass token
   const key = getApiKey();
   return `${API_BASE}/api/download-report/${encodeURIComponent(filename)}?api_key=${key}`;
 }

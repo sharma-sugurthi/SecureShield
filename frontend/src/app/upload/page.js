@@ -57,6 +57,10 @@ export default function UploadPage() {
             clearInterval(stepTimer);
             setCurrentStep(PIPELINE_STEPS.length);
             setResult(data);
+            // Notify other pages (e.g. Check Eligibility) to refresh their policy list
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new Event('policy_uploaded'));
+            }
         } catch (e) {
             clearInterval(stepTimer);
             setError(e.message);

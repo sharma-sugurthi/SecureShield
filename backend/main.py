@@ -140,11 +140,11 @@ async def get_auto_key():
 
 
 @app.get("/api/system-info")
-async def get_system_info(user: dict = Depends(verify_jwt_token)):
+async def get_system_info(user: dict = Depends(verify_jwt_token_optional)):
     """Return system-level stats for the dashboard (scoped to user)."""
     from db.llm_cache import get_cache_stats
     
-    user_id = user.get("sub", "")
+    user_id = user.get("sub", "") if user else ""
     policies = await get_all_policies(user_id=user_id)
     history = await get_check_history(100, user_id=user_id)
     cache_stats = await get_cache_stats()
@@ -269,9 +269,9 @@ async def upload_policy(
 
 
 @app.get("/api/policies")
-async def list_policies(user: dict = Depends(verify_jwt_token)):
+async def list_policies(user: dict = Depends(verify_jwt_token_optional)):
     """List all ingested policies for the authenticated user."""
-    user_id = user.get("sub", "")
+    user_id = user.get("sub", "") if user else ""
     policies = await get_all_policies(user_id=user_id)
     return {"policies": policies, "count": len(policies)}
 
@@ -332,12 +332,12 @@ async def check_eligibility(
 @app.get("/api/history")
 async def get_history(
     limit: int = 20,
-    user: dict = Depends(verify_jwt_token),
+    user: dict = Depends(verify_jwt_token_optional),
 ):
     """Get recent eligibility check history for the authenticated user."""
     if limit < 1 or limit > 100:
         raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
-    user_id = user.get("sub", "")
+    user_id = user.get("sub", "") if user else ""
     history = await get_check_history(limit, user_id=user_id)
     return {"checks": history, "count": len(history)}
 
@@ -345,7 +345,7 @@ async def get_history(
 @app.get("/api/audit-trail")
 async def get_audit_trail(
     limit: int = 50,
-    user: dict = Depends(verify_jwt_token),
+    user: dict = Depends(verify_jwt_token_optional),
 ):
     """
     Get the agent audit trail — every tool call, LLM invocation, and decision

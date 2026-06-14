@@ -10,14 +10,12 @@ import { getApiKey, autoFetchApiKey } from '@/lib/api';
 
 export default function AutoKeyProvider() {
     useEffect(() => {
-        // Only auto-fetch if no key is already saved
-        if (!getApiKey()) {
-            autoFetchApiKey().then((key) => {
-                if (key) {
-                    console.log('[SecureShield] 🔑 API key auto-configured');
-                }
-            });
-        }
+        autoFetchApiKey().then((key) => {
+            if (key) {
+                console.log('[SecureShield] 🔑 API key auto-configured');
+                window.dispatchEvent(new Event('apikey_updated'));
+            }
+        });
     }, []);
 
     return null; // This is a headless component
