@@ -9,7 +9,6 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000.svg)](https://nextjs.org)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL+pgvector-3ECF8E.svg)](https://supabase.com)
-[![LangGraph](https://img.shields.io/badge/LangGraph-0.2-1C3C3C.svg)](https://langchain-ai.github.io/langgraph/)
 [![Cerebras](https://img.shields.io/badge/Cerebras-1M_Tokens/Day-FFCC00.svg)](https://cloud.cerebras.ai)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-AI_Gateway-F38020.svg)](https://developers.cloudflare.com/ai-gateway)
 
@@ -33,9 +32,11 @@
 | 💰 **Agentic Savings** | `what_if_analyzer` finds cheaper alternatives (e.g., room downgrade tips) |
 | ⚖️ **Grievance Agent** | Denied claim? Agent generates PDF report, formal letter & sends grievance email |
 | 📚 **IRDAI Precedents** | Searches real Ombudsman/NCDRC rulings to strengthen your dispute |
-| 🔐 **User Authentication** | Supabase JWT-based signup/login with protected routes |
-| 📧 **Transactional Emails** | Zero-cost Gmail SMTP — Welcome emails & Grievance PDF delivery |
+| 🔐 **Supabase Auth** | JWT-based signup/login — auto-provisioned session, no API key needed |
+| 💬 **Medical Chat Assistant** | Ask any policy or medical query — context-aware with your uploaded policies |
+| ☁️ **Cloud-Native Storage** | Policy PDFs stored in Supabase Storage, data in Supabase PostgreSQL |
 | 🔄 **Multi-Model Failover** | Auto-switches across 10+ models (Cerebras, Groq, Gemini) — never goes down |
+| ⚡ **Smart PDF Caching** | Duplicate PDF uploads resolve instantly (SHA-256 hash + per-user cloning) |
 | 🎨 **Premium UI/UX** | Dribbble-inspired Deep Indigo dashboard with micro-animations |
 
 ---
@@ -99,6 +100,7 @@
 │              ⚡ OPTIMIZATION LAYERS                  │
 │                                                     │
 │  🗄️ Supabase PostgreSQL + pgvector (Semantic Search)│
+│  ☁️ Supabase Storage (Policy PDFs)                  │
 │  ☁️ Cloudflare AI Gateway (Semantic Caching)        │
 │  🔄 6-Provider LLM Failover Chain                   │
 │  📧 Gmail SMTP (Zero-Cost Transactional Emails)     │
@@ -242,13 +244,52 @@ Guardrail             →   LLM never performs final math or verdict
 | **Backend** | Python 3.11+, FastAPI, Pydantic v2, LangGraph 0.2 |
 | **Frontend** | Next.js 16, React 19, Vanilla CSS (Deep Indigo Design System) |
 | **Database** | Supabase PostgreSQL + pgvector (semantic search over 49 IRDAI regulation chunks) |
-| **Auth** | Supabase Auth (JWT), protected routes, session management |
+| **Auth** | Supabase Auth (JWT RS256/HS256) — auto-provisioned, no manual API key needed |
+| **File Storage** | Supabase Storage (policy PDFs uploaded to cloud) |
 | **Email** | Gmail SMTP via `fastapi-mail` (zero-cost transactional emails) |
 | **LLM Providers** | Cerebras, Groq, Google Gemini, xAI Grok, OpenRouter (10+ models) |
 | **Edge Cache** | Cloudflare AI Gateway (Semantic Caching & Analytics) |
 | **PDF Parsing** | PyMuPDF (text + table extraction) |
 | **PDF Generation** | ReportLab (professional claim reports) |
-| **DevOps** | Docker, GitHub Actions CI/CD (lint + test + build) |
+| **Migrations** | Alembic (async SQLAlchemy schema migrations) |
+
+---
+
+## 📁 Project Structure
+
+```
+SecureShield/
+├── backend/
+│   ├── agents/                # 5 specialized AI agents
+│   │   ├── policy_agent.py    # PDF ingestion + rule extraction
+│   │   ├── case_agent.py      # Medical term normalization + ICD-10
+│   │   ├── decision_engine.py # Deterministic 6-phase verdict engine
+│   │   ├── explanation_agent.py # Plain-language + savings
+│   │   ├── grievance_agent.py # Dispute pipeline + PDF generation
+│   │   └── chat_agent.py      # 3-tier chat (FAQ → cache → LLM)
+│   ├── core/
+│   │   ├── config.py          # Environment & secrets configuration
+│   │   └── security.py        # JWT verification, rate limiting, PDF validation
+│   ├── db/
+│   │   ├── database.py        # Async SQLAlchemy ORM (PostgreSQL)
+│   │   └── llm_cache.py       # LLM response caching layer
+│   ├── engine/                # Deterministic rule evaluation logic
+│   ├── knowledge/             # IRDAI regulations, ICD-10 codes, FAQ data
+│   ├── models/                # Pydantic request/response schemas
+│   ├── tools/                 # 18 domain-specific tools
+│   ├── utils/                 # LLM router, email, storage utilities
+│   ├── alembic/               # Database migration scripts
+│   ├── tests/                 # Pytest test suite
+│   └── main.py                # FastAPI application entry point
+├── frontend/
+│   └── src/
+│       ├── app/               # Next.js 16 pages (dashboard, upload, check, chat)
+│       ├── components/        # Reusable UI components (AuthProvider, CoverageRing)
+│       └── lib/               # API client, Supabase client
+├── scripts/                   # CLI utilities & deployment helpers
+├── docker-compose.yml         # One-command container deployment
+└── README.md
+```
 
 ---
 
@@ -258,7 +299,7 @@ Guardrail             →   LLM never performs final math or verdict
 - Python 3.11+
 - Node.js 20+
 - API Keys: [Cerebras](https://cloud.cerebras.ai) (free), [Groq](https://console.groq.com) (free), [Google AI Studio](https://aistudio.google.com/apikey) (free)
-- [Supabase](https://supabase.com) project (free tier)
+- [Supabase](https://supabase.com) project (free tier) — for PostgreSQL, Auth, and PDF storage
 
 ### 1. Backend
 
@@ -300,11 +341,11 @@ docker compose up --build
 
 ### 4. Usage
 
-1. Open **http://localhost:3000** → Create an account (check your email for the welcome message!)
-2. **Upload Policy** → Drag any health insurance PDF
-3. **Check Eligibility** → Submit patient details and watch the 5-agent pipeline
-4. **Dispute Claim** → Generate a formal grievance PDF (auto-emailed to you)
-5. **Chat Assistant** → Ask any policy or medical question
+1. Open **http://localhost:3000** → Create an account (Supabase Auth handles everything)
+2. **Upload Policy** → Drag any health insurance PDF (stored in Supabase cloud)
+3. **Check Eligibility** → Select your policy, enter patient details, watch the 5-agent pipeline
+4. **Dispute Claim** → Generate a formal grievance PDF (auto-emailed to your inbox)
+5. **Chat Assistant** → Ask any policy or medical question (context-aware with your uploaded policies)
 
 ---
 
@@ -313,18 +354,23 @@ docker compose up --build
 | Method | Endpoint | Description | Auth |
 |:-------|:---------|:------------|:----:|
 | `GET` | `/api/health` | Health check | ❌ |
+| `GET` | `/api/auto-key` | Auto-provision API key (frontend internal) | ❌ |
+| `GET` | `/api/system-info` | Dashboard stats | 🔓 |
 | `POST` | `/api/upload-policy` | Upload & ingest policy PDF | 🔐 |
-| `GET` | `/api/policies` | List ingested policies | 🔐 |
+| `GET` | `/api/policies` | List ingested policies | 🔓 |
 | `GET` | `/api/policies/{id}` | Policy details + extracted rules | 🔐 |
 | `POST` | `/api/check-eligibility` | Run full agentic eligibility pipeline | 🔐 |
-| `GET` | `/api/history` | Recent eligibility check history | 🔐 |
-| `GET` | `/api/audit-trail` | Agent audit trail | 🔐 |
+| `GET` | `/api/history` | Recent eligibility check history | 🔓 |
+| `GET` | `/api/audit-trail` | Agent audit trail | 🔓 |
 | `POST` | `/api/chat` | Medical Chat Assistant (3-tier) | 🔐 |
+| `GET` | `/api/chat/threads` | List chat threads | 🔐 |
 | `POST` | `/api/dispute-claim` | Run Grievance Agent pipeline | 🔐 |
 | `GET` | `/api/download-report/{file}` | Download generated PDF report | 🔐 |
+| `GET`/`POST` | `/api/profile` | Get or update user profile | 🔐 |
 | `POST` | `/api/users/welcome` | Trigger welcome email | 🔐 |
 
 > 🔐 = Requires `Authorization: Bearer <JWT>` or `X-API-Key` header.
+> 🔓 = Optional auth — returns scoped data if authenticated, public data if not.
 
 ---
 
@@ -332,8 +378,10 @@ docker compose up --build
 
 | Layer | Implementation |
 |:------|:--------------|
-| **Authentication** | Supabase JWT (RS256/HS256) with cryptographic verification |
+| **Authentication** | Supabase JWT (RS256/HS256) with cryptographic verification via `supabase.auth.get_user()` |
+| **Session Management** | Auto-refresh tokens, stale session detection & cleanup |
 | **API Key Fallback** | HMAC-SHA256 generated keys for CLI/MCP tool access |
+| **Per-User Data Isolation** | All policies, checks, and chat are scoped to `user_id` — User A cannot see User B's data |
 | **Rate Limiting** | Per-IP sliding window: 30 req/min, 200 req/hr |
 | **PDF Validation** | Size check (20MB), magic bytes, MIME type enforcement |
 | **Input Sanitization** | Prompt injection detection with compiled regex patterns |
@@ -348,10 +396,25 @@ docker compose up --build
 | **Deterministic Decision Engine** | Financial verdicts must be reproducible & auditable — LLMs hallucinate numbers |
 | **LLM only for NLP tasks** | AI does what it excels at (extraction/explanation); math stays in code |
 | **Frozen rules in Supabase** | Once extracted, rules are immutable — same case always → same verdict |
+| **Per-user policy isolation** | Each user gets their own copy of extracted rules, even for identical PDFs |
+| **SHA-256 PDF caching** | Duplicate uploads resolve instantly via content hash — no re-processing |
 | **18 domain-specific tools** | Purpose-built tools (IRDAI lookup, ICD-10 resolver) beat generic search |
 | **Grievance Agent** | Transforms "Denied" into a legally-backed action — unique differentiator |
 | **Multi-model failover** | 10+ models across 6 providers — free-tier rate limits are never a showstopper |
+| **Supabase all-in-one** | PostgreSQL + Auth + Storage in one platform — no infrastructure overhead |
 | **Zero-cost emails** | Gmail SMTP delivers real emails without any paid service |
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] **WhatsApp Bot** — Send policy photo + claim details via WhatsApp (Hindi/English)
+- [ ] **Real-time Pipeline Streaming** — Stream agent steps to frontend via WebSocket/SSE
+- [ ] **IRDAI Admin Panel** — Update regulations from a dashboard instead of JSON files
+- [ ] **DPDPA Compliance** — Consent screens, data retention policies, right-to-deletion
+- [ ] **Background Job Queue** — Async pipeline execution with Celery/ARQ
+- [ ] **Cloud Report Storage** — Move generated PDFs from local disk to Supabase/R2
+- [ ] **Docker + CI/CD** — Automated build, test, and deploy pipeline
 
 ---
 
