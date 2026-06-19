@@ -1,8 +1,9 @@
 """
-Async SQLAlchemy ORM database layer for SecureShield.
+SecureShield Database Layer
+Production: Supabase PostgreSQL (set DATABASE_URL in .env)
+Dev fallback: SQLite via aiosqlite (auto-created if DATABASE_URL is not set)
 
-Supports both SQLite (development) and PostgreSQL (production) via SQLAlchemy
-`DATABASE_URL` environment variable. Falls back to the previous `DATABASE_PATH`.
+All queries are fully async via SQLAlchemy ORM.
 
 This module exposes the same async helper functions used across the codebase:
 - init_db()
@@ -27,14 +28,18 @@ from core.config import DATABASE_PATH
 
 logger = logging.getLogger(__name__)
 
-# Database URL: prefer DATABASE_URL env var, otherwise use sqlite file path
-# For production, set DATABASE_URL to a PostgreSQL/MySQL connection string:
-#   DATABASE_URL=postgresql+asyncpg://user:pass@host/dbname
-#   DATABASE_URL=mysql+aiomysql://user:pass@host/dbname
+# Database URL: prefer DATABASE_URL env var (production), fallback to SQLite (dev)
+# Production: DATABASE_URL=postgresql+asyncpg://user:pass@host/dbname
 _raw_db_url = os.getenv("DATABASE_URL")
 if not _raw_db_url:
-    # Use aiosqlite driver for SQLAlchemy async (development default)
-    sqlite_path = os.path.join(os.path.dirname(__file__), "secureshield_new.db")
+    # Dev fallback: local SQLite file (auto-created, no setup needed)
+    import warnings
+    warnings.warn(
+        "DATABASE_URL not set — using local SQLite. "
+        "Set DATABASE_URL to a PostgreSQL connection string for production.",
+        stacklevel=2,
+    )
+    sqlite_path = os.path.join(os.path.dirname(__file__), "secureshield_dev.db")
     DATABASE_URL = f"sqlite+aiosqlite:///{sqlite_path}"
 else:
     # Use make_url to properly handle special characters in passwords
@@ -393,9 +398,40 @@ async def clear_policies_and_checks() -> None:
     Useful for tests and demo reset. Uses SQLAlchemy ORM (database-agnostic).
     """
     from sqlalchemy import delete as sa_delete
-
     async with AsyncSessionLocal() as session:
         await session.execute(sa_delete(EligibilityCheck))
         await session.execute(sa_delete(Policy))
         await session.commit()
-    logger.info("[Database] Cleared policies and eligibility_checks tables")
+        logger.info("[Database] Cleared all policies and checks.")
+
+
+async def delete_user_data(user_id: str) -> dict:
+    """
+    Delete all data associated with a user_id to comply with DPDPA 2023 
+    'Right to Erasure' for sensitive health data.
+    """
+    from sqlalchemy import delete as sa_delete
+    async with AsyncSessionLocal() as session:
+        # Delete profile
+        profile_res = await session.execute(sa_delete(UserProfile).where(UserProfile.user_id == user_id))
+        
+        # Delete eligibility checks
+        checks_res = await session.execute(sa_delete(EligibilityCheck).where(EligibilityCheck.user_id == user_id))
+        
+        # Delete policies
+        # Note: We keep the LLM cache (llm_cache table) since it's anonymous and hashed
+        policies_res = await session.execute(sa_delete(Policy).where(Policy.user_id == user_id))
+        
+        # Delete chat threads (cascade should delete messages, but let's be explicit if needed)
+        threads_res = await session.execute(sa_delete(ChatThread).where(ChatThread.user_id == user_id))
+        
+        await session.commit()
+        
+        counts = {
+            "profile": profile_res.rowcount,
+            "checks": checks_res.rowcount,
+            "policies": policies_res.rowcount,
+            "chat_threads": threads_res.rowcount,
+        }
+        logger.info(f"[Database] Deleted user data for {user_id}: {counts}")
+        return counts

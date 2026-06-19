@@ -18,9 +18,10 @@ from tools.grievance_tools import (
     generate_claim_report_pdf,
     draft_grievance_letter,
     search_irdai_precedents,
-    send_grievance_email,
+    prepare_grievance_dispatch,
     search_insurer_gro_email,
 )
+from utils.storage import upload_report
 from tools.audit_tools import audit_trail_logger
 
 logger = logging.getLogger(__name__)
@@ -169,6 +170,17 @@ async def run_grievance_pipeline(
                         "filename": pdf_result.get("filename", ""),
                         "size_kb": pdf_result.get("size_kb", 0)})
 
+    # Upload PDF to Supabase Storage
+    pdf_filepath = pdf_result.get("filepath", "")
+    public_pdf_url = ""
+    if pdf_filepath:
+        try:
+            storage_res = upload_report(pdf_filepath)
+            public_pdf_url = storage_res.get("public_url", "")
+            logger.info(f"[GrievanceAgent] Uploaded report to cloud: {public_pdf_url}")
+        except Exception as e:
+            logger.error(f"[GrievanceAgent] Failed to upload report to Supabase: {e}")
+
     # --- Step 5: Search for Official GRO Email ---
     audit_trail_logger("grievance_agent", "tool_call",
                        {"tool": "search_insurer_gro_email", "action": f"Searching for official GRO email for {insurer}"})
@@ -181,21 +193,21 @@ async def run_grievance_pipeline(
                         "email": gro_search_result.get("email", ""),
                         "source": gro_search_result.get("source", "")})
 
-    # --- Step 6: Send Grievance Email (Mocked) ---
+    # --- Step 6: Prepare Grievance Email Dispatch ---
     audit_trail_logger("grievance_agent", "tool_call",
-                       {"tool": "send_grievance_email", "action": "Sending grievance to insurer GRO"})
+                       {"tool": "prepare_grievance_dispatch", "action": "Preparing grievance dispatch metadata"})
     
-    email_result = send_grievance_email(
+    email_result = prepare_grievance_dispatch(
         patient_name=patient_name,
         insurer=insurer,
         letter_text=letter_result.get("letter_text", ""),
-        pdf_filepath=pdf_result.get("filepath", ""),
+        pdf_url=public_pdf_url,
         recipient_email=gro_search_result.get("email", "grievance@insurer.co.in")
     )
-    tools_used.append("send_grievance_email")
+    tools_used.append("prepare_grievance_dispatch")
     
     audit_trail_logger("grievance_agent", "tool_result",
-                       {"tool": "send_grievance_email",
+                       {"tool": "prepare_grievance_dispatch",
                         "status": email_result.get("status", ""),
                         "tracking_id": email_result.get("tracking_id", "")})
 
@@ -206,7 +218,7 @@ async def run_grievance_pipeline(
     return {
         "status": "success",
         "pdf_filename": pdf_result.get("filename", ""),
-        "pdf_download_url": f"/api/download-report/{pdf_result.get('filename', '')}",
+        "pdf_download_url": public_pdf_url or f"/api/download-report/{pdf_result.get('filename', '')}",
         "grievance_letter": letter_result.get("letter_text", ""),
         "precedents": precedent_result.get("precedents", []),
         "email_status": email_result,

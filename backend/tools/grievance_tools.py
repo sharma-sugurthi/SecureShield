@@ -5,7 +5,7 @@ Tools:
 13. generate_claim_report_pdf — Professional PDF report of the claim verdict
 14. draft_grievance_letter — LLM-powered formal complaint letter
 15. search_irdai_precedents — Search for similar IRDAI Ombudsman rulings
-16. send_grievance_email — Mocked email send to insurer's GRO
+16. prepare_grievance_dispatch — Prepares metadata for email dispatch (actual sending handled by API layer)
 17. search_insurer_gro_email — Dynamic web search for official GRO email
 """
 
@@ -596,16 +596,17 @@ async def search_insurer_gro_email(insurer: str) -> dict:
     }
 
 
-def send_grievance_email(
+def prepare_grievance_dispatch(
     patient_name: str,
     insurer: str,
     letter_text: str,
-    pdf_filepath: str = "",
+    pdf_url: str = "",
     recipient_email: str = "grievance@insurer.co.in",
 ) -> dict:
     """
-    MOCKED: Simulate sending the grievance letter via email to the insurer's GRO.
-    In production, this would use SMTP or an email API like SendGrid.
+    Prepares metadata and tracking for the grievance dispatch.
+    The actual emailing (via SMTP) is handled at the API layer (main.py) 
+    using utils.mailer to avoid blocking the agent and to manage attachments securely.
     
     Returns:
         {
@@ -621,15 +622,15 @@ def send_grievance_email(
     tracking_id = f"GRV-{uuid.uuid4().hex[:8].upper()}"
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S IST")
     
-    logger.info(f"[Tool:send_grievance_email] MOCKED — Sent to {recipient} (Tracking: {tracking_id})")
+    logger.info(f"[Tool:prepare_grievance_dispatch] Prepared for {recipient} (Tracking: {tracking_id})")
     
     return {
-        "status": "sent",
+        "status": "ready_for_dispatch",
         "tracking_id": tracking_id,
         "recipient": recipient,
-        "sent_at": timestamp,
-        "attachments": [pdf_filepath] if pdf_filepath else [],
-        "message": f"Grievance letter sent to {insurer} GRO ({recipient}). "
+        "prepared_at": timestamp,
+        "attachments": [pdf_url] if pdf_url else [],
+        "message": f"Grievance package prepared for {insurer} GRO ({recipient}). "
                    f"Tracking ID: {tracking_id}. "
-                   f"As per IRDAI guidelines, the insurer must respond within 15 working days.",
+                   f"Actual email dispatch is handled by the API notification service.",
     }

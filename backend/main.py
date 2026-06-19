@@ -421,8 +421,16 @@ async def dispute_claim(
             pdf_path = os.path.join(REPORTS_DIR, result["pdf_filename"])
             insurer_email = result.get("email_status", {}).get("recipient", None)
             
-            # Send email to user, CC the insurer
-            await send_grievance_email(user["email"], pdf_path, cc_email=insurer_email)
+            try:
+                # Send email to user, CC the insurer
+                await send_grievance_email(user["email"], pdf_path, cc_email=insurer_email)
+            finally:
+                # Clean up local file since it's in Supabase now
+                if os.path.exists(pdf_path):
+                    try:
+                        os.remove(pdf_path)
+                    except OSError as e:
+                        logger.warning(f"[API] Failed to clean up temp report {pdf_path}: {e}")
             
         return GrievanceResponse(**result)
     
@@ -544,6 +552,35 @@ async def download_report(
         media_type="application/pdf",
         filename=safe_filename,
     )
+
+
+@app.delete("/api/account/delete")
+async def delete_account(user: dict = Depends(verify_jwt_token)):
+    """
+    DPDPA 2023 Compliance: 'Right to Erasure'.
+    Deletes all policies, chat threads, eligibility checks, and profile data for the authenticated user.
+    """
+    from db.database import delete_user_data
+    
+    user_id = user.get("sub")
+    if not user_id or user.get("type") != "jwt":
+        raise HTTPException(status_code=403, detail="Must be logged in via Supabase Auth to delete account")
+        
+    try:
+        counts = await delete_user_data(user_id)
+        # Note: We don't delete from Supabase Auth itself here, that should be done via frontend Supabase client
+        # or a Supabase Edge Function, as the backend API key may not have auth admin rights.
+        # But all PII health data in our application database is wiped.
+        
+        return {
+            "status": "success",
+            "message": "All sensitive health data has been permanently deleted.",
+            "deleted_records": counts
+        }
+    except Exception as e:
+        logger.error(f"[API] Account deletion failed for {user_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to delete account data")
+
 
 
 # --- MCP Server (Model Context Protocol) ---
