@@ -22,7 +22,7 @@ import logging
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker, Mapped, mapped_column
-from sqlalchemy import Integer, String, Float, Text, DateTime, func, select
+from sqlalchemy import Integer, String, Float, Text, DateTime, func, select, UniqueConstraint
 from core.config import DATABASE_PATH
 
 logger = logging.getLogger(__name__)
@@ -72,6 +72,9 @@ class UserProfile(Base):
 
 class Policy(Base):
     __tablename__ = "policies"
+    __table_args__ = (
+        UniqueConstraint("user_id", "raw_text_hash", name="uq_policy_user_hash"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
@@ -80,7 +83,7 @@ class Policy(Base):
     sum_insured: Mapped[float] = mapped_column(Float, nullable=False)
     policy_type: Mapped[str] = mapped_column(String, default="individual")
     rules_json: Mapped[str] = mapped_column(Text, nullable=False)
-    raw_text_hash: Mapped[Optional[str]] = mapped_column(String, unique=True, index=True, nullable=True)
+    raw_text_hash: Mapped[Optional[str]] = mapped_column(String, index=True, nullable=True)
     pdf_storage_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     is_reviewed: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -225,22 +228,26 @@ async def get_policy(policy_id: int, user_id: str = "") -> Optional[dict]:
         }
 
 
-async def get_policy_by_hash(pdf_hash: str) -> Optional[dict]:
-    """Retrieve a policy by PDF hash (cache lookup)."""
+async def get_policy_by_hash(pdf_hash: str, user_id: str = "") -> Optional[dict]:
+    """Retrieve a policy by PDF hash, optionally scoped to a specific user."""
     async with AsyncSessionLocal() as session:
-        stmt = select(Policy).where(Policy.raw_text_hash == pdf_hash).limit(1)
-        result = await session.execute(stmt)
+        stmt = select(Policy).where(Policy.raw_text_hash == pdf_hash)
+        if user_id:
+            stmt = stmt.where(Policy.user_id == user_id)
+        result = await session.execute(stmt.limit(1))
         policy_obj = result.scalar_one_or_none()
         if not policy_obj:
             return None
         return {
             "id": policy_obj.id,
+            "user_id": policy_obj.user_id,
             "insurer": policy_obj.insurer,
             "plan_name": policy_obj.plan_name,
             "sum_insured": policy_obj.sum_insured,
             "policy_type": policy_obj.policy_type,
             "rules": json.loads(policy_obj.rules_json or "[]"),
             "raw_text_hash": policy_obj.raw_text_hash,
+            "pdf_storage_url": policy_obj.pdf_storage_url,
             "is_reviewed": policy_obj.is_reviewed,
             "created_at": str(policy_obj.created_at),
         }

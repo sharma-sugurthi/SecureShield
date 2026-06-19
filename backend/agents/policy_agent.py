@@ -149,7 +149,7 @@ async def ingest_policy(pdf_bytes: bytes, filename: str = "policy.pdf",
     # === TASK 3: Step 0 — Compute PDF Hash & Check Cache ===
     pdf_hash = hashlib.sha256(pdf_bytes).hexdigest()
     t0 = time.time()
-    cached_policy = await get_policy_by_hash(pdf_hash)
+    cached_policy = await get_policy_by_hash(pdf_hash, user_id=user_id)
     t1 = time.time()
 
     if cached_policy:
@@ -178,6 +178,31 @@ async def ingest_policy(pdf_bytes: bytes, filename: str = "policy.pdf",
             rules=[PolicyRule(**r) for r in cached_policy["rules"]],
             raw_text_hash=pdf_hash,
         )
+
+    # If this PDF was already ingested for another user, clone it for the current user.
+    if user_id:
+        global_cached = await get_policy_by_hash(pdf_hash)
+        if global_cached:
+            logger.info(f"[PolicyAgent] ⚡ Shared PDF cache hit for {filename} (hash: {pdf_hash[:12]}...). Cloning policy for user {user_id[:8]}...")
+            policy_id = await save_policy(
+                insurer=global_cached["insurer"],
+                plan_name=global_cached["plan_name"],
+                sum_insured=global_cached["sum_insured"],
+                policy_type=global_cached["policy_type"],
+                rules=global_cached["rules"],
+                raw_text_hash=pdf_hash,
+                pdf_storage_url=global_cached.get("pdf_storage_url"),
+                user_id=user_id,
+            )
+            return PolicyDocument(
+                id=policy_id,
+                insurer=global_cached["insurer"],
+                plan_name=global_cached["plan_name"],
+                sum_insured=global_cached["sum_insured"],
+                policy_type=global_cached["policy_type"],
+                rules=[PolicyRule(**r) for r in global_cached["rules"]],
+                raw_text_hash=pdf_hash,
+            )
 
     # Cache MISS: Continue with full extraction pipeline
     logger.info(f"[PolicyAgent] PDF not cached (hash: {pdf_hash[:12]}...). Running full extraction.")

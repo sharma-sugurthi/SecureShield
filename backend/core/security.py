@@ -84,65 +84,67 @@ async def verify_jwt_token(
     Validates either a Supabase JWT (Authorization: Bearer <token>) OR a valid API Key.
     Returns a dict with user context if authenticated via JWT, or string if API key.
     """
-    # 1. Check for API key (backward compatibility for local scripts/MCP)
-    if api_key and validate_api_key(api_key):
-        return {"type": "api_key", "sub": "api_client"}
-        
-    # 2. Check for JWT (Production Frontend)
-    if not credentials:
-        raise HTTPException(status_code=401, detail="Missing authentication token.")
-        
-    token = credentials.credentials
-    
-    if not SUPABASE_JWT_SECRET:
-        # If no JWT secret is configured, fallback to accepting the master key only,
-        # but since we got here, they didn't provide a valid API key.
-        raise HTTPException(status_code=500, detail="Server not configured for JWT auth (missing SUPABASE_JWT_SECRET).")
-        
-    try:
-        unverified_header = jwt.get_unverified_header(token)
-        alg = unverified_header.get("alg", "HS256")
-        
-        if alg == "HS256":
-            # Verify using symmetric secret
-            payload = jwt.decode(
-                token, 
-                SUPABASE_JWT_SECRET, 
-                algorithms=["HS256"], 
-                options={"verify_aud": False}
-            )
-            return {"type": "jwt", "sub": payload.get("sub"), "email": payload.get("email")}
-        else:
-            # For RS256 tokens, verify securely via Supabase Auth network call
+    async def _verify_supabase_jwt(token: str) -> dict:
+        if not SUPABASE_JWT_SECRET:
+            raise HTTPException(status_code=500, detail="Server not configured for JWT auth (missing SUPABASE_JWT_SECRET).")
+
+        try:
+            unverified_header = jwt.get_unverified_header(token)
+            alg = unverified_header.get("alg", "HS256")
+
+            if alg == "HS256":
+                payload = jwt.decode(
+                    token,
+                    SUPABASE_JWT_SECRET,
+                    algorithms=["HS256"],
+                    options={"verify_aud": False},
+                )
+                return {"type": "jwt", "sub": payload.get("sub"), "email": payload.get("email")}
+
             supabase = get_supabase_client()
             if not supabase:
                 raise HTTPException(status_code=500, detail="Missing Supabase URL/Key to verify RS256 tokens securely.")
-                
-            try:
-                from fastapi.concurrency import run_in_threadpool
-                import asyncio
-                
-                user_res = None
-                for attempt in range(3):
-                    try:
-                        user_res = await run_in_threadpool(supabase.auth.get_user, token)
-                        break
-                    except Exception as e:
-                        if attempt == 2:
-                            raise e
-                        await asyncio.sleep(0.2)
-                
-                if user_res and user_res.user:
-                    return {"type": "jwt", "sub": user_res.user.id, "email": user_res.user.email}
-                else:
-                    raise HTTPException(status_code=401, detail="Invalid token.")
-            except Exception as e:
-                logger.error(f"Supabase Auth verification failed: {e}")
-                raise HTTPException(status_code=401, detail=f"Token verification failed: {str(e)}")
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired.")
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+
+            from fastapi.concurrency import run_in_threadpool
+            import asyncio
+
+            user_res = None
+            for attempt in range(3):
+                try:
+                    user_res = await run_in_threadpool(supabase.auth.get_user, token)
+                    break
+                except Exception as e:
+                    if attempt == 2:
+                        raise e
+                    await asyncio.sleep(0.2)
+
+            if user_res and getattr(user_res, 'user', None):
+                return {"type": "jwt", "sub": user_res.user.id, "email": user_res.user.email}
+            if user_res and getattr(user_res, 'data', None) and getattr(user_res.data, 'user', None):
+                return {"type": "jwt", "sub": user_res.data.user.id, "email": user_res.data.user.email}
+
+            raise HTTPException(status_code=401, detail="Invalid token.")
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token has expired.")
+        except jwt.InvalidTokenError as e:
+            raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+        except Exception as e:
+            logger.error(f"Supabase Auth verification failed: {e}")
+            raise HTTPException(status_code=401, detail=f"Token verification failed: {str(e)}")
+
+    if credentials:
+        token = credentials.credentials
+        try:
+            return await _verify_supabase_jwt(token)
+        except HTTPException as jwt_exc:
+            if api_key and validate_api_key(api_key):
+                return {"type": "api_key", "sub": "api_client"}
+            raise jwt_exc
+
+    if api_key and validate_api_key(api_key):
+        return {"type": "api_key", "sub": "api_client"}
+
+    raise HTTPException(status_code=401, detail="Missing authentication token.")
 
 
 async def verify_jwt_token_optional(
@@ -152,7 +154,8 @@ async def verify_jwt_token_optional(
     """Same as verify_jwt_token, but returns None instead of raising an error if auth fails."""
     try:
         return await verify_jwt_token(credentials, api_key)
-    except HTTPException:
+    except HTTPException as e:
+        logger.error(f"[Security] Optional Auth failed: {e.detail}")
         return None
 
 # --- Rate Limiting ---
