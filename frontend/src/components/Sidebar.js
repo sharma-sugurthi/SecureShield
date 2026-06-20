@@ -55,7 +55,7 @@ export default function Sidebar() {
     return (
         <aside className="sidebar">
             <Link href="/" className="sidebar-logo">
-                <div className="sidebar-logo-icon">🛡️</div>
+                <img src="/logo.png" alt="PolicyEye Logo" className="sidebar-logo-icon" style={{ background: 'transparent', padding: 0, objectFit: 'contain' }} />
                 <div>
                     <div className="sidebar-logo-text">PolicyEye</div>
                     <div className="sidebar-logo-badge">SECURE HEALTH PORTAL</div>

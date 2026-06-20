@@ -123,10 +123,12 @@ export default function LoginPage() {
             <div className="card" style={{ width: '100%', maxWidth: 440, padding: 40 }}>
                 <div style={{ textAlign: 'center', marginBottom: 32 }}>
                     <div style={{
-                        width: 56, height: 56, background: 'var(--primary-500)', borderRadius: 'var(--radius-md)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: 'white',
-                        margin: '0 auto 16px', boxShadow: '0 8px 16px var(--primary-glow)'
-                    }}>🛡️</div>
+                        width: 56, height: 56, background: 'transparent', borderRadius: 'var(--radius-md)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        margin: '0 auto 16px'
+                    }}>
+                        <img src="/logo.png" alt="PolicyEye Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    </div>
                     <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--navy-800)' }}>
                         {mode === 'login' ? 'Welcome back' : 'Reset Password'}
                     </h1>
