@@ -1,5 +1,5 @@
 """
-SecureShield Configuration
+PolicyEye Configuration
 Loads environment variables and defines intelligent multi-model routing.
 
 Routing Strategy:
@@ -133,7 +133,7 @@ DEFAULT_ROUTING = [
 DATABASE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "secureshield.db")
 
 # --- App ---
-APP_NAME = "SecureShield"
+APP_NAME = "PolicyEye"
 APP_VERSION = "1.0.0"
 
 # --- Cache ---

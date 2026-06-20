@@ -57,7 +57,7 @@ export default function Sidebar() {
             <Link href="/" className="sidebar-logo">
                 <div className="sidebar-logo-icon">🛡️</div>
                 <div>
-                    <div className="sidebar-logo-text">SecureShield</div>
+                    <div className="sidebar-logo-text">PolicyEye</div>
                     <div className="sidebar-logo-badge">SECURE HEALTH PORTAL</div>
                 </div>
             </Link>

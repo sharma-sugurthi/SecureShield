@@ -37,7 +37,7 @@ class TestHealthCheck:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
-        assert data["app"] == "SecureShield"
+        assert data["app"] == "PolicyEye"
 
     def test_health_no_auth_required(self, client):
         """Health check should work without API key."""

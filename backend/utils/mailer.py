@@ -28,17 +28,17 @@ else:
 
 async def send_welcome_email(to_email: str):
     """Send a welcome email to new users after signup."""
-    subject = "Welcome to SecureShield - Account Verified"
+    subject = "Welcome to PolicyEye - Account Verified"
     
     html_content = f"""
     <html>
       <body style="font-family: sans-serif; color: #333333; line-height: 1.5; padding: 20px;">
         <p>Hello,</p>
-        <p>Your SecureShield account has been successfully verified.</p>
+        <p>Your PolicyEye account has been successfully verified.</p>
         <p>You can now log in and start uploading your health insurance policies to check claim eligibility.</p>
         <p>If you have any questions, feel free to reply to this email.</p>
         <br>
-        <p>Best regards,<br>The SecureShield Team</p>
+        <p>Best regards,<br>The PolicyEye Team</p>
       </body>
     </html>
     """
@@ -62,19 +62,19 @@ async def send_welcome_email(to_email: str):
 
 async def send_grievance_email(to_email: str, pdf_path: str, cc_email: str = None):
     """Send the generated grievance PDF to the user and CC the insurer."""
-    subject = "Your SecureShield Grievance Package is Ready 🛡️"
+    subject = "Your PolicyEye Grievance Package is Ready 🛡️"
     
     html_content = f"""
     <html>
       <body style="font-family: 'Inter', sans-serif; color: #1E293B; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #4F46E5;">Your Grievance Package is Ready</h2>
         <p>Hello,</p>
-        <p>The SecureShield Grievance Agent has successfully generated your official grievance report.</p>
+        <p>The PolicyEye Grievance Agent has successfully generated your official grievance report.</p>
         <p>This document includes a detailed analysis of your policy rules, IRDAI precedent rulings, and a formal letter drafted to your insurer.</p>
         <p><strong>Please find the PDF report attached to this email.</strong></p>
-        <p>If you have any questions, you can ask the SecureShield AI Assistant from your dashboard.</p>
+        <p>If you have any questions, you can ask the PolicyEye AI Assistant from your dashboard.</p>
         <br/>
-        <p>Stay protected,<br><strong>The SecureShield Team</strong></p>
+        <p>Stay protected,<br><strong>The PolicyEye Team</strong></p>
       </body>
     </html>
     """

@@ -386,7 +386,7 @@ async def main():
     import argparse
     
     parser = argparse.ArgumentParser(
-        description="TASK 4: Seed demo data for instant SecureShield operation"
+        description="TASK 4: Seed demo data for instant PolicyEye operation"
     )
     parser.add_argument(
         "--reset",

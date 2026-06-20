@@ -99,7 +99,7 @@ export default function ChatPage() {
         if (!getApiKey() && !isLoggedIn) {
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: 'Please set your API key in Settings first, or wait for auto-configuration.',
+                content: 'Please log in to use the chat assistant.',
                 method: 'error',
                 duration: 0,
             }]);
@@ -265,7 +265,7 @@ export default function ChatPage() {
                             {messages.length === 0 && (
                                 <div className="empty-state" style={{ padding: '60px 20px' }}>
                                     <div className="empty-state-icon">🛡️</div>
-                                    <div className="empty-state-text">SecureShield Chat Assistant</div>
+                                    <div className="empty-state-text">PolicyEye Chat Assistant</div>
                                     <div className="empty-state-hint">
                                         Ask anything about health insurance policies, IRDAI regulations,
                                         claim procedures, or medical coverage terms.

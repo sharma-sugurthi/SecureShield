@@ -1,5 +1,5 @@
 """
-SecureShield Database Layer
+PolicyEye Database Layer
 Production: Supabase PostgreSQL (set DATABASE_URL in .env)
 Dev fallback: SQLite via aiosqlite (auto-created if DATABASE_URL is not set)
 

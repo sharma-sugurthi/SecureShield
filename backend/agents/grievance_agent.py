@@ -42,6 +42,7 @@ async def run_grievance_pipeline(
     matched_rules: list[dict],
     explanation: str = "",
     suggestions: list[str] | None = None,
+    user_provided_gro_email: str | None = None,
 ) -> dict:
     """
     Full grievance pipeline with tool-calling:
@@ -181,17 +182,25 @@ async def run_grievance_pipeline(
         except Exception as e:
             logger.error(f"[GrievanceAgent] Failed to upload report to Supabase: {e}")
 
-    # --- Step 5: Search for Official GRO Email ---
-    audit_trail_logger("grievance_agent", "tool_call",
-                       {"tool": "search_insurer_gro_email", "action": f"Searching for official GRO email for {insurer}"})
+    # --- Step 5: Determine GRO Email ---
+    gro_email = user_provided_gro_email
     
-    gro_search_result = await search_insurer_gro_email(insurer=insurer)
-    tools_used.append("search_insurer_gro_email")
-    
-    audit_trail_logger("grievance_agent", "tool_result",
-                       {"tool": "search_insurer_gro_email",
-                        "email": gro_search_result.get("email", ""),
-                        "source": gro_search_result.get("source", "")})
+    if gro_email:
+        logger.info(f"[GrievanceAgent] Using user-provided GRO email: {gro_email}")
+        audit_trail_logger("grievance_agent", "tool_result",
+                           {"tool": "user_input", "email": gro_email, "source": "User Provided"})
+    else:
+        audit_trail_logger("grievance_agent", "tool_call",
+                           {"tool": "search_insurer_gro_email", "action": f"Searching for official GRO email for {insurer}"})
+        
+        gro_search_result = await search_insurer_gro_email(insurer=insurer)
+        tools_used.append("search_insurer_gro_email")
+        gro_email = gro_search_result.get("email", "grievance@insurer.co.in")
+        
+        audit_trail_logger("grievance_agent", "tool_result",
+                           {"tool": "search_insurer_gro_email",
+                            "email": gro_search_result.get("email", ""),
+                            "source": gro_search_result.get("source", "")})
 
     # --- Step 6: Prepare Grievance Email Dispatch ---
     audit_trail_logger("grievance_agent", "tool_call",
@@ -202,7 +211,7 @@ async def run_grievance_pipeline(
         insurer=insurer,
         letter_text=letter_result.get("letter_text", ""),
         pdf_url=public_pdf_url,
-        recipient_email=gro_search_result.get("email", "grievance@insurer.co.in")
+        recipient_email=gro_email
     )
     tools_used.append("prepare_grievance_dispatch")
     

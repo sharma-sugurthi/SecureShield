@@ -1,5 +1,5 @@
 """
-SecureShield — FastAPI Backend (Production-Grade)
+PolicyEye — FastAPI Backend (Production-Grade)
 REST API with security middleware, rate limiting, and input validation.
 """
 
@@ -83,7 +83,7 @@ app = FastAPI(
     title=APP_NAME,
     version=APP_VERSION,
     description=(
-        "SecureShield: GenAI-powered health insurance claim eligibility checker "
+        "PolicyEye: GenAI-powered health insurance claim eligibility checker "
         "for Indian patients. Uses a neuro-symbolic architecture with deterministic "
         "decision engine for zero-hallucination verdicts."
     ),
@@ -411,6 +411,7 @@ async def dispute_claim(
             matched_rules=request.matched_rules,
             explanation=request.explanation,
             suggestions=request.suggestions,
+            user_provided_gro_email=request.user_provided_gro_email,
         )
         
         # Email the grievance package if user has an email
@@ -469,7 +470,7 @@ async def chat_with_assistant(
     user: dict = Depends(verify_jwt_token_optional),
 ):
     """
-    Chat with the SecureShield AI Medical Assistant.
+    Chat with the PolicyEye AI Medical Assistant.
     Uses a 3-tier hierarchy: FAQ Cache -> Cerebras (Free) -> Gemini.
     """
     from agents.chat_agent import handle_chat_query

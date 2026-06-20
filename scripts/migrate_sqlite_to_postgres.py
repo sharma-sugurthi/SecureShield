@@ -8,7 +8,7 @@ Usage:
 
 Notes:
 - Installs required: `psycopg2-binary` (or `psycopg2`).
-- This script performs a best-effort table creation and data copy for the schema used by SecureShield.
+- This script performs a best-effort table creation and data copy for the schema used by PolicyEye.
 - Review and test on a staging database before production.
 """
 

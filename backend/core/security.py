@@ -1,5 +1,5 @@
 """
-Security middleware and utilities for SecureShield.
+Security middleware and utilities for PolicyEye.
 - API key authentication
 - Rate limiting per IP
 - Input sanitization and prompt injection protection

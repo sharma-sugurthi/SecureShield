@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate realistic sample insurance policy PDFs for SecureShield E2E testing.
+Generate realistic sample insurance policy PDFs for PolicyEye E2E testing.
 Creates 2 policies with different coverage levels and rules.
 """
 

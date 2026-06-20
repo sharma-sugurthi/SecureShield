@@ -10,7 +10,7 @@ export default function HowItWorksPage() {
       <div className="card-header">
         <h1 className="card-title" style={{ fontSize: 24 }}>System Architecture</h1>
         <p style={{ color: 'var(--gray-500)', marginTop: 8 }}>
-          Technical overview of the SecureShield backend for developers and auditors.
+          Technical overview of the PolicyEye backend for developers and auditors.
         </p>
       </div>
 

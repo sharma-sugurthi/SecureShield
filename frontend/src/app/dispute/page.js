@@ -16,6 +16,7 @@ export default function DisputePage() {
     const [result, setResult] = useState(null);
     const [error, setError] = useState('');
     const [pipelineStep, setPipelineStep] = useState('');
+    const [userProvidedGroEmail, setUserProvidedGroEmail] = useState('');
 
     // Load recent eligibility checks
     useEffect(() => {
@@ -88,6 +89,7 @@ export default function DisputePage() {
                 matched_rules: verdict.matched_rules || [],
                 explanation: selectedCheck.explanation || '',
                 suggestions: [],
+                user_provided_gro_email: userProvidedGroEmail || null,
             };
 
             const data = await disputeClaim(grievanceData);
@@ -202,8 +204,22 @@ export default function DisputePage() {
 
             {/* Dispute Button */}
             {selectedCheck && (
-                <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <button
+                <div style={{ marginBottom: 24 }}>
+                    <div className="form-group" style={{ maxWidth: 400, marginBottom: 16 }}>
+                        <label className="form-label">Insurer GRO Email (Optional)</label>
+                        <div style={{ fontSize: 12, color: 'var(--gray-500)', marginBottom: 8 }}>
+                            We will automatically search for the official email. Provide one if you have a specific contact.
+                        </div>
+                        <input 
+                            type="email" 
+                            className="form-input" 
+                            placeholder="grievance@insurer.com" 
+                            value={userProvidedGroEmail}
+                            onChange={(e) => setUserProvidedGroEmail(e.target.value)}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <button
                         className="btn btn-primary btn-lg"
                         onClick={handleDispute}
                         disabled={loading}
@@ -225,6 +241,7 @@ export default function DisputePage() {
                             {pipelineStep}
                         </div>
                     )}
+                </div>
                 </div>
             )}
 
@@ -376,20 +393,20 @@ export default function DisputePage() {
                                         borderRadius: 20,
                                         fontSize: 12,
                                         fontWeight: 700,
-                                        background: result.email_status.status === 'sent'
+                                        background: result.email_status.status === 'sent' || result.email_status.status === 'ready_for_dispatch'
                                             ? 'rgba(34, 197, 94, 0.1)'
                                             : 'rgba(239, 68, 68, 0.1)',
-                                        color: result.email_status.status === 'sent'
+                                        color: result.email_status.status === 'sent' || result.email_status.status === 'ready_for_dispatch'
                                             ? 'var(--green-500)'
                                             : 'var(--red-500)',
                                         marginBottom: 12,
                                     }}>
-                                        {result.email_status.status === 'sent' ? '✅ SENT' : '❌ FAILED'}
+                                        {result.email_status.status === 'sent' || result.email_status.status === 'ready_for_dispatch' ? '✅ PREPARED / SENT' : '❌ FAILED'}
                                     </div>
                                     <div style={{ fontSize: 13, lineHeight: 2, color: 'var(--navy-700)' }}>
                                         <div><strong>Tracking ID:</strong> {result.email_status.tracking_id}</div>
                                         <div><strong>Recipient:</strong> {result.email_status.recipient}</div>
-                                        <div><strong>Sent At:</strong> {result.email_status.sent_at}</div>
+                                        <div><strong>Prepared At:</strong> {result.email_status.sent_at || result.email_status.prepared_at}</div>
                                     </div>
                                     <div style={{
                                         marginTop: 12,

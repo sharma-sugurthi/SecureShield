@@ -85,7 +85,7 @@ PROVIDERS = {
         "headers_fn": lambda key: {
             "Authorization": f"Bearer {key}",
             "HTTP-Referer": "https://secureshield.app",
-            "X-Title": "SecureShield",
+            "X-Title": "PolicyEye",
             "Content-Type": "application/json",
         },
     },

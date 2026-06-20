@@ -2,7 +2,7 @@
 
 /**
  * Dashboard — Home page with hero section, system stats, pipeline visualization,
- * and quick actions for the SecureShield Agentic Insurance Engine.
+ * and quick actions for the PolicyEye Agentic Insurance Engine.
  */
 
 import { useState, useEffect } from 'react';
@@ -120,7 +120,7 @@ export default function DashboardPage() {
         <h2 style={{ fontSize: 32, fontWeight: 800, color: 'var(--navy-800)', marginBottom: 12, letterSpacing: '-0.02em' }}>Server Busy</h2>
         <p style={{ fontSize: 18, maxWidth: 450, lineHeight: 1.6, color: 'var(--gray-500)', marginBottom: 32 }}>
           Something went wrong. It's not you, it's us. We are sorry for the inconvenience. 
-          The SecureShield servers might be busy, unreachable, or under maintenance.
+          The PolicyEye servers might be busy, unreachable, or under maintenance.
         </p>
         <button onClick={loadDashboard} className="btn-primary" style={{ padding: '12px 32px', fontSize: 16 }}>
           Try Again

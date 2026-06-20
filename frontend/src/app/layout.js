@@ -4,10 +4,10 @@ import AutoKeyProvider from '@/components/AutoKeyProvider';
 import AuthProvider from '@/components/AuthProvider';
 
 export const metadata = {
-  title: 'SecureShield — AI Insurance Eligibility Engine',
+  title: 'PolicyEye — AI Insurance Eligibility Engine',
   description: 'Agentic AI-powered health insurance claim eligibility checker for Indian patients. 5 specialized agents, 18 custom tools, deterministic decision engine for zero-hallucination verdicts. IRDAI 2024 compliant.',
   keywords: 'health insurance, AI, IRDAI, claim eligibility, agentic AI, LangGraph, India',
-  authors: [{ name: 'SecureShield' }],
+  authors: [{ name: 'PolicyEye' }],
 };
 
 export const viewport = {

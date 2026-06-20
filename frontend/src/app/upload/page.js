@@ -31,7 +31,7 @@ export default function UploadPage() {
         }
 
         if (!getApiKey()) {
-            setError('Please set your API key in Settings first.');
+            setError('Authentication required. Please log in first.');
             return;
         }
 

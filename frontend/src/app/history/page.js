@@ -132,7 +132,7 @@ export default function HistoryPage() {
                         <div className="empty-state-hint">
                             {getApiKey()
                                 ? 'Run your first eligibility check to see results here.'
-                                : 'Set your API key in Settings first.'}
+                                : 'Please log in to view your history.'}
                         </div>
                     </div>
                 ) : (

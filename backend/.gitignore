@@ -8,3 +8,4 @@ data/rules/*.json
 generated_reports/
 ollama_local.py
 securesheild-44339039fc9a.json
+.venv/

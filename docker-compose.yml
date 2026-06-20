@@ -1,5 +1,5 @@
 # =============================================================
-# SecureShield — Docker Compose (Production-Ready)
+# PolicyEye — Docker Compose (Production-Ready)
 #
 # Usage:
 #   docker compose up --build        # Build & run

@@ -72,7 +72,7 @@ export default function AuditPage() {
                         <div className="empty-state-hint">
                             {getApiKey()
                                 ? 'Run an eligibility check to see the agent audit trail.'
-                                : 'Set your API key in Settings first.'}
+                                : 'Please log in to view audit logs.'}
                         </div>
                     </div>
                 ) : (

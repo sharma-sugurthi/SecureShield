@@ -1,5 +1,5 @@
 """
-Shared test fixtures for SecureShield backend tests.
+Shared test fixtures for PolicyEye backend tests.
 Ensures database tables are created before any test that needs them.
 """
 

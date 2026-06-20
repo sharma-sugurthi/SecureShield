@@ -1,5 +1,5 @@
 /**
- * SecureShield API Client
+ * PolicyEye API Client
  * Handles all communication with the FastAPI backend.
  */
 

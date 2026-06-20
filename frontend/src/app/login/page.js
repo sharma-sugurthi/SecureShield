@@ -131,7 +131,7 @@ export default function LoginPage() {
                         {mode === 'login' ? 'Welcome back' : 'Reset Password'}
                     </h1>
                     <p style={{ color: 'var(--gray-500)', fontSize: 14, marginTop: 4 }}>
-                        {mode === 'login' ? 'Sign in to SecureShield to continue' : 'Follow the steps to secure your account'}
+                        {mode === 'login' ? 'Sign in to PolicyEye to continue' : 'Follow the steps to secure your account'}
                     </p>
                 </div>
 

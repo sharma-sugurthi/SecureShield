@@ -1,5 +1,5 @@
 """
-Supabase Storage utility for SecureShield.
+Supabase Storage utility for PolicyEye.
 
 Handles uploading and downloading policy PDFs to/from Supabase Storage.
 This replaces local disk storage with cloud-hosted, CDN-served file storage.

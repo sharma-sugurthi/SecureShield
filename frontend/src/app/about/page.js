@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * About SecureShield — Animated explainer page for non-technical users.
+ * About PolicyEye — Animated explainer page for non-technical users.
  * Explains the problem, solution, step-by-step flow, and FAQ.
  */
 
@@ -108,7 +108,7 @@ export default function AboutPage() {
   const FAQS = [
     {
       question: 'What is health insurance claim eligibility?',
-      answer: 'When you get hospitalized and file a claim, your insurance company checks if the treatment is covered under your policy. Eligibility means whether (and how much) the insurer will pay. SecureShield does this check before you even get admitted — so there are no surprises.',
+      answer: 'When you get hospitalized and file a claim, your insurance company checks if the treatment is covered under your policy. Eligibility means whether (and how much) the insurer will pay. PolicyEye does this check before you even get admitted — so there are no surprises.',
     },
     {
       question: 'Why do insurance claims get rejected?',
@@ -116,7 +116,7 @@ export default function AboutPage() {
     },
     {
       question: 'What is IRDAI and why does it matter?',
-      answer: 'IRDAI (Insurance Regulatory and Development Authority of India) sets the rules that every insurance company must follow. SecureShield checks your claim against the latest IRDAI 2024 regulations — the same rules your insurer is legally bound by.',
+      answer: 'IRDAI (Insurance Regulatory and Development Authority of India) sets the rules that every insurance company must follow. PolicyEye checks your claim against the latest IRDAI 2024 regulations — the same rules your insurer is legally bound by.',
     },
     {
       question: 'Is my data safe?',
@@ -128,7 +128,7 @@ export default function AboutPage() {
     },
     {
       question: 'Can I dispute an unfair rejection?',
-      answer: 'Absolutely. SecureShield\'s Grievance Agent generates a professional grievance letter citing specific IRDAI regulations that support your case. You can send this directly to your insurer\'s Grievance Redressal Officer.',
+      answer: 'Absolutely. PolicyEye\'s Grievance Agent generates a professional grievance letter citing specific IRDAI regulations that support your case. You can send this directly to your insurer\'s Grievance Redressal Officer.',
     },
   ];
 
@@ -137,13 +137,13 @@ export default function AboutPage() {
       {/* ── Hero Section ── */}
       <RevealSection>
         <div className="about-hero">
-          <div className="about-hero-badge">🛡️ Understanding SecureShield</div>
+          <div className="about-hero-badge">🛡️ Understanding PolicyEye</div>
           <h1 className="about-hero-title">
             Your Insurance Policy is <span className="about-gradient-text">47 Pages</span> Long.<br />
             Did You Read It?
           </h1>
           <p className="about-hero-subtitle">
-            SecureShield reads your entire policy in seconds and tells you — before hospitalization —
+            PolicyEye reads your entire policy in seconds and tells you — before hospitalization —
             exactly how much your insurer will pay. No legal jargon. No surprises.
           </p>
         </div>
@@ -181,7 +181,7 @@ export default function AboutPage() {
             <div className="about-problem-card">
               <div className="about-problem-icon">🤷</div>
               <h3>No Way to Check</h3>
-              <p>Before SecureShield, there was no tool that could read your specific policy and tell you: "Yes, this procedure is covered for ₹X" — before you get admitted.</p>
+              <p>Before PolicyEye, there was no tool that could read your specific policy and tell you: "Yes, this procedure is covered for ₹X" — before you get admitted.</p>
             </div>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function AboutPage() {
       {/* ── What Makes Us Different ── */}
       <RevealSection delay={100}>
         <div className="card about-section">
-          <div className="about-section-badge">💡 Why SecureShield</div>
+          <div className="about-section-badge">💡 Why PolicyEye</div>
           <h2 className="about-section-title">Built Different — By Design</h2>
           <div className="about-diff-grid">
             {[
@@ -262,7 +262,7 @@ export default function AboutPage() {
               {
                 icon: '⚡',
                 title: 'Results in Seconds',
-                desc: 'What would take an insurance expert hours to verify, SecureShield does in under 15 seconds using 5 specialized AI agents.',
+                desc: 'What would take an insurance expert hours to verify, PolicyEye does in under 15 seconds using 5 specialized AI agents.',
                 highlight: false,
               },
               {

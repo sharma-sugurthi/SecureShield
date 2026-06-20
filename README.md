@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ SecureShield
+# 🛡️ PolicyEye
 
 ### Agentic AI — Health Insurance Eligibility & Grievance Engine
 
@@ -161,7 +161,7 @@
 
 ## 🤖 Agents & Tools
 
-SecureShield has **5 specialized agents** with **18 custom domain tools**.
+PolicyEye has **5 specialized agents** with **18 custom domain tools**.
 
 ### Agent 1 — Policy Agent
 > Reads insurance PDF → extracts & validates structured rules
@@ -215,7 +215,7 @@ SecureShield has **5 specialized agents** with **18 custom domain tools**.
 
 ## ⚖️ Compliance Guardrails
 
-SecureShield enforces **IRDAI 2024 Master Circular** rules deterministically — no LLM guesswork.
+PolicyEye enforces **IRDAI 2024 Master Circular** rules deterministically — no LLM guesswork.
 
 ### The "Symbolic Shield" (Why We Don't Hallucinate)
 
@@ -258,7 +258,7 @@ Guardrail             →   LLM never performs final math or verdict
 ## 📁 Project Structure
 
 ```
-SecureShield/
+PolicyEye/
 ├── backend/
 │   ├── agents/                # 5 specialized AI agents
 │   │   ├── policy_agent.py    # PDF ingestion + rule extraction

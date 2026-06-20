@@ -44,8 +44,8 @@ LABEL org.opencontainers.image.title="SecureShield Backend" \
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    # Default port for uvicorn
-    PORT=8000 \
+    # Default port for uvicorn (7860 required for Hugging Face Spaces)
+    PORT=7860 \
     # Production settings
     ENVIRONMENT=production \
     # Uvicorn workers (overridable at runtime)

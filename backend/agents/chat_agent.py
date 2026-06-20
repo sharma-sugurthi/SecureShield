@@ -7,7 +7,7 @@ from tools.audit_tools import audit_trail_logger
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT_TEMPLATE = """You are SecureShield's Medical Chat Assistant. 
+SYSTEM_PROMPT_TEMPLATE = """You are PolicyEye's Medical Chat Assistant. 
 You help Indian patients understand their health insurance coverage and medical terms.
 
 GUIDELINES:

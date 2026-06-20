@@ -1,4 +1,4 @@
-SecureShield Database Migration Guide
+PolicyEye Database Migration Guide
 
 Goal: Move from SQLite (development) to a production RDBMS (PostgreSQL or MySQL).
 
@@ -34,7 +34,7 @@ Best Practices
 - Centralize database config in `backend/config.py` and support both `DATABASE_PATH` (sqlite) and `DATABASE_URL` (postgres/mysql).
 - Move rate-limiter to Redis for multi-process deployments.
 
-Notes on SecureShield
+Notes on PolicyEye
 - Current `backend/db/database.py` uses `aiosqlite`. For Postgres, implement an `asyncpg` equivalent:
   - `asyncpg.connect(dsn)`
   - Use `await conn.execute(...)` and `await conn.fetchrow(...)`

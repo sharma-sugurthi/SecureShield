@@ -1,5 +1,5 @@
 """
-Vector Store utility for SecureShield.
+Vector Store utility for PolicyEye.
 
 Uses Supabase PostgreSQL with pgvector extension for semantic search
 over IRDAI regulations and policy knowledge base.

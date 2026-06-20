@@ -22,6 +22,7 @@ class GrievanceRequest(BaseModel):
     procedure: str = Field("", description="Procedure name")
     hospital_name: str = Field("", description="Hospital name")
     insurer: str = Field("", description="Insurance company name")
+    user_provided_gro_email: Optional[str] = Field(None, description="User-provided GRO email if dynamic search fails")
     policy_name: str = Field("", description="Policy plan name")
     matched_rules: list[dict] = Field(default_factory=list, description="Rule-by-rule breakdown")
     explanation: str = Field("", description="Explanation text from Explanation Agent")
