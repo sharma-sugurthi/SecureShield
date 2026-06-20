@@ -116,7 +116,14 @@ app.add_middleware(
 )
 
 
+from fastapi.responses import RedirectResponse
+
 # --- Public Endpoints (No Auth) ---
+
+@app.get("/")
+async def root():
+    """Redirect to API documentation."""
+    return RedirectResponse(url="/docs")
 
 @app.get("/api/health")
 async def health_check():
