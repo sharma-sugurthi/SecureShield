@@ -16,6 +16,10 @@
 
 > **Claim Guardian Architecture:** 5 Specialized Agents · 18 Custom Tools · Deterministic Decision Engine · Zero-Hallucination Verdicts · **IRDAI 2024 (June) Compliant**
 
+### 🚀 Live Demo
+- **Frontend App**: [https://policyeye.vercel.app](https://policyeye.vercel.app)
+- **Backend API**: [https://new27-secureshield-backend.hf.space/docs](https://new27-secureshield-backend.hf.space/docs)
+
 </div>
 
 ---

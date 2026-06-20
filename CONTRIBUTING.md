@@ -11,7 +11,7 @@ Because PolicyEye straddles the line between deep tech (Agentic LLMs) and heavy 
 We built the tech, but we need your expertise to ensure the deterministic engine perfectly aligns with reality. If you are an underwriter, claims adjudicator, doctor, or insurance lawyer, your feedback is the most valuable thing you can contribute.
 
 ### How to Help
-1. **Test the Live Application**: Run real or hypothetical patient claims through the live PolicyEye application.
+1. **Test the Live Application**: Run real or hypothetical patient claims through the live PolicyEye application at [https://policyeye.vercel.app](https://policyeye.vercel.app).
 2. **Break the Engine**: Try to find edge cases where our deterministic engine or LLM extraction fails (e.g., incorrect room rent calculation, missing a sub-limit).
 3. **Submit Feedback**: If you have the direct Google Forms link provided by the author, please submit your detailed feedback there.
 4. **Open a GitHub Issue**: If you are comfortable with GitHub, please open an issue using the `[Domain Expert Feedback]` tag in the title. Describe:
