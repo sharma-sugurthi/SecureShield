@@ -143,9 +143,6 @@ ENABLE_CACHE = os.getenv("ENABLE_CACHE", "true").lower() == "true"
 # --- Authentication ---
 SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
 
-# --- Email ---
-MAIL_USERNAME = os.getenv("MAIL_USERNAME")
-MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
-MAIL_FROM = os.getenv("MAIL_FROM", MAIL_USERNAME)
-MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
-MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
+# --- Email (Resend — HTTP-based, works on HF Spaces) ---
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+MAIL_FROM = os.getenv("MAIL_FROM", "PolicyEye <onboarding@resend.dev>")
