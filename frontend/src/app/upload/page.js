@@ -5,8 +5,9 @@
  * drag-drop zone with cloud upload indicator, and result cards.
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { uploadPolicy, getApiKey } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 const PIPELINE_STEPS = [
     { key: 'upload', label: 'Upload PDF', icon: '📤', desc: 'Sending to cloud storage' },
@@ -22,7 +23,29 @@ export default function UploadPage() {
     const [result, setResult] = useState(null);
     const [error, setError] = useState('');
     const [fileName, setFileName] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const fileRef = useRef(null);
+
+    useEffect(() => {
+        async function checkAuth() {
+            // Check Supabase session first
+            const { data } = await supabase.auth.getSession();
+            if (data?.session?.access_token) {
+                setIsAuthenticated(true);
+                return;
+            }
+            // Fallback: check API key
+            if (getApiKey()) {
+                setIsAuthenticated(true);
+            }
+        }
+        checkAuth();
+        // Listen for auth changes
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+            setIsAuthenticated(!!session?.access_token || !!getApiKey());
+        });
+        return () => listener?.subscription?.unsubscribe();
+    }, []);
 
     async function handleUpload(file) {
         if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
@@ -30,7 +53,7 @@ export default function UploadPage() {
             return;
         }
 
-        if (!getApiKey()) {
+        if (!isAuthenticated) {
             setError('Authentication required. Please log in first.');
             return;
         }

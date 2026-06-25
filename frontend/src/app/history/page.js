@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { getHistory, getApiKey } from '@/lib/api';
+import { getHistory, getApiKey, isAuthenticated } from '@/lib/api';
 
 const VERDICT_CONFIG = {
     approved: { emoji: '✅', label: 'Approved', color: 'var(--green-600)', bg: 'var(--green-50)', border: 'var(--green-100)' },
@@ -27,7 +27,8 @@ export default function HistoryPage() {
 
     async function loadHistory() {
         setLoading(true);
-        if (!getApiKey()) {
+        const authed = await isAuthenticated();
+        if (!authed) {
             setLoading(false);
             return;
         }

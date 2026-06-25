@@ -49,6 +49,22 @@ export async function autoFetchApiKey() {
   return null;
 }
 
+/**
+ * Check if the user is authenticated via either Supabase JWT or API key.
+ * Use this instead of getApiKey() for auth gate checks in pages.
+ */
+export async function isAuthenticated() {
+  // Check Supabase session first
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (data?.session?.access_token) return true;
+  } catch (e) {
+    // ignore
+  }
+  // Fallback: check API key
+  return !!getApiKey();
+}
+
 async function apiFetch(path, options = {}) {
   // Safely get Supabase session — stale tokens must NOT crash the fetch
   let session = null;

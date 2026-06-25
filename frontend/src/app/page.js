@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { healthCheck, listPolicies, getHistory, getApiKey, getSystemInfo } from '@/lib/api';
+import { healthCheck, listPolicies, getHistory, getApiKey, getSystemInfo, isAuthenticated } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
 export default function DashboardPage() {
@@ -60,7 +60,8 @@ export default function DashboardPage() {
         if (info) setSysInfo(info);
       } catch (e) { /* not critical */ }
 
-      if (getApiKey()) {
+      const authed = await isAuthenticated();
+      if (authed) {
         try {
           const polData = await listPolicies();
           policies = polData.count || 0;

@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { disputeClaim, getHistory, getApiKey, getReportDownloadUrl } from '@/lib/api';
+import { disputeClaim, getHistory, getApiKey, getReportDownloadUrl, isAuthenticated } from '@/lib/api';
 
 export default function DisputePage() {
     const [checks, setChecks] = useState([]);
@@ -20,11 +20,15 @@ export default function DisputePage() {
 
     // Load recent eligibility checks
     useEffect(() => {
-        if (getApiKey()) {
-            getHistory(20)
-                .then(d => setChecks(d.checks || []))
-                .catch(() => { });
+        async function load() {
+            const authed = await isAuthenticated();
+            if (authed) {
+                getHistory(20)
+                    .then(d => setChecks(d.checks || []))
+                    .catch(() => { });
+            }
         }
+        load();
     }, []);
 
     function selectCheck(check) {

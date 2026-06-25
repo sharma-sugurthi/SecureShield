@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { getAuditTrail, getApiKey } from '@/lib/api';
+import { getAuditTrail, getApiKey, isAuthenticated } from '@/lib/api';
 
 export default function AuditPage() {
     const [trail, setTrail] = useState([]);
@@ -20,7 +20,8 @@ export default function AuditPage() {
 
     async function loadTrail() {
         setLoading(true);
-        if (!getApiKey()) {
+        const authed = await isAuthenticated();
+        if (!authed) {
             setLoading(false);
             return;
         }
