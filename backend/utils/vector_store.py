@@ -213,17 +213,28 @@ def _chunk_knowledge_base() -> list[dict]:
     return chunks
 
 
-def index_irdai_knowledge():
+def index_irdai_knowledge(force_reindex=False):
     """
     Embed and store all IRDAI knowledge chunks into Supabase pgvector.
     This is an idempotent operation — chunks with existing IDs are skipped.
     """
+    client = _get_client()
+    
+    # Fast path: Skip if already indexed
+    if not force_reindex:
+        try:
+            res = client.table("irdai_knowledge").select("id", count="exact").limit(1).execute()
+            if res.count and res.count > 0:
+                logger.info(f"[VectorStore] Knowledge base already indexed ({res.count} items). Skipping re-index.")
+                return 0
+        except Exception as e:
+            logger.warning(f"[VectorStore] Could not check existing rows: {e}")
+
     embedder = _get_embedder()
     if embedder is None:
         logger.warning("[VectorStore] No embedder available, skipping indexing")
         return 0
 
-    client = _get_client()
     chunks = _chunk_knowledge_base()
     indexed = 0
 
