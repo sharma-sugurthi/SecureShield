@@ -78,7 +78,7 @@ OPENROUTER_MODELS = {
 }
 
 CEREBRAS_MODELS = {
-    "primary": "llama-3.3-70b",
+    "primary": "llama3.3-70b",
     "fast": "llama3.1-8b",
 }
 
