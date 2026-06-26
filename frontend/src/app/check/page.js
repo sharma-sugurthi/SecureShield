@@ -9,6 +9,8 @@ import { useState, useEffect } from 'react';
 import { checkEligibility, listPolicies, getApiKey } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import CoverageRing from '@/components/CoverageRing';
+import Autocomplete from '@/components/Autocomplete';
+import { CITIES, PROCEDURES, HOSPITALS } from '@/lib/medicalData';
 
 const ROOM_TYPES = [
     { value: 'general', label: 'General Ward' },
@@ -124,6 +126,16 @@ export default function CheckPage() {
     }
 
     const verdict = result?.verdict;
+    
+    // Dynamic filtering for Autocomplete options
+    const selectedPolicyObj = policies.find(p => p.id === parseInt(policyId));
+    const selectedInsurer = selectedPolicyObj ? selectedPolicyObj.insurer : '';
+
+    const availableHospitals = form.city 
+        ? HOSPITALS
+            .filter(h => h.city === form.city && (!selectedInsurer || h.acceptedInsurers.includes(selectedInsurer)))
+            .map(h => h.name)
+        : [];
 
     return (
         <>
@@ -193,9 +205,13 @@ export default function CheckPage() {
                             </select>
                         </div>
                         <div className="form-group">
-                            <label className="form-label">Procedure / Diagnosis *</label>
-                            <input className="form-input" placeholder="e.g. Appendectomy, CABG, knee replacement"
-                                value={form.procedure} onChange={e => updateField('procedure', e.target.value)} />
+                            <Autocomplete
+                                label="Procedure / Diagnosis *"
+                                placeholder="e.g. CABG, Appendectomy"
+                                options={PROCEDURES}
+                                value={form.procedure}
+                                onChange={val => updateField('procedure', val)}
+                            />
                             <span className="form-hint">Medical abbreviations (CABG, PTCA, etc.) are auto-expanded</span>
                         </div>
                         <div className="form-group">
@@ -206,15 +222,27 @@ export default function CheckPage() {
 
                         {/* Row 4: Location + Amount */}
                         <div className="form-group">
-                            <label className="form-label">Hospital Name</label>
-                            <input className="form-input" placeholder="e.g. Apollo Hospital"
-                                value={form.hospital_name} onChange={e => updateField('hospital_name', e.target.value)} />
+                            <Autocomplete
+                                label="City"
+                                placeholder="e.g. Mumbai, Jaipur"
+                                options={CITIES}
+                                value={form.city}
+                                onChange={val => {
+                                    updateField('city', val);
+                                    updateField('hospital_name', ''); // Reset hospital when city changes
+                                }}
+                            />
+                            <span className="form-hint">Auto-classified into IRDAI city tier</span>
                         </div>
                         <div className="form-group">
-                            <label className="form-label">City</label>
-                            <input className="form-input" placeholder="e.g. Mumbai, Jaipur"
-                                value={form.city} onChange={e => updateField('city', e.target.value)} />
-                            <span className="form-hint">Auto-classified into IRDAI city tier</span>
+                            <Autocomplete
+                                label="Hospital Name"
+                                placeholder={form.city ? "Select a hospital" : "Select a city first"}
+                                options={availableHospitals}
+                                value={form.hospital_name}
+                                onChange={val => updateField('hospital_name', val)}
+                                disabled={!form.city}
+                            />
                         </div>
                         <div className="form-group">
                             <label className="form-label">Total Claimed Amount (₹) *</label>
