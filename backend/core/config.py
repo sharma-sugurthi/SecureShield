@@ -31,17 +31,9 @@ CF_GATEWAY_NAME = os.getenv("CLOUDFLARE_GATEWAY_NAME")
 _CF_SUPPORTED = {"groq", "cerebras", "openrouter"}
 
 def get_gateway_url(provider: str, default_url: str) -> str:
-    """Route through Cloudflare only for providers it reliably supports."""
-    if CF_ACCOUNT_ID and CF_GATEWAY_NAME and provider in _CF_SUPPORTED:
-        cf_provider_map = {
-            "groq": "groq",
-            "cerebras": "cerebras",
-            "openrouter": "openrouter",
-        }
-        cf_name = cf_provider_map[provider]
-        base = f"https://gateway.ai.cloudflare.com/v1/{CF_ACCOUNT_ID}/{CF_GATEWAY_NAME}/{cf_name}"
-        # Cloudflare gateway base URL already routes — append the completions path
-        return f"{base}/chat/completions"
+    """Route through Cloudflare only for providers it reliably supports.
+    NOTE: Temporarily bypassing Cloudflare as it may be causing silent drops/timeouts.
+    """
     return default_url
 
 # --- Provider Base URLs (fallback = direct API) ---
@@ -80,12 +72,12 @@ OPENROUTER_MODELS = {
 
 CEREBRAS_MODELS = {
     "primary": "llama3.3-70b",
-    "fast": "llama3.1-8b",
+    "fast": "llama3.3-70b",
 }
 
 SAMBANOVA_MODELS = {
     "primary": "Meta-Llama-3.3-70B-Instruct",
-    "fast": "Meta-Llama-3.1-8B-Instruct",
+    "fast": "Meta-Llama-3.3-70B-Instruct",
 }
 
 HUGGINGFACE_MODELS = {
