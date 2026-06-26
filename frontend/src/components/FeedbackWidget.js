@@ -17,7 +17,8 @@ export default function FeedbackWidget() {
     addon_suggestions: '',
     knowledge_source: '',
     govt_regulations: '',
-    developer_centric: ''
+    developer_centric: '',
+    other_suggestions: ''
   });
 
   const handleChange = (e) => {
@@ -46,7 +47,8 @@ export default function FeedbackWidget() {
           addon_suggestions: '',
           knowledge_source: '',
           govt_regulations: '',
-          developer_centric: ''
+          developer_centric: '',
+          other_suggestions: ''
         });
       }, 3000);
     } catch (err) {
@@ -257,6 +259,21 @@ export default function FeedbackWidget() {
                     rows={2}
                     className="form-input"
                     style={{ resize: 'vertical' }}
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label" style={{ display: 'block', marginBottom: '8px' }}>
+                    8. Any other suggestions or questions for us?
+                  </label>
+                  <textarea
+                    name="other_suggestions"
+                    value={formData.other_suggestions}
+                    onChange={handleChange}
+                    rows={3}
+                    className="form-input"
+                    style={{ resize: 'vertical' }}
+                    placeholder="Share anything else on your mind..."
                   />
                 </div>
 

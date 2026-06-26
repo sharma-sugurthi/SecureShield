@@ -139,6 +139,7 @@ class AppFeedback(Base):
     knowledge_source: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     govt_regulations: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     developer_centric: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    other_suggestions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

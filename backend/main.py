@@ -31,6 +31,7 @@ class FeedbackSubmit(BaseModel):
     knowledge_source: str
     govt_regulations: str
     developer_centric: str
+    other_suggestions: str = ''
 
 from db.database import init_db, get_all_policies, get_policy, get_check_history
 from db.llm_cache import init_llm_cache
