@@ -465,7 +465,8 @@ async def save_app_feedback(
     addon_suggestions: str,
     knowledge_source: str,
     govt_regulations: str,
-    developer_centric: str
+    developer_centric: str,
+    other_suggestions: str = ""
 ) -> int:
     """Save user app feedback."""
     async with AsyncSessionLocal() as session:
@@ -477,7 +478,9 @@ async def save_app_feedback(
             addon_suggestions=addon_suggestions,
             knowledge_source=knowledge_source,
             govt_regulations=govt_regulations,
-            developer_centric=developer_centric
+            developer_centric=developer_centric,
+            other_suggestions=other_suggestions
+
         )
         session.add(feedback)
         await session.commit()

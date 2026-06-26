@@ -230,7 +230,8 @@ async def submit_feedback(data: FeedbackSubmit, user: dict = Depends(verify_jwt_
         addon_suggestions=data.addon_suggestions,
         knowledge_source=data.knowledge_source,
         govt_regulations=data.govt_regulations,
-        developer_centric=data.developer_centric
+        developer_centric=data.developer_centric,
+        other_suggestions=data.other_suggestions
     )
 
     if user_email:
