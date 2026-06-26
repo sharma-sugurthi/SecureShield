@@ -2,6 +2,7 @@ import './globals.css';
 import Sidebar from '@/components/Sidebar';
 import AutoKeyProvider from '@/components/AutoKeyProvider';
 import AuthProvider from '@/components/AuthProvider';
+import FeedbackWidget from '@/components/FeedbackWidget';
 
 export const metadata = {
   title: 'PolicyEye — AI Insurance Eligibility Engine',
@@ -43,6 +44,7 @@ export default function RootLayout({ children }) {
               {children}
             </main>
           </div>
+          <FeedbackWidget />
         </AuthProvider>
       </body>
     </html>

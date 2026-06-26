@@ -165,6 +165,50 @@ def _build_grievance_html() -> str:
 </body>
 </html>"""
 
+def _build_thank_you_html() -> str:
+    """Build a professional thank you email for app feedback."""
+    return """\
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
+  <title>Thank You for Your Feedback</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f4f5; font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5; padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#1e1b4b,#3b82f6); padding:32px 40px; text-align:center;">
+              <h1 style="margin:0; color:#ffffff; font-size:24px; font-weight:700;">PolicyEye</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:40px 40px;">
+              <h2 style="margin:0 0 16px; color:#1e293b; font-size:20px; font-weight:600;">Thank you for your feedback! 🙏</h2>
+              <p style="margin:0 0 16px; color:#475569; font-size:15px; line-height:1.6;">
+                We have received your rating and comments. Your insights directly shape the future of PolicyEye and help us build a smarter, more accurate AI engine.
+              </p>
+              <p style="margin:0; color:#475569; font-size:15px; line-height:1.6;">
+                If you reported a bug or a pain point, our development team is reviewing it immediately.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f8fafc; border-top:1px solid #e2e8f0; padding:24px 40px; text-align:center;">
+              <p style="margin:0; color:#94a3b8; font-size:12px;">© 2026 PolicyEye. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
 
 async def send_welcome_email(to_email: str):
     """Send a welcome email to new users after signup."""
@@ -211,8 +255,8 @@ async def send_grievance_email(to_email: str, pdf_path: str, cc_email: str = Non
 
         params: resend.Emails.SendParams = {
             "from": MAIL_FROM,
-            "to": [to_email],
-            "subject": "Your PolicyEye Grievance Report is Ready 📋",
+            "to": [cc_email] if cc_email else [to_email],
+            "subject": "PolicyEye Grievance Report 📋",
             "html": _build_grievance_html(),
             "headers": {
                 "X-Entity-Ref-ID": f"grievance-{to_email}",
@@ -223,13 +267,34 @@ async def send_grievance_email(to_email: str, pdf_path: str, cc_email: str = Non
             ],
         }
 
+        # The user's email becomes the CC, and the officer is the TO.
         if cc_email:
-            params["cc"] = [cc_email]
+            params["cc"] = [to_email]
 
         if attachments:
             params["attachments"] = attachments
 
         email_resp = resend.Emails.send(params)
-        logger.info(f"[Mailer] Grievance package sent to {to_email} (id: {email_resp.get('id', 'n/a')})")
+        logger.info(f"[Mailer] Grievance package sent to {cc_email or to_email} (id: {email_resp.get('id', 'n/a')})")
     except Exception as e:
         logger.error(f"[Mailer] Failed to send grievance package: {e}")
+
+async def send_thank_you_email(to_email: str):
+    """Send a thank you email for submitting app feedback."""
+    if not RESEND_API_KEY:
+        logger.info(f"[Mailer Mock] Thank you email → {to_email}")
+        return
+
+    try:
+        params: resend.Emails.SendParams = {
+            "from": MAIL_FROM,
+            "to": [to_email],
+            "subject": "Thank you for your feedback! 🙏",
+            "html": _build_thank_you_html(),
+            "tags": [
+                {"name": "category", "value": "feedback"},
+            ],
+        }
+        resend.Emails.send(params)
+    except Exception as e:
+        logger.error(f"[Mailer] Failed to send thank you email: {e}")

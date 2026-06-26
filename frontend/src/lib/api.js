@@ -232,6 +232,14 @@ export async function sendWelcomeEmail() {
   });
 }
 
+// --- Feedback ---
+export async function submitFeedback(feedbackData) {
+  return apiFetch('/api/feedback', {
+    method: 'POST',
+    body: JSON.stringify(feedbackData),
+  });
+}
+
 export function getReportDownloadUrl(filename) {
   const key = getApiKey();
   return `${API_BASE}/api/download-report/${encodeURIComponent(filename)}?api_key=${key}`;

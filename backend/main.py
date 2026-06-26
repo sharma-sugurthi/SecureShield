@@ -23,6 +23,15 @@ class ProfileUpdate(BaseModel):
     address: str
     avatar_base64: Optional[str] = None
 
+class FeedbackSubmit(BaseModel):
+    accuracy_rating: int
+    claim_rejections: str
+    problem_solving: str
+    addon_suggestions: str
+    knowledge_source: str
+    govt_regulations: str
+    developer_centric: str
+
 from db.database import init_db, get_all_policies, get_policy, get_check_history
 from db.llm_cache import init_llm_cache
 from agents.policy_agent import ingest_policy
@@ -204,6 +213,31 @@ async def update_profile(data: ProfileUpdate, user: dict = Depends(verify_jwt_to
         avatar_base64=data.avatar_base64
     )
     return {"status": "ok", "message": "Profile updated in Postgres"}
+
+@app.post("/api/feedback")
+async def submit_feedback(data: FeedbackSubmit, user: dict = Depends(verify_jwt_token_optional)):
+    """Save user app feedback to Postgres and send thank you email if authenticated."""
+    user_id = user.get("sub", "") if user else ""
+    user_email = user.get("email", "") if user else ""
+    from db.database import save_app_feedback
+    
+    await save_app_feedback(
+        user_id=user_id,
+        accuracy_rating=data.accuracy_rating,
+        claim_rejections=data.claim_rejections,
+        problem_solving=data.problem_solving,
+        addon_suggestions=data.addon_suggestions,
+        knowledge_source=data.knowledge_source,
+        govt_regulations=data.govt_regulations,
+        developer_centric=data.developer_centric
+    )
+
+    if user_email:
+        from utils.mailer import send_thank_you_email
+        import asyncio
+        asyncio.create_task(send_thank_you_email(user_email))
+
+    return {"status": "ok", "message": "Feedback submitted successfully"}
 
 
 # --- Authenticated Endpoints ---

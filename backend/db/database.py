@@ -127,6 +127,21 @@ class ChatMessage(Base):
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class AppFeedback(Base):
+    __tablename__ = "app_feedback"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[Optional[str]] = mapped_column(String, index=True, nullable=True)
+    accuracy_rating: Mapped[int] = mapped_column(Integer, nullable=False)
+    claim_rejections: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    problem_solving: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    addon_suggestions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    knowledge_source: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    govt_regulations: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    developer_centric: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 async def init_db():
     """Create tables if they don't exist (async)."""
     async with engine.begin() as conn:
@@ -435,3 +450,31 @@ async def delete_user_data(user_id: str) -> dict:
         }
         logger.info(f"[Database] Deleted user data for {user_id}: {counts}")
         return counts
+
+async def save_app_feedback(
+    user_id: str,
+    accuracy_rating: int,
+    claim_rejections: str,
+    problem_solving: str,
+    addon_suggestions: str,
+    knowledge_source: str,
+    govt_regulations: str,
+    developer_centric: str
+) -> int:
+    """Save user app feedback."""
+    async with AsyncSessionLocal() as session:
+        feedback = AppFeedback(
+            user_id=user_id or None,
+            accuracy_rating=accuracy_rating,
+            claim_rejections=claim_rejections,
+            problem_solving=problem_solving,
+            addon_suggestions=addon_suggestions,
+            knowledge_source=knowledge_source,
+            govt_regulations=govt_regulations,
+            developer_centric=developer_centric
+        )
+        session.add(feedback)
+        await session.commit()
+        await session.refresh(feedback)
+        logger.info(f"[Database] Saved app feedback from user: {user_id}")
+        return feedback.id
