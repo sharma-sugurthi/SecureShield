@@ -156,6 +156,47 @@ export default function UploadPage() {
                         </>
                     )}
                 </div>
+
+                {/* Sample Policies Section */}
+                {!uploading && !result && (
+                    <div style={{ padding: '0 20px 20px', textAlign: 'center' }}>
+                        <div style={{ fontSize: 13, color: 'var(--gray-500)', marginBottom: 12, fontWeight: 500 }}>
+                            Don't have a policy? Try with a sample:
+                        </div>
+                        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const res = await fetch('/samples/icici_lombard_basic_shield.pdf');
+                                        const blob = await res.blob();
+                                        const file = new File([blob], 'icici_lombard_basic_shield.pdf', { type: 'application/pdf' });
+                                        handleUpload(file);
+                                    } catch (e) {
+                                        setError('Failed to load ICICI sample policy.');
+                                    }
+                                }}
+                                className="px-4 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full transition-colors border border-indigo-200"
+                            >
+                                📄 ICICI Lombard Basic Shield
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const res = await fetch('/samples/star_health_premier_gold.pdf');
+                                        const blob = await res.blob();
+                                        const file = new File([blob], 'star_health_premier_gold.pdf', { type: 'application/pdf' });
+                                        handleUpload(file);
+                                    } catch (e) {
+                                        setError('Failed to load Star Health sample policy.');
+                                    }
+                                }}
+                                className="px-4 py-2 text-xs font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-full transition-colors border border-emerald-200"
+                            >
+                                📄 Star Health Premier Gold
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Pipeline Stepper (shows during upload) */}
