@@ -20,6 +20,8 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 CEREBRAS_API_KEY = os.getenv("CEREBRAS_API_KEY")
+SAMBANOVA_API_KEY = os.getenv("SAMBANOVA_API_KEY")
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 
 # --- Cloudflare AI Gateway (Optional) ---
 CF_ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID")
@@ -43,14 +45,13 @@ def get_gateway_url(provider: str, default_url: str) -> str:
     return default_url
 
 # --- Provider Base URLs (fallback = direct API) ---
-# Google: use direct API (Cloudflare's google-ai-studio gateway has path issues)
 GOOGLE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
 GROQ_BASE_URL = get_gateway_url("groq", "https://api.groq.com/openai/v1")
-# xAI: bypass Cloudflare (no free credits via gateway)
 XAI_BASE_URL = "https://api.x.ai/v1"
-# OpenRouter: Cloudflare proxies it, endpoint needs /chat/completions appended
 OPENROUTER_BASE_URL = get_gateway_url("openrouter", "https://openrouter.ai/api/v1/chat/completions")
 CEREBRAS_BASE_URL = get_gateway_url("cerebras", "https://api.cerebras.ai/v1")
+SAMBANOVA_BASE_URL = "https://api.sambanova.ai/v1"
+HUGGINGFACE_BASE_URL = "https://api-inference.huggingface.co/v1"
 
 # --- Provider Model Selections ---
 GOOGLE_MODELS = {
@@ -82,40 +83,56 @@ CEREBRAS_MODELS = {
     "fast": "llama3.1-8b",
 }
 
+SAMBANOVA_MODELS = {
+    "primary": "Meta-Llama-3.3-70B-Instruct",
+    "fast": "Meta-Llama-3.1-8B-Instruct",
+}
+
+HUGGINGFACE_MODELS = {
+    "primary": "meta-llama/Llama-3.3-70B-Instruct",
+}
+
 # --- Intelligent Task-Based Routing ---
 # Each role maps to an ordered list of (provider, model) tuples.
 # The router tries them in order until one succeeds.
 TASK_ROUTING = {
     "policy_ingestion": [
-        # Cerebras + Groq first (free, reliable, no gateway issues)
         ("cerebras", CEREBRAS_MODELS["primary"]),
         ("groq", GROQ_MODELS["primary"]),
-        # Gemini direct fallback (bypasses Cloudflare, uses native API)
+        ("sambanova", SAMBANOVA_MODELS["primary"]),
         ("google", GOOGLE_MODELS["default"]),
         ("google", GOOGLE_MODELS["lite"]),
+        ("huggingface", HUGGINGFACE_MODELS["primary"]),
         ("openrouter", None),
     ],
     "case_analysis": [
         ("cerebras", CEREBRAS_MODELS["primary"]),
         ("groq", GROQ_MODELS["primary"]),
+        ("sambanova", SAMBANOVA_MODELS["primary"]),
         ("google", GOOGLE_MODELS["default"]),
+        ("huggingface", HUGGINGFACE_MODELS["primary"]),
         ("openrouter", None),
     ],
     "explanation": [
         ("cerebras", CEREBRAS_MODELS["primary"]),
         ("groq", GROQ_MODELS["primary"]),
+        ("sambanova", SAMBANOVA_MODELS["primary"]),
         ("google", GOOGLE_MODELS["default"]),
+        ("huggingface", HUGGINGFACE_MODELS["primary"]),
         ("openrouter", None),
     ],
     "grievance": [
         ("cerebras", CEREBRAS_MODELS["primary"]),
         ("groq", GROQ_MODELS["primary"]),
+        ("sambanova", SAMBANOVA_MODELS["primary"]),
         ("google", GOOGLE_MODELS["default"]),
+        ("huggingface", HUGGINGFACE_MODELS["primary"]),
         ("openrouter", None),
     ],
     "chat": [
         ("cerebras", CEREBRAS_MODELS["fast"]),
         ("groq", GROQ_MODELS["fast"]),
+        ("sambanova", SAMBANOVA_MODELS["fast"]),
         ("google", GOOGLE_MODELS["lite"]),
         ("openrouter", None),
     ],
@@ -125,6 +142,7 @@ TASK_ROUTING = {
 DEFAULT_ROUTING = [
     ("cerebras", CEREBRAS_MODELS["primary"]),
     ("groq", GROQ_MODELS["primary"]),
+    ("sambanova", SAMBANOVA_MODELS["primary"]),
     ("google", GOOGLE_MODELS["default"]),
     ("openrouter", None),
 ]

@@ -29,6 +29,8 @@ from core.config import (
     OPENROUTER_API_KEY, OPENROUTER_BASE_URL,
     OPENROUTER_MODELS,
     CEREBRAS_API_KEY, CEREBRAS_BASE_URL, CEREBRAS_MODELS,
+    SAMBANOVA_API_KEY, SAMBANOVA_BASE_URL,
+    HUGGINGFACE_API_KEY, HUGGINGFACE_BASE_URL,
     TASK_ROUTING, DEFAULT_ROUTING,
     CACHE_DIR, ENABLE_CACHE,
 )
@@ -93,6 +95,24 @@ PROVIDERS = {
         "key": CEREBRAS_API_KEY,
         "url": _endpoint(CEREBRAS_BASE_URL),
         "timeout": httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0),
+        "headers_fn": lambda key: {
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+        },
+    },
+    "sambanova": {
+        "key": SAMBANOVA_API_KEY,
+        "url": _endpoint(SAMBANOVA_BASE_URL),
+        "timeout": httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0),
+        "headers_fn": lambda key: {
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+        },
+    },
+    "huggingface": {
+        "key": HUGGINGFACE_API_KEY,
+        "url": _endpoint(HUGGINGFACE_BASE_URL),
+        "timeout": httpx.Timeout(connect=10.0, read=120.0, write=10.0, pool=10.0),
         "headers_fn": lambda key: {
             "Authorization": f"Bearer {key}",
             "Content-Type": "application/json",

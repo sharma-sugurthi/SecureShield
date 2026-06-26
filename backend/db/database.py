@@ -143,11 +143,16 @@ class AppFeedback(Base):
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+from sqlalchemy.exc import IntegrityError, ProgrammingError
+
 async def init_db():
     """Create tables if they don't exist (async)."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info("[Database] Async ORM tables initialized")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("[Database] Async ORM tables initialized")
+    except (IntegrityError, ProgrammingError) as e:
+        logger.warning(f"[Database] Race condition during table creation, ignoring: {e}")
 
 
 async def save_policy(insurer: str, plan_name: str, sum_insured: float,

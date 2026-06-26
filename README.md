@@ -10,6 +10,8 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000.svg)](https://nextjs.org)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL+pgvector-3ECF8E.svg)](https://supabase.com)
 [![Cerebras](https://img.shields.io/badge/Cerebras-1M_Tokens/Day-FFCC00.svg)](https://cloud.cerebras.ai)
+[![SambaNova](https://img.shields.io/badge/SambaNova-Llama_3.3_70B-8A2BE2.svg)](https://cloud.sambanova.ai)
+[![HuggingFace](https://img.shields.io/badge/HuggingFace-Serverless_API-FFD21E.svg)](https://huggingface.co)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-AI_Gateway-F38020.svg)](https://developers.cloudflare.com/ai-gateway)
 
 **GenAI-powered health insurance claim eligibility checker & dispute resolution engine for Indian patients.**
@@ -251,7 +253,7 @@ Guardrail             →   LLM never performs final math or verdict
 | **Auth** | Supabase Auth (JWT RS256/HS256) — auto-provisioned, no manual API key needed |
 | **File Storage** | Supabase Storage (policy PDFs uploaded to cloud) |
 | **Email** | Gmail SMTP via `fastapi-mail` (zero-cost transactional emails) |
-| **LLM Providers** | Cerebras, Groq, Google Gemini, xAI Grok, OpenRouter (10+ models) |
+| **LLM Providers** | Cerebras, Groq, Google Gemini, SambaNova, HuggingFace, xAI Grok, OpenRouter |
 | **Edge Cache** | Cloudflare AI Gateway (Semantic Caching & Analytics) |
 | **PDF Parsing** | PyMuPDF (text + table extraction) |
 | **PDF Generation** | ReportLab (professional claim reports) |
@@ -302,7 +304,7 @@ PolicyEye/
 ### Prerequisites
 - Python 3.11+
 - Node.js 20+
-- API Keys: [Cerebras](https://cloud.cerebras.ai) (free), [Groq](https://console.groq.com) (free), [Google AI Studio](https://aistudio.google.com/apikey) (free)
+- API Keys: [Cerebras](https://cloud.cerebras.ai) (free), [Groq](https://console.groq.com) (free), [Google AI Studio](https://aistudio.google.com/apikey) (free), [SambaNova](https://cloud.sambanova.ai) (free), [Hugging Face](https://huggingface.co/settings/tokens) (free)
 - [Supabase](https://supabase.com) project (free tier) — for PostgreSQL, Auth, and PDF storage
 
 ### 1. Backend
