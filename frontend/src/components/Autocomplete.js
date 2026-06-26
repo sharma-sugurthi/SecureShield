@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Search } from 'lucide-react';
 
 /**
  * Autocomplete Component
- * Provides a searchable dropdown with an "Other" option that reveals a custom text input.
+ * Uses native globals.css styles (form-input).
  */
 export default function Autocomplete({ 
   options, 
@@ -13,7 +12,6 @@ export default function Autocomplete({
   onChange, 
   placeholder, 
   label, 
-  icon: Icon,
   disabled = false
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,11 +34,11 @@ export default function Autocomplete({
   // Update internal state if parent changes value
   useEffect(() => {
     if (!value) {
-      setQuery('');
-      setIsOther(false);
-      setCustomValue('');
+      if (!isOther) {
+        setQuery('');
+        setCustomValue('');
+      }
     } else if (!options.includes(value) && value !== '') {
-      // It's a custom value
       setIsOther(true);
       setCustomValue(value);
       setQuery('Other');
@@ -48,7 +46,7 @@ export default function Autocomplete({
       setIsOther(false);
       setQuery(value);
     }
-  }, [value, options]);
+  }, [value, options, isOther]);
 
   const filteredOptions = options.filter(option =>
     option.toLowerCase().includes(query.toLowerCase())
@@ -58,7 +56,7 @@ export default function Autocomplete({
     if (option === 'Other') {
       setIsOther(true);
       setQuery('Other');
-      onChange(''); // Clear actual value until they type
+      onChange(''); // Parent receives empty string until they type in custom box
     } else {
       setIsOther(false);
       setQuery(option);
@@ -73,33 +71,26 @@ export default function Autocomplete({
   };
 
   return (
-    <div className="relative" ref={wrapperRef}>
+    <div style={{ position: 'relative' }} ref={wrapperRef}>
       {label && (
-        <label className="block text-sm font-semibold text-slate-700 mb-2">
-          {label}
-        </label>
+        <label className="form-label">{label}</label>
       )}
       
-      <div 
-        className={`relative flex items-center border rounded-xl overflow-hidden transition-colors ${
-          disabled ? 'bg-slate-50 border-slate-200 opacity-60' : 
-          isOpen ? 'border-indigo-500 ring-2 ring-indigo-100' : 'border-slate-300 hover:border-slate-400 bg-white'
-        }`}
-      >
-        {Icon && (
-          <div className="pl-3 pr-2 text-slate-400">
-            <Icon size={18} />
-          </div>
-        )}
-        
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
         <input
           type="text"
-          className="w-full py-3 px-2 outline-none bg-transparent text-slate-800 placeholder-slate-400 text-sm"
+          className="form-input"
+          style={{ 
+             paddingRight: '36px', 
+             backgroundColor: disabled ? 'var(--gray-50)' : 'var(--white)',
+             cursor: disabled ? 'not-allowed' : 'text',
+             opacity: disabled ? 0.7 : 1
+          }}
           placeholder={placeholder}
           value={isOther ? 'Other' : query}
           onChange={(e) => {
             if (isOther) {
-              setIsOther(false); // If they start typing in the dropdown input, reset Other state
+              setIsOther(false);
               onChange('');
             }
             setQuery(e.target.value);
@@ -111,24 +102,63 @@ export default function Autocomplete({
         
         <button
           type="button"
-          className="px-3 text-slate-400 hover:text-slate-600 transition-colors"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
+          style={{
+            position: 'absolute',
+            right: '12px',
+            background: 'none',
+            border: 'none',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--gray-400)',
+            padding: 4
+          }}
         >
-          <ChevronDown size={18} className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <svg 
+            width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
         </button>
       </div>
 
       {/* Dropdown Menu */}
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto custom-scrollbar">
+        <div style={{
+          position: 'absolute',
+          zIndex: 50,
+          width: '100%',
+          marginTop: '4px',
+          background: 'var(--white)',
+          border: '1px solid var(--gray-200)',
+          borderRadius: 'var(--radius-md)',
+          boxShadow: 'var(--shadow-lg)',
+          maxHeight: '240px',
+          overflowY: 'auto'
+        }}>
           {filteredOptions.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-slate-500">No matching options found. Select "Other" to type manually.</div>
+            <div style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--gray-500)' }}>
+              No matching options found. Select "Other" to type manually.
+            </div>
           ) : (
             filteredOptions.map((option, idx) => (
               <div
                 key={idx}
-                className="px-4 py-2.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors"
+                style={{
+                  padding: '10px 16px',
+                  fontSize: '14px',
+                  color: 'var(--navy-700)',
+                  cursor: 'pointer',
+                  borderBottom: '1px solid var(--gray-50)',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-50)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 onClick={() => handleSelect(option)}
               >
                 {option}
@@ -136,24 +166,40 @@ export default function Autocomplete({
             ))
           )}
           
-          <div className="border-t border-slate-100 my-1"></div>
+          <div style={{ height: '1px', background: 'var(--gray-100)', margin: '4px 0' }}></div>
           <div
-            className="px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 cursor-pointer flex items-center justify-between"
+            style={{
+              padding: '10px 16px',
+              fontSize: '14px',
+              fontWeight: 600,
+              color: 'var(--primary-600)',
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: 'var(--gray-50)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-100)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--gray-50)'}
             onClick={() => handleSelect('Other')}
           >
             <span>Other (Type manually)</span>
-            <span className="text-xs text-slate-400">Can't find it?</span>
           </div>
         </div>
       )}
 
       {/* Custom Input Field (Shows only if "Other" is selected) */}
       {isOther && (
-        <div className="mt-3 relative">
+        <div style={{ marginTop: '12px' }}>
           <input
             type="text"
-            className="w-full py-3 px-4 outline-none border border-amber-300 bg-amber-50 rounded-xl text-slate-800 placeholder-amber-600/50 text-sm focus:ring-2 focus:ring-amber-200 transition-all"
-            placeholder={`Please specify your ${label.toLowerCase().replace(' *', '')}...`}
+            className="form-input"
+            style={{ 
+              borderColor: 'var(--amber-500)', 
+              backgroundColor: 'var(--amber-50)',
+              boxShadow: '0 0 0 3px rgba(245, 158, 11, 0.1)'
+            }}
+            placeholder={`Please specify...`}
             value={customValue}
             onChange={handleCustomChange}
             autoFocus
