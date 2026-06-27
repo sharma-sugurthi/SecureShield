@@ -133,31 +133,26 @@ export default function DashboardPage() {
   return (
     <>
       {/* Top Bar Greeting */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+      <div className="dashboard-greeting">
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--navy-800)', letterSpacing: '-0.02em' }}>
+          <h1 className="page-title">
             Good morning, {user?.user_metadata?.full_name?.split(' ')[0] || 'User'}
           </h1>
-          <p style={{ color: 'var(--gray-500)', fontSize: 15, marginTop: 4 }}>
+          <p className="page-subtitle">
             Here is your health insurance overview. {stats.serverStatus}
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <div className="dashboard-search-area">
           <div style={{ position: 'relative' }}>
             <span style={{ position: 'absolute', left: 14, top: 12, color: 'var(--gray-400)' }}>🔍</span>
             <input 
               type="text" 
               placeholder="Search policies or claims..." 
-              className="form-input"
-              style={{ paddingLeft: 40, width: 300, borderRadius: 100 }}
+              className="form-input dashboard-search"
             />
           </div>
           <Link href="/settings" style={{ textDecoration: 'none' }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: '50%', background: 'var(--primary-100)',
-              color: 'var(--primary-600)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 600, border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden'
-            }}>
+            <div className="dashboard-avatar">
               {user?.user_metadata?.avatar_url ? (
                 <img src={user.user_metadata.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
@@ -193,7 +188,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Bento Grid: Middle Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, marginBottom: 32 }}>
+      <div className="dashboard-bento">
         
         {/* Left Column: Recent Activity */}
         <div className="card" style={{ height: '100%' }}>
