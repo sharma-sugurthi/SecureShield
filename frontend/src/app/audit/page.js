@@ -45,7 +45,7 @@ export default function AuditPage() {
             </div>
 
             {/* Filter */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+            <div className="audit-filter-bar">
                 <button className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => setFilter('all')} style={{ padding: '8px 16px', fontSize: 13 }}>
                     All ({trail.length})

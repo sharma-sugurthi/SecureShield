@@ -94,10 +94,10 @@ export default function FeedbackWidget() {
       </button>
 
       {isOpen && (
-        <div style={{
+        <div className="feedback-overlay" style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
-          zIndex: 50,
+          zIndex: 9999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -115,7 +115,7 @@ export default function FeedbackWidget() {
           />
 
           {/* Modal */}
-          <div style={{
+          <div className="feedback-modal" style={{
             position: 'relative',
             width: '100%',
             maxWidth: '600px',
@@ -123,7 +123,7 @@ export default function FeedbackWidget() {
             borderRadius: 'var(--radius-xl)',
             boxShadow: 'var(--shadow-xl)',
             padding: '24px',
-            maxHeight: '90vh',
+            maxHeight: 'calc(100vh - 140px)',
             display: 'flex',
             flexDirection: 'column'
           }}>

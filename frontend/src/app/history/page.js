@@ -68,7 +68,7 @@ export default function HistoryPage() {
             </div>
 
             {/* Summary Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+            <div className="history-stats-grid">
                 {[
                     { label: 'Total Checks', value: stats.total, icon: '📋', color: 'var(--primary-500)', bg: 'var(--primary-50)' },
                     { label: 'Approved', value: stats.approved, icon: '✅', color: 'var(--green-600)', bg: 'var(--green-50)' },
@@ -97,7 +97,7 @@ export default function HistoryPage() {
             </div>
 
             {/* Filter Bar */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+            <div className="history-filter-bar">
                 {['all', 'approved', 'denied', 'partial'].map((f) => (
                     <button
                         key={f}
@@ -150,16 +150,12 @@ export default function HistoryPage() {
                                 <div key={check.id || idx}>
                                     <div
                                         onClick={() => setExpanded(isExpanded ? null : check.id)}
+                                        className="history-row"
                                         style={{
-                                            padding: '16px 24px',
-                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                            cursor: 'pointer',
-                                            borderBottom: '1px solid var(--gray-100)',
                                             background: isExpanded ? 'var(--gray-50)' : 'transparent',
-                                            transition: 'background 0.2s ease',
                                         }}
                                     >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                        <div className="history-row-left">
                                             <div style={{
                                                 width: 40, height: 40, borderRadius: '50%',
                                                 background: config.bg, display: 'flex', alignItems: 'center',
@@ -168,18 +164,18 @@ export default function HistoryPage() {
                                             }}>
                                                 {config.emoji}
                                             </div>
-                                            <div>
-                                                <div style={{ fontWeight: 600, color: 'var(--navy-800)', fontSize: 14 }}>
+                                            <div style={{ minWidth: 0 }}>
+                                                <div style={{ fontWeight: 600, color: 'var(--navy-800)', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {caseInput.procedure || `Check #${check.id}`}
                                                 </div>
-                                                <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 2 }}>
+                                                <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {caseInput.patient_name || 'Patient'} • Policy #{check.policy_id} •{' '}
                                                     {check.created_at ? new Date(check.created_at).toLocaleDateString() : ''}
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                                        <div className="history-row-right">
                                             <div style={{ textAlign: 'right' }}>
                                                 <div style={{
                                                     fontWeight: 700, fontSize: 15, color: 'var(--green-600)',
@@ -187,14 +183,14 @@ export default function HistoryPage() {
                                                     ₹{(v?.total_eligible || 0).toLocaleString('en-IN')}
                                                 </div>
                                                 <div style={{ fontSize: 11, color: 'var(--gray-400)' }}>
-                                                    of ₹{(v?.total_claimed || 0).toLocaleString('en-IN')} claimed
+                                                    of ₹{(v?.total_claimed || 0).toLocaleString('en-IN')}
                                                 </div>
                                             </div>
 
                                             <div style={{
                                                 padding: '4px 12px', borderRadius: 100, fontSize: 11, fontWeight: 700,
                                                 background: config.bg, color: config.color,
-                                                border: `1px solid ${config.border}`,
+                                                border: `1px solid ${config.border}`, whiteSpace: 'nowrap',
                                             }}>
                                                 {v?.coverage_percentage || 0}% • {config.label}
                                             </div>
