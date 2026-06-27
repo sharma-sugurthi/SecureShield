@@ -27,6 +27,12 @@ export default function Sidebar() {
     const router = useRouter();
     const [user, setUser] = useState(null);
     const [showLoginPopup, setShowLoginPopup] = useState(false);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+    useEffect(() => {
+        // Close sidebar on route change (for mobile)
+        setIsMobileOpen(false);
+    }, [pathname]);
 
     useEffect(() => {
         // Get initial user
@@ -53,10 +59,28 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className="sidebar">
-            <Link href="/" className="sidebar-logo">
-                <img src="/logo.png" alt="PolicyEye Logo" className="sidebar-logo-icon" style={{ background: 'transparent', padding: 0, objectFit: 'contain' }} />
-                <div>
+        <>
+            {/* Mobile Header */}
+            <div className="mobile-header">
+                <Link href="/" className="mobile-logo">
+                    <img src="/logo.png" alt="PolicyEye" className="mobile-logo-icon" />
+                    <span>PolicyEye</span>
+                </Link>
+                <button className="mobile-menu-btn" onClick={() => setIsMobileOpen(true)}>
+                    ☰
+                </button>
+            </div>
+
+            {/* Mobile Sidebar Backdrop */}
+            {isMobileOpen && (
+                <div className="sidebar-backdrop" onClick={() => setIsMobileOpen(false)}></div>
+            )}
+
+            <aside className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
+                <div className="sidebar-mobile-close" onClick={() => setIsMobileOpen(false)}>✕</div>
+                <Link href="/" className="sidebar-logo">
+                    <img src="/logo.png" alt="PolicyEye Logo" className="sidebar-logo-icon" style={{ background: 'transparent', padding: 0, objectFit: 'contain' }} />
+                    <div>
                     <div className="sidebar-logo-text">PolicyEye</div>
                     <div className="sidebar-logo-badge">SECURE HEALTH PORTAL</div>
                 </div>
@@ -174,6 +198,7 @@ export default function Sidebar() {
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
             `}</style>
-        </aside>
+            </aside>
+        </>
     );
 }
