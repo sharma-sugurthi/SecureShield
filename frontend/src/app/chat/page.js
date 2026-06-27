@@ -9,7 +9,7 @@
 import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { chatWithAssistant, getChatThreads, getChatMessages, getApiKey, deleteChatThread } from '@/lib/api';
+import { chatWithAssistant, getChatThreads, getChatMessages, deleteChatThread } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
 const QUICK_QUESTIONS = [
@@ -96,15 +96,6 @@ export default function ChatPage() {
 
     async function sendMessage(text) {
         if (!text.trim()) return;
-        if (!getApiKey() && !isLoggedIn) {
-            setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: 'Please log in to use the chat assistant.',
-                method: 'error',
-                duration: 0,
-            }]);
-            return;
-        }
 
         const userMsg = { role: 'user', content: text.trim() };
         setMessages(prev => [...prev, userMsg]);
