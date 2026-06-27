@@ -1,0 +1,19 @@
+{
+  "name": "PolicyEye — AI Insurance Eligibility Engine",
+  "short_name": "PolicyEye",
+  "description": "Check your health insurance claim eligibility instantly using AI. IRDAI 2024 compliant.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait",
+  "categories": ["health", "finance", "utilities"],
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
