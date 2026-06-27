@@ -1763,8 +1763,8 @@ body.auth-page .main-content {
     gap: 0;
   }
 
-  /* Hide threads sidebar on mobile */
-  .chat-layout > .card:first-child {
+  /* Hide threads sidebar on mobile (specific class to avoid hiding chat itself) */
+  .chat-layout > .card:not(.chat-main-card) {
     display: none !important;
   }
 

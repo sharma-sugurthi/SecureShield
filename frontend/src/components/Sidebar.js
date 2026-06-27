@@ -251,57 +251,57 @@ export default function Sidebar() {
                         </div>
                     )}
                 </div>
+            </aside>
 
-                {/* Login Required Popup */}
-                {showLoginPopup && (
+            {/* Login Required Popup — rendered outside sidebar so it works on mobile */}
+            {showLoginPopup && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.4)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    animation: 'fadeIn 0.2s ease-out'
+                }} onClick={() => setShowLoginPopup(false)}>
                     <div style={{
-                        position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.4)',
-                        backdropFilter: 'blur(4px)',
-                        zIndex: 9999,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        animation: 'fadeIn 0.2s ease-out'
-                    }} onClick={() => setShowLoginPopup(false)}>
-                        <div style={{
-                            background: 'white',
-                            padding: '40px',
-                            borderRadius: '24px',
-                            maxWidth: '400px',
-                            width: '90%',
-                            textAlign: 'center',
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-                            animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                        }} onClick={e => e.stopPropagation()}>
-                            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-                            <h2 style={{ color: 'var(--navy-900)', fontSize: '24px', fontWeight: 800, marginBottom: '12px' }}>
-                                Sign in Required
-                            </h2>
-                            <p style={{ color: 'var(--gray-500)', fontSize: '15px', lineHeight: 1.5, marginBottom: '32px' }}>
-                                To access your dashboard, policies, and claim history, please sign in or create an account.
-                            </p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <Link href="/login" 
-                                    className="btn-primary" 
-                                    style={{ width: '100%', padding: '14px', borderRadius: '12px', fontSize: '16px', textDecoration: 'none', display: 'block' }}>
-                                    Sign In
-                                </Link>
-                                <Link href="/signup" 
-                                    className="btn-secondary" 
-                                    style={{ width: '100%', padding: '14px', borderRadius: '12px', fontSize: '16px', textDecoration: 'none', display: 'block', background: 'white' }}>
-                                    Create an Account
-                                </Link>
-                            </div>
+                        background: 'white',
+                        padding: '40px',
+                        borderRadius: '24px',
+                        maxWidth: '400px',
+                        width: '90%',
+                        textAlign: 'center',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+                        animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                    }} onClick={e => e.stopPropagation()}>
+                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
+                        <h2 style={{ color: 'var(--navy-900)', fontSize: '24px', fontWeight: 800, marginBottom: '12px' }}>
+                            Sign in Required
+                        </h2>
+                        <p style={{ color: 'var(--gray-500)', fontSize: '15px', lineHeight: 1.5, marginBottom: '32px' }}>
+                            To access your dashboard, policies, and claim history, please sign in or create an account.
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <Link href="/login" 
+                                className="btn-primary" 
+                                style={{ width: '100%', padding: '14px', borderRadius: '12px', fontSize: '16px', textDecoration: 'none', display: 'block' }}>
+                                Sign In
+                            </Link>
+                            <Link href="/signup" 
+                                className="btn-secondary" 
+                                style={{ width: '100%', padding: '14px', borderRadius: '12px', fontSize: '16px', textDecoration: 'none', display: 'block', background: 'white' }}>
+                                Create an Account
+                            </Link>
                         </div>
                     </div>
-                )}
-                <style jsx>{`
-                    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-                    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-                `}</style>
-            </aside>
+                </div>
+            )}
+            <style jsx>{`
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+            `}</style>
         </>
     );
 }
