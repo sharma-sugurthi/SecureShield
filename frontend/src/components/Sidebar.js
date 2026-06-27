@@ -13,11 +13,11 @@ import { supabase } from '@/lib/supabase';
 
 /* Bottom tab items — shown on mobile bottom bar */
 const BOTTOM_TABS = [
-    { label: 'Home',    icon: '🏠', href: '/',       protected: true  },
-    { label: 'Upload',  icon: '📄', href: '/upload', protected: true  },
-    { label: 'Check',   icon: '🔍', href: '/check',  protected: true  },
-    { label: 'Chat',    icon: '💬', href: '/chat',   protected: false },
-    { label: 'More',    icon: '☰',  href: '#more',   protected: false },
+    { label: 'Home',    icon: '🏠', href: '/',        protected: true  },
+    { label: 'Upload',  icon: '📄', href: '/upload',  protected: true  },
+    { label: 'Check',   icon: '🔍', href: '/check',   protected: true  },
+    { label: 'Dispute', icon: '⚖️', href: '/dispute', protected: true  },
+    { label: 'More',    icon: '☰',  href: '#more',    protected: false },
 ];
 
 /* Full nav items — visible in desktop sidebar + mobile "More" drawer */
@@ -84,7 +84,7 @@ export default function Sidebar() {
                     <img src="/logo.png" alt="PolicyEye" className="mobile-logo-icon" />
                     <div className="mobile-logo-text">
                         <span className="mobile-logo-name">PolicyEye</span>
-                        <span className="mobile-logo-badge">HEALTH PORTAL</span>
+                        <span className="mobile-logo-badge">INSURANCE PORTAL</span>
                     </div>
                 </Link>
                 <div className="mobile-header-actions">
@@ -191,7 +191,7 @@ export default function Sidebar() {
                     <img src="/logo.png" alt="PolicyEye Logo" className="sidebar-logo-icon" style={{ background: 'transparent', padding: 0, objectFit: 'contain' }} />
                     <div>
                         <div className="sidebar-logo-text">PolicyEye</div>
-                        <div className="sidebar-logo-badge">SECURE HEALTH PORTAL</div>
+                        <div className="sidebar-logo-badge">INSURANCE PORTAL</div>
                     </div>
                 </Link>
 

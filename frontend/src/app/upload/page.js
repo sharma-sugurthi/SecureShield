@@ -286,9 +286,7 @@ export default function UploadPage() {
                         <span className="verdict-badge approved">Processed</span>
                     </div>
 
-                    <div style={{
-                        padding: 24, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16
-                    }}>
+                    <div className="upload-result-grid">
                         {[
                             { label: 'Policy ID', value: `#${result.policy_id}`, color: 'var(--primary-500)', bg: 'var(--primary-50)' },
                             { label: 'Insurer', value: result.insurer, color: 'var(--blue-600)', bg: 'var(--blue-50)' },
@@ -324,7 +322,7 @@ export default function UploadPage() {
                         <h2 className="card-title">🤖 How the Policy Agent Works</h2>
                     </div>
                     <div style={{ padding: '4px 24px 24px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+                        <div className="upload-tools-grid">
                             {[
                                 { icon: '📖', name: 'Text Extraction', desc: 'Reads every page of the PDF using PyMuPDF — extracts all text and metadata' },
                                 { icon: '📊', name: 'Table Extraction', desc: 'Identifies and parses structured tables (room rent limits, sub-limits, copay schedules)' },

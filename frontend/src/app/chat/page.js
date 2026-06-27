@@ -152,7 +152,7 @@ export default function ChatPage() {
                 </p>
             </div>
 
-            <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+            <div className="chat-layout">
                 
                 {/* Threads Sidebar (Only for logged in users) */}
                 {isLoggedIn && (
@@ -239,8 +239,8 @@ export default function ChatPage() {
                 )}
 
                 {/* Chat Container */}
-                <div className="card" style={{ flex: 1, padding: 0, overflow: 'hidden', height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
-                    <div className="chat-container" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div className="card chat-main-card">
+                    <div className="chat-container">
                         
                         {/* Quick Questions */}
                         {messages.length === 0 && (
@@ -328,14 +328,16 @@ export default function ChatPage() {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 disabled={loading}
-                                autoFocus
                             />
                             <button
                                 type="submit"
                                 className="chat-send-btn"
                                 disabled={loading || !input.trim()}
                             >
-                                ➤
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
                             </button>
                         </form>
                         <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--gray-400)', paddingBottom: 12, marginTop: -8 }}>
@@ -350,7 +352,7 @@ export default function ChatPage() {
                 <h3 className="card-title" style={{ marginBottom: 12, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 16 }}>🧠</span> 3-Tier Chat Architecture
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }} className="chat-tier-grid">
                     {[
                         { tier: 'Tier 1', name: 'FAQ Cache', desc: 'Instant answers from pre-loaded IRDAI FAQ database', speed: '< 5ms', icon: '⚡' },
                         { tier: 'Tier 2', name: 'Fast LLM', desc: 'Quick responses via Cerebras/Groq for common queries', speed: '< 500ms', icon: '🚀' },

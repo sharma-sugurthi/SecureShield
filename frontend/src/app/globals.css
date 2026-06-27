@@ -1053,6 +1053,53 @@ body.auth-page .main-content {
   }
 }
 
+/* --- Chat Layout --- */
+.chat-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.chat-main-card {
+  flex: 1;
+  padding: 0 !important;
+  overflow: hidden;
+  height: calc(100vh - 180px);
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Upload Page Grids --- */
+.upload-result-grid {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.upload-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* --- Chat Send Button (ChatGPT-style) --- */
+.chat-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-send-btn svg {
+  display: block;
+}
+
 /* ============================================
    RESPONSIVE — Premium Mobile-First Design
    Inspired by Flipkart / Zomato / BookMyShow
@@ -1659,6 +1706,67 @@ body.auth-page .main-content {
   .suggestions-list li {
     padding: 8px 12px;
     font-size: 13px;
+  }
+
+  /* ——— CHAT LAYOUT — Full-screen mobile ——— */
+  .chat-layout {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Hide threads sidebar on mobile */
+  .chat-layout > .card:first-child {
+    display: none !important;
+  }
+
+  .chat-main-card {
+    height: calc(100vh - 200px);
+    border-radius: var(--radius-lg);
+  }
+
+  .chat-container {
+    height: 100%;
+    max-height: none;
+  }
+
+  .chat-tier-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* ——— UPLOAD PAGE — Compact mobile ——— */
+  .upload-result-grid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .upload-result-grid > div {
+    padding: 12px !important;
+  }
+
+  .upload-result-grid > div > div:last-child {
+    font-size: 16px !important;
+  }
+
+  .upload-tools-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .upload-tools-grid > div {
+    padding: 14px !important;
+  }
+
+  .upload-tools-grid > div > div:first-child {
+    font-size: 22px !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* ——— FEEDBACK WIDGET — Above bottom bar ——— */
+  .feedback-trigger {
+    bottom: 76px !important;
+    right: 16px !important;
   }
 }
 

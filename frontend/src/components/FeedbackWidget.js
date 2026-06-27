@@ -61,6 +61,7 @@ export default function FeedbackWidget() {
   return (
     <>
       <button
+        className="feedback-trigger"
         onClick={() => setIsOpen(true)}
         style={{
           position: 'fixed',
