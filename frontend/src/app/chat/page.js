@@ -4,13 +4,20 @@
  * Chat Assistant Page
  * Medical insurance chat powered by the 3-tier Chat Agent:
  * Tier 1: FAQ cache → Tier 2: Fast LLM → Tier 3: Complex reasoning LLM
+ *
+ * Persistence:
+ * - sessionStorage: preserves activeThreadId + messages across in-session navigation
+ * - localStorage:   preserves activeThreadId across page refreshes (messages fetched from API)
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { chatWithAssistant, getChatThreads, getChatMessages, deleteChatThread } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
+
+const STORAGE_KEY_THREAD  = 'chat_active_thread';
+const STORAGE_KEY_MSGS    = 'chat_messages';
 
 const QUICK_QUESTIONS = [
     'What is a moratorium period?',
@@ -20,6 +27,55 @@ const QUICK_QUESTIONS = [
     'What does IRDAI mandate for claim settlement?',
     'How is sum insured calculated?',
 ];
+
+/* ── Storage helpers ────────────────────────────────────────── */
+
+function persistThreadId(threadId) {
+    try {
+        if (threadId) {
+            sessionStorage.setItem(STORAGE_KEY_THREAD, String(threadId));
+            localStorage.setItem(STORAGE_KEY_THREAD, String(threadId));
+        } else {
+            sessionStorage.removeItem(STORAGE_KEY_THREAD);
+            // Don't clear localStorage on "New Chat" — 
+            // we only clear it when there's truly no thread.
+            // Actually, clear it so refresh doesn't re-open old thread after explicit New Chat.
+            localStorage.removeItem(STORAGE_KEY_THREAD);
+        }
+    } catch (_) { /* storage full / disabled */ }
+}
+
+function persistMessages(msgs) {
+    try {
+        sessionStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(msgs));
+    } catch (_) { /* storage full */ }
+}
+
+function getPersistedThreadId() {
+    try {
+        // sessionStorage wins (same-session navigation)
+        const session = sessionStorage.getItem(STORAGE_KEY_THREAD);
+        if (session) return Number(session);
+        // fallback to localStorage (post-refresh)
+        const local = localStorage.getItem(STORAGE_KEY_THREAD);
+        if (local) return Number(local);
+    } catch (_) {}
+    return null;
+}
+
+function getPersistedMessages() {
+    try {
+        const raw = sessionStorage.getItem(STORAGE_KEY_MSGS);
+        if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return null;
+}
+
+function clearPersistedMessages() {
+    try { sessionStorage.removeItem(STORAGE_KEY_MSGS); } catch (_) {}
+}
+
+/* ── Component ──────────────────────────────────────────────── */
 
 export default function ChatPage() {
     const [messages, setMessages] = useState([]);
@@ -32,24 +88,95 @@ export default function ChatPage() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isSidebarHovered, setIsSidebarHovered] = useState(false);
 
+    // Guard: prevent the restore-on-mount effect from re-running
+    const hasRestoredRef = useRef(false);
     const chatMessagesRef = useRef(null);
     const inputRef = useRef(null);
 
+    /* ── Persist activeThreadId whenever it changes ─────────── */
     useEffect(() => {
-        // Check authentication
+        // Skip the very first render (initial null) — handled by restore logic
+        if (!hasRestoredRef.current) return;
+        persistThreadId(activeThreadId);
+    }, [activeThreadId]);
+
+    /* ── Persist messages whenever they change ──────────────── */
+    useEffect(() => {
+        if (!hasRestoredRef.current) return;
+        persistMessages(messages);
+    }, [messages]);
+
+    /* ── Mount: check auth, load threads, restore last session ─ */
+    useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
                 setIsLoggedIn(true);
-                loadThreads();
+                loadThreadsAndRestore();
+            } else {
+                // Not logged in — still try to restore any anonymous messages from sessionStorage
+                restoreFromSessionStorage();
             }
         });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    async function loadThreadsAndRestore() {
+        try {
+            const data = await getChatThreads();
+            const loadedThreads = data.threads || [];
+            setThreads(loadedThreads);
+
+            // Try to restore last active thread
+            const persistedId = getPersistedThreadId();
+            if (persistedId) {
+                // Verify the thread still exists in the user's threads
+                const threadExists = loadedThreads.some(t => t.id === persistedId);
+                if (threadExists) {
+                    setActiveThreadId(persistedId);
+
+                    // Try sessionStorage messages first (instant, no API call)
+                    const cachedMsgs = getPersistedMessages();
+                    if (cachedMsgs && cachedMsgs.length > 0) {
+                        setMessages(cachedMsgs);
+                    } else {
+                        // Fetch from API (post-refresh scenario)
+                        try {
+                            const msgData = await getChatMessages(persistedId);
+                            setMessages(msgData.messages || []);
+                        } catch (_) {
+                            // Thread may have been deleted server-side
+                            clearPersistedMessages();
+                        }
+                    }
+                } else {
+                    // Thread was deleted or doesn't belong to user anymore
+                    persistThreadId(null);
+                    clearPersistedMessages();
+                }
+            }
+        } catch (e) {
+            console.error("Failed to load threads", e);
+        }
+
+        hasRestoredRef.current = true;
+    }
+
+    function restoreFromSessionStorage() {
+        const cachedMsgs = getPersistedMessages();
+        if (cachedMsgs && cachedMsgs.length > 0) {
+            setMessages(cachedMsgs);
+        }
+        hasRestoredRef.current = true;
+    }
+
+    /* ── Auto-scroll ────────────────────────────────────────── */
     useEffect(() => {
         if (chatMessagesRef.current) {
             chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
         }
     }, [messages]);
+
+    /* ── Thread management ──────────────────────────────────── */
 
     async function loadThreads() {
         try {
@@ -66,7 +193,8 @@ export default function ChatPage() {
         setLoading(true);
         try {
             const data = await getChatMessages(threadId);
-            setMessages(data.messages || []);
+            const msgs = data.messages || [];
+            setMessages(msgs);
         } catch (e) {
             console.error("Failed to load messages", e);
         }
@@ -92,7 +220,12 @@ export default function ChatPage() {
     function handleNewChat() {
         setActiveThreadId(null);
         setMessages([]);
+        // Clear persisted state so we start fresh
+        persistThreadId(null);
+        clearPersistedMessages();
     }
+
+    /* ── Send message ───────────────────────────────────────── */
 
     async function sendMessage(text) {
         if (!text.trim()) return;
