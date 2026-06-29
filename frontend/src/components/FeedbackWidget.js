@@ -116,7 +116,7 @@ export default function FeedbackWidget() {
 
       {/* Rate Us tooltip — appears periodically */}
       <div
-        className="feedback-trigger"
+        className="rate-us-tooltip"
         onClick={() => { setIsOpen(true); setShowRateLabel(false); }}
         style={{
           position: 'fixed',

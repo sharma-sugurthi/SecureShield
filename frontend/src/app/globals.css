@@ -1818,6 +1818,13 @@ body.auth-page .main-content {
     right: 16px !important;
   }
 
+  /* Rate Us tooltip — above the button on mobile */
+  .rate-us-tooltip {
+    bottom: 128px !important;
+    right: 16px !important;
+    transform: translateX(0) !important;
+  }
+
   /* ——— FEEDBACK MODAL — Fit within mobile safe area ——— */
   .feedback-overlay {
     padding: 0 !important;
