@@ -24,7 +24,7 @@ const BOTTOM_TABS = [
 const NAV_ITEMS = [
     { label: 'Dashboard',       icon: '📊', href: '/',           protected: true },
     { label: 'Upload Policy',   icon: '📄', href: '/upload',     protected: true },
-    { label: 'Chat Assistant',  icon: '💬', href: '/chat',       protected: false },
+    { label: 'Chat Assistant',  icon: '💬', href: '/chat',       protected: true },
     { label: 'Check Eligibility', icon: '🔍', href: '/check',   protected: true },
     { label: 'Dispute Claim',   icon: '⚖️', href: '/dispute',   protected: true },
     { label: 'History',         icon: '📋', href: '/history',    protected: true },

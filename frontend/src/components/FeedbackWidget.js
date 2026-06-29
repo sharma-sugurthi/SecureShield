@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Star, MessageSquareHeart } from 'lucide-react';
 import { submitFeedback } from '../lib/api';
 
@@ -9,6 +9,27 @@ export default function FeedbackWidget() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [showRateLabel, setShowRateLabel] = useState(false);
+
+  // Show "Rate Us" tooltip every 5 minutes for 8 seconds
+  useEffect(() => {
+    // Show once after 10 seconds on first load
+    const initialTimer = setTimeout(() => {
+      setShowRateLabel(true);
+      setTimeout(() => setShowRateLabel(false), 8000);
+    }, 10000);
+
+    // Then repeat every 5 minutes
+    const interval = setInterval(() => {
+      setShowRateLabel(true);
+      setTimeout(() => setShowRateLabel(false), 8000);
+    }, 5 * 60 * 1000);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, []);
 
   const [formData, setFormData] = useState({
     accuracy_rating: 0,
@@ -62,7 +83,7 @@ export default function FeedbackWidget() {
     <>
       <button
         className="feedback-trigger"
-        onClick={() => setIsOpen(true)}
+        onClick={() => { setIsOpen(true); setShowRateLabel(false); }}
         style={{
           position: 'fixed',
           bottom: '24px',
@@ -88,10 +109,37 @@ export default function FeedbackWidget() {
           e.currentTarget.style.transform = 'scale(1)';
           e.currentTarget.style.backgroundColor = 'var(--primary-600)';
         }}
-        title="Give Feedback"
+        title="Rate This App"
       >
         <MessageSquareHeart size={24} />
       </button>
+
+      {/* Rate Us tooltip — appears periodically */}
+      <div
+        className="feedback-trigger"
+        onClick={() => { setIsOpen(true); setShowRateLabel(false); }}
+        style={{
+          position: 'fixed',
+          bottom: '30px',
+          right: '72px',
+          zIndex: 39,
+          backgroundColor: 'var(--navy-800)',
+          color: 'white',
+          padding: '8px 16px',
+          borderRadius: '20px',
+          fontSize: '13px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          whiteSpace: 'nowrap',
+          opacity: showRateLabel ? 1 : 0,
+          transform: showRateLabel ? 'translateX(0)' : 'translateX(20px)',
+          transition: 'opacity 0.4s ease, transform 0.4s ease',
+          pointerEvents: showRateLabel ? 'auto' : 'none',
+        }}
+      >
+        ⭐ Rate Us!
+      </div>
 
       {isOpen && (
         <div className="feedback-overlay" style={{

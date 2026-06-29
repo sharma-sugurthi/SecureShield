@@ -7,10 +7,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { healthCheck, listPolicies, getHistory, getApiKey, getSystemInfo, isAuthenticated } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
   const [stats, setStats] = useState({
     policies: 0,
     checksToday: 0,
@@ -23,6 +26,17 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [fetchError, setFetchError] = useState(false);
+
+  // Redirect non-signed-in users to About page
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data?.session) {
+        router.replace('/about');
+      } else {
+        setAuthChecked(true);
+      }
+    });
+  }, [router]);
 
   useEffect(() => {
     loadDashboard();
@@ -100,6 +114,15 @@ export default function DashboardPage() {
       setFetchError(true);
     }
     setLoading(false);
+  }
+
+  // Don't render dashboard until auth is verified (prevents flash before redirect)
+  if (!authChecked) {
+    return (
+      <div className="loading-overlay">
+        <div className="spinner" />
+      </div>
+    );
   }
 
   if (fetchError) {
