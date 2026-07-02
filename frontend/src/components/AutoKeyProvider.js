@@ -12,7 +12,7 @@ export default function AutoKeyProvider() {
     useEffect(() => {
         autoFetchApiKey().then((key) => {
             if (key) {
-                console.log('[PolicyEye] 🔑 API key auto-configured');
+                console.log('[PolicyEye] API key auto-configured');
                 window.dispatchEvent(new Event('apikey_updated'));
             }
         });

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getProfile, updateProfile } from '@/lib/api';
+import { UserIcon, LockIcon, SettingsIcon } from '@/components/icons';
 
 export default function SettingsPage() {
     const [user, setUser] = useState(null);
@@ -202,7 +203,7 @@ export default function SettingsPage() {
                 {/* Profile Settings */}
                 <div className="card">
                     <div className="card-header">
-                        <h2 className="card-title">👤 Personal Profile</h2>
+                        <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><UserIcon size={18} /> Personal Profile</h2>
                     </div>
                     <div className="card-body">
                         
@@ -284,7 +285,7 @@ export default function SettingsPage() {
                 {/* Security Settings */}
                 <div className="card">
                     <div className="card-header">
-                        <h2 className="card-title">🔒 Security Settings</h2>
+                        <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><LockIcon size={18} /> Security Settings</h2>
                     </div>
                     <div className="card-body">
                         <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 400 }}>
@@ -337,7 +338,7 @@ export default function SettingsPage() {
                 {/* Application Preferences */}
                 <div className="card">
                     <div className="card-header">
-                        <h2 className="card-title">⚙️ Preferences</h2>
+                        <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><SettingsIcon size={18} /> Preferences</h2>
                     </div>
                     <div className="card-body">
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 400 }}>

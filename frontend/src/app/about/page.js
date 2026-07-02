@@ -6,6 +6,12 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import {
+    UploadIcon, EditIcon, LayersIcon, CheckCircleIcon, ScaleIcon,
+    FileTextIcon, XCircleIcon, DollarSignIcon, ShieldIcon,
+    ArrowRightIcon, ZapIcon, LockIcon, HelpCircleIcon,
+    AlertTriangleIcon, TargetIcon, RocketIcon
+} from '@/components/icons';
 
 /* ── Scroll-triggered fade-in hook ── */
 function useReveal() {
@@ -67,42 +73,42 @@ export default function AboutPage() {
 
   const FLOW_STEPS = [
     {
-      icon: '📤',
+      icon: <UploadIcon size={24} />,
       title: 'Upload Your Policy',
       desc: 'Simply upload the PDF of your health insurance policy. Our AI reads every clause, sub-limit, and exclusion automatically.',
       color: 'var(--primary-500)',
     },
     {
-      icon: '📝',
+      icon: <EditIcon size={24} />,
       title: 'Enter Case Details',
       desc: 'Tell us about the hospitalization — patient name, procedure, hospital, costs. Just fill a simple form.',
       color: 'var(--blue-500)',
     },
     {
-      icon: '🤖',
+      icon: <LayersIcon size={24} />,
       title: 'AI Pipeline Analyzes',
-      desc: '5 specialized AI agents work together — normalizing medical terms, checking IRDAI rules, computing coverage, and explaining the result.',
+      desc: '5 specialized AI agents work together — normalizing medical terms, checking regulations, computing coverage, and explaining the result.',
       color: 'var(--amber-500)',
     },
     {
-      icon: '✅',
+      icon: <CheckCircleIcon size={24} />,
       title: 'Get Your Verdict',
-      desc: 'Instant verdict: APPROVED, PARTIAL, or DENIED — with the exact rupee breakdown and rule-by-rule explanation.',
+      desc: 'Instant verdict: APPROVED, PARTIAL, or DENIED — with the exact cost breakdown and rule-by-rule explanation.',
       color: 'var(--green-500)',
     },
     {
-      icon: '⚖️',
+      icon: <ScaleIcon size={24} />,
       title: 'Dispute If Unfair',
-      desc: 'If your claim was unfairly denied, generate a formal grievance package citing IRDAI regulations — ready to send to your insurer.',
+      desc: 'If your claim was unfairly denied, generate a formal grievance package citing insurance regulations — ready to send to your insurer.',
       color: 'var(--red-500)',
     },
   ];
 
   const STATS = [
-    { number: '68%', label: 'of Indians don\'t read their policy documents', icon: '📄' },
-    { number: '23%', label: 'of health claims face partial/full rejection', icon: '❌' },
-    { number: '₹1.2L', label: 'average out-of-pocket loss per rejected claim', icon: '💸' },
-    { number: '49', label: 'IRDAI 2024 regulation clauses indexed', icon: '⚖️' },
+    { number: '68%', label: 'of policyholders don\'t read their policy documents', icon: <FileTextIcon size={24} /> },
+    { number: '23%', label: 'of health claims face partial/full rejection', icon: <XCircleIcon size={24} /> },
+    { number: '$1.2K', label: 'average out-of-pocket loss per rejected claim', icon: <DollarSignIcon size={24} /> },
+    { number: '49', label: 'regulation clauses indexed', icon: <ScaleIcon size={24} /> },
   ];
 
   const FAQS = [
@@ -137,7 +143,7 @@ export default function AboutPage() {
       {/* ── Hero Section ── */}
       <RevealSection>
         <div className="about-hero">
-          <div className="about-hero-badge">🛡️ Understanding PolicyEye</div>
+          <div className="about-hero-badge">Understanding PolicyEye</div>
           <h1 className="about-hero-title">
             Your Insurance Policy is <span className="about-gradient-text">47 Pages</span> Long.<br />
             Did You Read It?
@@ -165,21 +171,21 @@ export default function AboutPage() {
       {/* ── The Problem ── */}
       <RevealSection delay={100}>
         <div className="card about-section">
-          <div className="about-section-badge">😟 The Problem</div>
+          <div className="about-section-badge">The Problem</div>
           <h2 className="about-section-title">Insurance Shouldn't Be a Guessing Game</h2>
           <div className="about-problem-grid">
             <div className="about-problem-card">
-              <div className="about-problem-icon">📜</div>
+              <div className="about-problem-icon" style={{ color: 'var(--primary-500)' }}><FileTextIcon size={32} /></div>
               <h3>Complex Policies</h3>
               <p>Insurance policies are 30-50 page legal documents with terms like "sub-limits", "co-pay clauses", and "moratorium periods" that most people never understand.</p>
             </div>
             <div className="about-problem-card">
-              <div className="about-problem-icon">😰</div>
+              <div className="about-problem-icon" style={{ color: 'var(--amber-500)' }}><AlertTriangleIcon size={32} /></div>
               <h3>Surprise Rejections</h3>
               <p>Families discover their claim is rejected after the surgery — when it's too late. They end up paying lakhs out of pocket for something they thought was covered.</p>
             </div>
             <div className="about-problem-card">
-              <div className="about-problem-icon">🤷</div>
+              <div className="about-problem-icon" style={{ color: 'var(--red-500)' }}><HelpCircleIcon size={32} /></div>
               <h3>No Way to Check</h3>
               <p>Before PolicyEye, there was no tool that could read your specific policy and tell you: "Yes, this procedure is covered for ₹X" — before you get admitted.</p>
             </div>
@@ -190,7 +196,7 @@ export default function AboutPage() {
       {/* ── How It Works — Animated Flow ── */}
       <RevealSection delay={100}>
         <div className="card about-section">
-          <div className="about-section-badge">🚀 How It Works</div>
+          <div className="about-section-badge">How It Works</div>
           <h2 className="about-section-title">5 Simple Steps to Know Your Coverage</h2>
 
           <div className="about-flow-container">
@@ -243,30 +249,30 @@ export default function AboutPage() {
       {/* ── What Makes Us Different ── */}
       <RevealSection delay={100}>
         <div className="card about-section">
-          <div className="about-section-badge">💡 Why PolicyEye</div>
+          <div className="about-section-badge">Why PolicyEye</div>
           <h2 className="about-section-title">Built Different — By Design</h2>
           <div className="about-diff-grid">
             {[
               {
-                icon: '🧮',
+                icon: <TargetIcon size={24} />,
                 title: 'Zero AI Hallucinations',
                 desc: 'The verdict (APPROVED/DENIED) is computed by a deterministic rules engine — like a calculator. AI only explains the result in plain language.',
                 highlight: true,
               },
               {
-                icon: '🇮🇳',
-                title: 'IRDAI 2024 Compliant',
-                desc: 'Every decision references the actual IRDAI regulation clause. Same rules your insurer is legally required to follow.',
+                icon: <ShieldIcon size={24} />,
+                title: 'Regulatory Compliant',
+                desc: 'Every decision references the actual regulation clause. Same rules your insurer is legally required to follow.',
                 highlight: false,
               },
               {
-                icon: '⚡',
+                icon: <ZapIcon size={24} />,
                 title: 'Results in Seconds',
                 desc: 'What would take an insurance expert hours to verify, PolicyEye does in under 15 seconds using 5 specialized AI agents.',
                 highlight: false,
               },
               {
-                icon: '🔒',
+                icon: <LockIcon size={24} />,
                 title: 'Your Data, Your Control',
                 desc: 'JWT-secured, encrypted, and private. We never share your medical or policy data with anyone.',
                 highlight: false,
@@ -285,7 +291,7 @@ export default function AboutPage() {
       {/* ── FAQ Section ── */}
       <RevealSection delay={100}>
         <div className="card about-section">
-          <div className="about-section-badge">❓ Common Questions</div>
+          <div className="about-section-badge">Common Questions</div>
           <h2 className="about-section-title">Frequently Asked Questions</h2>
           <div className="about-faq-list">
             {FAQS.map((faq, i) => (
@@ -301,7 +307,7 @@ export default function AboutPage() {
           <h2>Ready to Check Your Coverage?</h2>
           <p>Upload your policy and get your first eligibility verdict — completely free.</p>
           <a href="/upload" className="about-cta-btn">
-            📤 Upload Your Policy Now
+            Upload Your Policy Now
           </a>
         </div>
       </RevealSection>

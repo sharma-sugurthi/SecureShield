@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import { getAuditTrail, getApiKey, isAuthenticated } from '@/lib/api';
+import { ShieldIcon } from '@/components/icons';
 
 export default function AuditPage() {
     const [trail, setTrail] = useState([]);
@@ -68,7 +69,7 @@ export default function AuditPage() {
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="empty-state">
-                        <div className="empty-state-icon">🛡️</div>
+                        <div className="empty-state-icon" style={{ color: 'var(--gray-400)' }}><ShieldIcon size={48} /></div>
                         <div className="empty-state-text">No audit entries yet</div>
                         <div className="empty-state-hint">
                             {getApiKey()

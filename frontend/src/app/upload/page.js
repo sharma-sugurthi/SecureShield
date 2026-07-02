@@ -7,13 +7,17 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { uploadPolicy, getApiKey } from '@/lib/api';
+import {
+    UploadIcon, FileTextIcon, BookOpenIcon, ScaleIcon, CheckCircleIcon,
+    RefreshIcon, SettingsIcon, XCircleIcon, LayersIcon
+} from '@/components/icons';
 import { supabase } from '@/lib/supabase';
 
 const PIPELINE_STEPS = [
-    { key: 'upload', label: 'Upload PDF', icon: '📤', desc: 'Sending to cloud storage' },
-    { key: 'extract', label: 'Extract Text', icon: '📖', desc: 'pdf_text_extractor + pdf_table_extractor' },
-    { key: 'analyze', label: 'IRDAI Cross-Ref', icon: '⚖️', desc: 'irdai_regulation_lookup (semantic search)' },
-    { key: 'validate', label: 'Validate Rules', icon: '✅', desc: 'rule_validator + compliance check' },
+    { key: 'upload', label: 'Upload PDF', icon: <UploadIcon size={18} />, desc: 'Sending to cloud storage' },
+    { key: 'extract', label: 'Extract Text', icon: <BookOpenIcon size={18} />, desc: 'pdf_text_extractor + pdf_table_extractor' },
+    { key: 'analyze', label: 'Cross-Reference', icon: <ScaleIcon size={18} />, desc: 'regulation_lookup (semantic search)' },
+    { key: 'validate', label: 'Validate Rules', icon: <CheckCircleIcon size={18} />, desc: 'rule_validator + compliance check' },
 ];
 
 export default function UploadPage() {
@@ -134,8 +138,8 @@ export default function UploadPage() {
                     />
                     {!uploading ? (
                         <>
-                            <div style={{ fontSize: 48, marginBottom: 12, opacity: 0.8 }}>
-                                {dragover ? '📂' : '☁️'}
+                            <div style={{ marginBottom: 12, opacity: 0.8, color: 'var(--primary-500)' }}>
+                                <UploadIcon size={48} />
                             </div>
                             <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--navy-800)', marginBottom: 8 }}>
                                 {dragover ? 'Drop your PDF here' : 'Drop your policy PDF here, or click to browse'}
@@ -146,7 +150,7 @@ export default function UploadPage() {
                         </>
                     ) : (
                         <>
-                            <div style={{ fontSize: 48, marginBottom: 12 }}>⚙️</div>
+                            <div style={{ marginBottom: 12, color: 'var(--primary-600)' }}><SettingsIcon size={48} /></div>
                             <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--primary-600)', marginBottom: 4 }}>
                                 Processing {fileName}...
                             </div>
@@ -177,7 +181,7 @@ export default function UploadPage() {
                                 }}
                                 className="px-4 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full transition-colors border border-indigo-200"
                             >
-                                📄 ICICI Lombard Basic Shield
+                                ICICI Lombard Basic Shield
                             </button>
                             <button
                                 onClick={async () => {
@@ -192,7 +196,7 @@ export default function UploadPage() {
                                 }}
                                 className="px-4 py-2 text-xs font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-full transition-colors border border-emerald-200"
                             >
-                                📄 Star Health Premier Gold
+                                Star Health Premier Gold
                             </button>
                         </div>
                     </div>
@@ -203,10 +207,10 @@ export default function UploadPage() {
             {(uploading || result) && (
                 <div className="card" style={{ marginBottom: 24 }}>
                     <div className="card-header">
-                        <h2 className="card-title">🔄 Agent Pipeline</h2>
+                        <h2 className="card-title">Agent Pipeline</h2>
                         {result && (
                             <span className="verdict-badge approved" style={{ fontSize: 11 }}>
-                                ✅ Complete
+                                Complete
                             </span>
                         )}
                     </div>
@@ -270,7 +274,7 @@ export default function UploadPage() {
                     marginBottom: 24, padding: 16, borderLeft: '4px solid var(--red-500)',
                     background: 'var(--red-50)', color: 'var(--red-600)', fontWeight: 500, fontSize: 14
                 }}>
-                    ❌ {error}
+                    {error}
                 </div>
             )}
 
@@ -281,7 +285,7 @@ export default function UploadPage() {
                         padding: '24px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                     }}>
                         <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--navy-800)' }}>
-                            ✅ Policy Extracted Successfully
+                            Policy Extracted Successfully
                         </h2>
                         <span className="verdict-badge approved">Processed</span>
                     </div>
@@ -319,22 +323,22 @@ export default function UploadPage() {
             {!uploading && !result && (
                 <div className="card">
                     <div className="card-header">
-                        <h2 className="card-title">🤖 How the Policy Agent Works</h2>
+                        <h2 className="card-title">How the Policy Agent Works</h2>
                     </div>
                     <div style={{ padding: '4px 24px 24px' }}>
                         <div className="upload-tools-grid">
                             {[
-                                { icon: '📖', name: 'Text Extraction', desc: 'Reads every page of the PDF using PyMuPDF — extracts all text and metadata' },
-                                { icon: '📊', name: 'Table Extraction', desc: 'Identifies and parses structured tables (room rent limits, sub-limits, copay schedules)' },
-                                { icon: '⚖️', name: 'IRDAI Cross-Reference', desc: 'Semantic search against 49 embedded IRDAI regulations using pgvector' },
-                                { icon: '✅', name: 'Rule Validation', desc: 'Checks extracted rules for compliance (waiting periods, moratorium, exclusions)' },
+                                { icon: <BookOpenIcon size={28} />, name: 'Text Extraction', desc: 'Reads every page of the PDF using PyMuPDF — extracts all text and metadata' },
+                                { icon: <LayersIcon size={28} />, name: 'Table Extraction', desc: 'Identifies and parses structured tables (room rent limits, sub-limits, copay schedules)' },
+                                { icon: <ScaleIcon size={28} />, name: 'Regulation Cross-Reference', desc: 'Semantic search against embedded insurance regulations using pgvector' },
+                                { icon: <CheckCircleIcon size={28} />, name: 'Rule Validation', desc: 'Checks extracted rules for compliance (waiting periods, exclusions)' },
                             ].map((tool) => (
                                 <div key={tool.name} style={{
                                     padding: 20, borderRadius: 'var(--radius-md)',
                                     background: 'var(--gray-50)', border: '1px solid var(--gray-100)',
                                     transition: 'all 0.2s ease',
                                 }}>
-                                    <div style={{ fontSize: 28, marginBottom: 8 }}>{tool.icon}</div>
+                                    <div style={{ marginBottom: 8, color: 'var(--primary-500)' }}>{tool.icon}</div>
                                     <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--navy-800)', marginBottom: 4 }}>
                                         {tool.name}
                                     </div>

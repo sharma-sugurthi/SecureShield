@@ -8,11 +8,14 @@
 
 import { useState, useEffect } from 'react';
 import { getHistory, getApiKey, isAuthenticated } from '@/lib/api';
+import {
+    CheckCircleIcon, XCircleIcon, AlertTriangleIcon, ClipboardListIcon
+} from '@/components/icons';
 
 const VERDICT_CONFIG = {
-    approved: { emoji: '✅', label: 'Approved', color: 'var(--green-600)', bg: 'var(--green-50)', border: 'var(--green-100)' },
-    denied: { emoji: '❌', label: 'Denied', color: 'var(--red-600)', bg: 'var(--red-50)', border: 'var(--red-100)' },
-    partial: { emoji: '⚠️', label: 'Partial', color: 'var(--amber-600)', bg: 'var(--amber-50)', border: 'var(--amber-100)' },
+    approved: { icon: <CheckCircleIcon size={16} />, label: 'Approved', color: 'var(--green-600)', bg: 'var(--green-50)', border: 'var(--green-100)' },
+    denied: { icon: <XCircleIcon size={16} />, label: 'Denied', color: 'var(--red-600)', bg: 'var(--red-50)', border: 'var(--red-100)' },
+    partial: { icon: <AlertTriangleIcon size={16} />, label: 'Partial', color: 'var(--amber-600)', bg: 'var(--amber-50)', border: 'var(--amber-100)' },
 };
 
 export default function HistoryPage() {
@@ -70,10 +73,10 @@ export default function HistoryPage() {
             {/* Summary Stats */}
             <div className="history-stats-grid">
                 {[
-                    { label: 'Total Checks', value: stats.total, icon: '📋', color: 'var(--primary-500)', bg: 'var(--primary-50)' },
-                    { label: 'Approved', value: stats.approved, icon: '✅', color: 'var(--green-600)', bg: 'var(--green-50)' },
-                    { label: 'Denied', value: stats.denied, icon: '❌', color: 'var(--red-600)', bg: 'var(--red-50)' },
-                    { label: 'Partial', value: stats.partial, icon: '⚠️', color: 'var(--amber-600)', bg: 'var(--amber-50)' },
+                    { label: 'Total Checks', value: stats.total, icon: <ClipboardListIcon size={20} />, color: 'var(--primary-500)', bg: 'var(--primary-50)' },
+                    { label: 'Approved', value: stats.approved, icon: <CheckCircleIcon size={20} />, color: 'var(--green-600)', bg: 'var(--green-50)' },
+                    { label: 'Denied', value: stats.denied, icon: <XCircleIcon size={20} />, color: 'var(--red-600)', bg: 'var(--red-50)' },
+                    { label: 'Partial', value: stats.partial, icon: <AlertTriangleIcon size={20} />, color: 'var(--amber-600)', bg: 'var(--amber-50)' },
                 ].map((stat) => (
                     <div key={stat.label} className="card" style={{
                         padding: 20, display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer',
@@ -84,7 +87,7 @@ export default function HistoryPage() {
                         <div style={{
                             width: 44, height: 44, borderRadius: 'var(--radius-md)',
                             background: stat.bg, display: 'flex', alignItems: 'center',
-                            justifyContent: 'center', fontSize: 20, flexShrink: 0,
+                            justifyContent: 'center', flexShrink: 0, color: stat.color,
                         }}>
                             {stat.icon}
                         </div>
@@ -126,7 +129,7 @@ export default function HistoryPage() {
                     </div>
                 ) : filteredChecks.length === 0 ? (
                     <div className="empty-state">
-                        <div className="empty-state-icon">📋</div>
+                        <div className="empty-state-icon" style={{ color: 'var(--gray-400)' }}><ClipboardListIcon size={48} /></div>
                         <div className="empty-state-text">
                             {filter !== 'all' ? `No ${filter} checks found` : 'No eligibility checks yet'}
                         </div>
@@ -162,7 +165,7 @@ export default function HistoryPage() {
                                                 justifyContent: 'center', fontSize: 16, flexShrink: 0,
                                                 border: `1px solid ${config.border}`,
                                             }}>
-                                                {config.emoji}
+                                                {config.icon}
                                             </div>
                                             <div style={{ minWidth: 0 }}>
                                                 <div style={{ fontWeight: 600, color: 'var(--navy-800)', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

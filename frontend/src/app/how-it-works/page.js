@@ -4,6 +4,11 @@
  * How It Works — Architecture and technical details page
  */
 
+import {
+    FileTextIcon, ActivityIcon, ScaleIcon, ChatIcon, ShieldIcon,
+    WrenchIcon, ZapIcon, LockIcon, LayersIcon, ServerIcon
+} from '@/components/icons';
+
 export default function HowItWorksPage() {
   return (
     <div className="card" style={{ maxWidth: 1000, margin: '0 auto' }}>
@@ -17,17 +22,19 @@ export default function HowItWorksPage() {
       <div className="card-body">
         {/* Agentic Pipeline Overview */}
         <div style={{ marginBottom: 40 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>🤖 5-Agent Agentic Pipeline</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <LayersIcon size={20} /> 5-Agent Agentic Pipeline
+          </h2>
           <div className="pipeline-flow">
             {[
-              { icon: '📄', name: 'Policy Agent', tools: '4 tools', desc: 'PDF extraction + IRDAI lookup' },
-              { icon: '🏥', name: 'Case Agent', tools: '4 tools', desc: 'Medical NLP + ICD coding' },
-              { icon: '⚖️', name: 'Decision Engine', tools: '1 tool', desc: 'Deterministic rules (no LLM)' },
-              { icon: '💬', name: 'Explanation Agent', tools: '3 tools', desc: 'Patient-friendly explainer' },
-              { icon: '🛡️', name: 'Grievance Agent', tools: '6 tools', desc: 'Compliance + PDF reports' },
+              { icon: <FileTextIcon size={24} />, name: 'Policy Agent', tools: '4 tools', desc: 'PDF extraction + regulation lookup' },
+              { icon: <ActivityIcon size={24} />, name: 'Case Agent', tools: '4 tools', desc: 'Medical NLP + ICD coding' },
+              { icon: <ScaleIcon size={24} />, name: 'Decision Engine', tools: '1 tool', desc: 'Deterministic rules (no LLM)' },
+              { icon: <ChatIcon size={24} />, name: 'Explanation Agent', tools: '3 tools', desc: 'Patient-friendly explainer' },
+              { icon: <ShieldIcon size={24} />, name: 'Grievance Agent', tools: '6 tools', desc: 'Compliance + PDF reports' },
             ].map((node, i) => (
               <div key={i} className="pipeline-node">
-                <div className="pipeline-icon">{node.icon}</div>
+                <div className="pipeline-icon" style={{ color: 'var(--primary-500)' }}>{node.icon}</div>
                 <div className="pipeline-label">{node.name}</div>
                 <div className="pipeline-tools">{node.tools}</div>
                 <div style={{ fontSize: 11, color: 'var(--gray-500)', marginTop: 4 }}>{node.desc}</div>
@@ -38,13 +45,15 @@ export default function HowItWorksPage() {
 
         {/* Technology Stack */}
         <div style={{ marginBottom: 40 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>🛠️ Technology Stack</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <WrenchIcon size={20} /> Technology Stack
+          </h2>
           <div className="tech-badges">
             {[
-              '🐍 Python 3.11', '⚡ FastAPI', '🔗 LangGraph', '🧠 Multi-LLM',
-              '📊 SQLAlchemy ORM', '🔒 HMAC-SHA256', '📄 PyMuPDF',
-              '🇮🇳 IRDAI 2024', '⚛️ Next.js 16', '🎨 React 19',
-              '🤖 Cerebras', '🤖 Groq', '🤖 Gemini', '🤖 xAI', '🤖 OpenRouter',
+              'Python 3.11', 'FastAPI', 'LangGraph', 'Multi-LLM',
+              'SQLAlchemy ORM', 'HMAC-SHA256', 'PyMuPDF',
+              'Next.js 16', 'React 19',
+              'Cerebras', 'Groq', 'Gemini', 'xAI', 'OpenRouter',
             ].map((tech, i) => (
               <span key={i} className="tech-badge">{tech}</span>
             ))}
@@ -56,15 +65,19 @@ export default function HowItWorksPage() {
           <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Core Principles</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             <div style={{ padding: 16, background: 'var(--gray-50)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)' }}>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>Zero LLM in Decisions</div>
+              <div style={{ fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <LockIcon size={16} /> Zero LLM in Decisions
+              </div>
               <p style={{ fontSize: 14, color: 'var(--gray-600)', lineHeight: 1.5 }}>
                 Large Language Models are used only for extraction and explanation. The actual approval/denial decision is computed via a deterministic rules engine to guarantee zero hallucinations and 100% reliability.
               </p>
             </div>
             <div style={{ padding: 16, background: 'var(--gray-50)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)' }}>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>IRDAI 2024 Compliance</div>
+              <div style={{ fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ShieldIcon size={16} /> Regulatory Compliance
+              </div>
               <p style={{ fontSize: 14, color: 'var(--gray-600)', lineHeight: 1.5 }}>
-                The system strictly enforces the latest IRDAI regulations, including standardized waiting periods, moratorium guidelines, and explicit definitions for pre-existing conditions.
+                The system strictly enforces the latest insurance regulations, including standardized waiting periods, guidelines, and explicit definitions for pre-existing conditions.
               </p>
             </div>
           </div>

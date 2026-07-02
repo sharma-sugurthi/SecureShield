@@ -11,6 +11,10 @@ import { supabase } from '@/lib/supabase';
 import CoverageRing from '@/components/CoverageRing';
 import Autocomplete from '@/components/Autocomplete';
 import { CITIES, PROCEDURES, HOSPITALS } from '@/lib/medicalData';
+import {
+    ClipboardListIcon, SearchIcon, CheckCircleIcon, XCircleIcon,
+    AlertTriangleIcon, ShieldIcon, FileTextIcon, ChatIcon
+} from '@/components/icons';
 
 const ROOM_TYPES = [
     { value: 'general', label: 'General Ward' },
@@ -82,14 +86,14 @@ export default function CheckPage() {
 
         // Simulate pipeline step updates
         const steps = [
-            '🏥 Running medical_term_normalizer...',
-            '🔬 Running icd_procedure_lookup...',
-            '🏙️ Running city_tier_classifier...',
-            '💰 Running hospital_cost_estimator...',
-            '⚖️ Running decision_engine...',
-            '📝 Running clause_explainer...',
-            '💡 Running savings_calculator...',
-            '✨ Generating explanation...',
+            'Running medical_term_normalizer...',
+            'Running icd_procedure_lookup...',
+            'Running city_tier_classifier...',
+            'Running hospital_cost_estimator...',
+            'Running decision_engine...',
+            'Running clause_explainer...',
+            'Running savings_calculator...',
+            'Generating explanation...',
         ];
         let stepI = 0;
         const stepTimer = setInterval(() => {
@@ -150,7 +154,7 @@ export default function CheckPage() {
             <form onSubmit={handleSubmit}>
                 <div className="card" style={{ marginBottom: 24 }}>
                     <div className="card-header">
-                        <h2 className="card-title">📋 Patient Case Details</h2>
+                        <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ClipboardListIcon size={18} /> Patient Case Details</h2>
                     </div>
 
                     <div className="form-grid">
@@ -262,7 +266,7 @@ export default function CheckPage() {
 
                     {/* Policy Tenure Section */}
                     <div style={{ marginTop: 20, padding: '16px 20px', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)' }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy-700)', marginBottom: 12 }}>📅 Policy Tenure (for Moratorium Period / Waiting Period calculations)</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy-700)', marginBottom: 12 }}>Policy Tenure (for Moratorium Period / Waiting Period calculations)</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
                             <div className="form-group">
                                 <label className="form-label">Policy Start Date</label>
@@ -295,7 +299,7 @@ export default function CheckPage() {
                             {loading ? (
                                 <><div className="spinner" /> Running Pipeline...</>
                             ) : (
-                                <>🔍 Run Eligibility Check</>
+                                <>Run Eligibility Check</>
                             )}
                         </button>
                         {loading && pipelineStep && (
@@ -315,7 +319,7 @@ export default function CheckPage() {
             {/* Error */}
             {error && (
                 <div className="toast error" style={{ position: 'relative', top: 0, right: 0, marginBottom: 24 }}>
-                    ❌ {error}
+                    {error}
                 </div>
             )}
 
@@ -330,7 +334,7 @@ export default function CheckPage() {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                                     <h2 style={{ fontSize: 24, fontWeight: 800 }}>Eligibility Verdict</h2>
                                     <span className={`verdict-badge ${verdict.overall_verdict}`}>
-                                        {verdict.overall_verdict === 'approved' ? '✅' : verdict.overall_verdict === 'denied' ? '❌' : '⚠️'}
+                                        {verdict.overall_verdict === 'approved' ? <CheckCircleIcon size={40} /> : verdict.overall_verdict === 'denied' ? <XCircleIcon size={40} /> : <AlertTriangleIcon size={40} />}
                                         {' '}{verdict.overall_verdict.toUpperCase()}
                                     </span>
                                 </div>
@@ -362,7 +366,7 @@ export default function CheckPage() {
                                         color: verdict.confidence_score >= 0.8 ? '#2ecc71' : '#f39c12',
                                         border: `1px solid ${verdict.confidence_score >= 0.8 ? 'rgba(46, 204, 113, 0.2)' : 'rgba(243, 156, 18, 0.2)'}`
                                     }}>
-                                        🛡️ Confidence: {(verdict.confidence_score * 100).toFixed(0)}%
+                                        Confidence: {(verdict.confidence_score * 100).toFixed(0)}%
                                     </div>
                                     {verdict.requires_manual_review && (
                                         <div className="warning-pill" style={{
@@ -374,7 +378,7 @@ export default function CheckPage() {
                                             color: '#e74c3c',
                                             animation: 'pulse 2s infinite'
                                         }}>
-                                            ⚠️ MANUAL REVIEW RECOMMENDED
+                                            MANUAL REVIEW RECOMMENDED
                                         </div>
                                     )}
                                 </div>
@@ -386,7 +390,7 @@ export default function CheckPage() {
                     {verdict.matched_rules && verdict.matched_rules.length > 0 && (
                         <div className="card" style={{ marginBottom: 24 }}>
                             <div className="card-header">
-                                <h2 className="card-title">📜 Rule-by-Rule Breakdown</h2>
+                                <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><FileTextIcon size={18} /> Rule-by-Rule Breakdown</h2>
                             </div>
                             {verdict.matched_rules.map((rule, i) => (
                                 <div key={i} className="rule-item">
@@ -415,7 +419,7 @@ export default function CheckPage() {
                     {/* Explanation */}
                     <div className="card" style={{ marginBottom: 24 }}>
                         <div className="card-header">
-                            <h2 className="card-title">💬 Patient-Friendly Explanation</h2>
+                            <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ChatIcon size={18} /> Patient-Friendly Explanation</h2>
                             <span style={{ fontSize: 12, color: 'var(--gray-400)' }}>
                                 {result.insurer} — {result.policy_name}
                             </span>

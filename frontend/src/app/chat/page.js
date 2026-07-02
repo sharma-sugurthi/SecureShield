@@ -15,6 +15,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { chatWithAssistant, getChatThreads, getChatMessages, deleteChatThread } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
+import {
+    ShieldIcon, UserIcon, ChatIcon, ZapIcon, RocketIcon, LayersIcon,
+    MessageSquareIcon, XIcon
+} from '@/components/icons';
 
 const STORAGE_KEY_THREAD  = 'chat_active_thread';
 const STORAGE_KEY_MSGS    = 'chat_messages';
@@ -269,7 +273,7 @@ export default function ChatPage() {
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">💬 Chat Assistant</h1>
+                <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ChatIcon size={22} /> Chat Assistant</h1>
                 <p className="page-subtitle">
                     Ask questions about health insurance, IRDAI regulations, or policy terms —
                     powered by 3-tier AI (FAQ Cache → Fast LLM → Deep Reasoning)
@@ -334,7 +338,7 @@ export default function ChatPage() {
                                         title={t.title}
                                     >
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
-                                            <span style={{ fontSize: 16 }}>💬</span> 
+                                            <span style={{ fontSize: 16, display: 'flex' }}><MessageSquareIcon size={16} /></span> 
                                             {isSidebarHovered && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</span>}
                                         </div>
                                         {isSidebarHovered && (
@@ -388,7 +392,7 @@ export default function ChatPage() {
                         <div className="chat-messages" ref={chatMessagesRef} style={{ flex: 1, overflowY: 'auto' }}>
                             {messages.length === 0 && (
                                 <div className="empty-state" style={{ padding: '60px 20px' }}>
-                                    <div className="empty-state-icon">🛡️</div>
+                                    <div className="empty-state-icon" style={{ color: 'var(--primary-400)' }}><ShieldIcon size={48} /></div>
                                     <div className="empty-state-text">PolicyEye Chat Assistant</div>
                                     <div className="empty-state-hint">
                                         Ask anything about health insurance policies, IRDAI regulations,
@@ -400,7 +404,7 @@ export default function ChatPage() {
                             {messages.map((msg, i) => (
                                 <div key={i} className={`chat-message ${msg.role}`}>
                                     <div className="chat-avatar">
-                                        {msg.role === 'user' ? '👤' : '🛡️'}
+                                        {msg.role === 'user' ? <UserIcon size={16} /> : <ShieldIcon size={16} />}
                                     </div>
                                     <div style={{ maxWidth: '100%', minWidth: 0, overflow: 'hidden' }}>
                                         <div className="chat-bubble markdown-body" style={{ whiteSpace: 'normal', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
@@ -416,7 +420,7 @@ export default function ChatPage() {
                                             <div className="chat-meta">
                                                 {msg.method && (
                                                     <span className={`chat-method-badge ${msg.method === 'cache' || msg.method === 'faq_cache' ? 'cache' : msg.method === 'error' ? 'error' : 'llm'}`}>
-                                                        {msg.method === 'cache' || msg.method === 'faq_cache' ? '⚡ CACHE' : msg.method === 'error' ? '❌ ERROR' : '🤖 LLM'}
+                                                        {msg.method === 'cache' || msg.method === 'faq_cache' ? 'CACHE' : msg.method === 'error' ? 'ERROR' : 'LLM'}
                                                     </span>
                                                 )}
                                                 {msg.duration > 0 && (
@@ -431,7 +435,7 @@ export default function ChatPage() {
                             {/* Typing Indicator */}
                             {loading && (
                                 <div className="chat-message assistant">
-                                    <div className="chat-avatar">🛡️</div>
+                                    <div className="chat-avatar"><ShieldIcon size={16} /></div>
                                     <div className="chat-bubble">
                                         <div className="typing-indicator">
                                             <div className="typing-dot" />
@@ -473,20 +477,20 @@ export default function ChatPage() {
             {/* Info */}
             <div className="card" style={{ marginTop: 24, padding: '16px 24px' }}>
                 <h3 className="card-title" style={{ marginBottom: 12, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 16 }}>🧠</span> 3-Tier Chat Architecture
+                    <span style={{ display: 'flex', alignItems: 'center' }}><LayersIcon size={16} /></span> 3-Tier Chat Architecture
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }} className="chat-tier-grid">
                     {[
-                        { tier: 'Tier 1', name: 'FAQ Cache', desc: 'Instant answers from pre-loaded IRDAI FAQ database', speed: '< 5ms', icon: '⚡' },
-                        { tier: 'Tier 2', name: 'Fast LLM', desc: 'Quick responses via Cerebras/Groq for common queries', speed: '< 500ms', icon: '🚀' },
-                        { tier: 'Tier 3', name: 'Deep Reasoning', desc: 'Complex analysis via Gemini for nuanced questions', speed: '< 3s', icon: '🧠' },
+                        { tier: 'Tier 1', name: 'FAQ Cache', desc: 'Instant answers from pre-loaded FAQ database', speed: '< 5ms', icon: <ZapIcon size={24} /> },
+                        { tier: 'Tier 2', name: 'Fast LLM', desc: 'Quick responses via Cerebras/Groq for common queries', speed: '< 500ms', icon: <RocketIcon size={24} /> },
+                        { tier: 'Tier 3', name: 'Deep Reasoning', desc: 'Complex analysis via Gemini for nuanced questions', speed: '< 3s', icon: <LayersIcon size={24} /> },
                     ].map((t) => (
                         <div key={t.tier} style={{
                             padding: 12, borderRadius: 'var(--radius-sm)',
                             background: 'var(--gray-50)', border: '1px solid var(--gray-200)',
                             textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: 12
                         }}>
-                            <div style={{ fontSize: 24 }}>{t.icon}</div>
+                            <div style={{ color: 'var(--primary-500)' }}>{t.icon}</div>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                                     <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--navy-800)' }}>{t.name}</div>

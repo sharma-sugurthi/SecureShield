@@ -8,6 +8,11 @@
 
 import { useState, useEffect } from 'react';
 import { disputeClaim, getHistory, getApiKey, getReportDownloadUrl, isAuthenticated } from '@/lib/api';
+import {
+    ScaleIcon, ClipboardListIcon, ShieldIcon, AlertTriangleIcon,
+    BookOpenIcon, EditIcon, FileTextIcon, MailIcon, DownloadIcon,
+    WrenchIcon, SearchIcon, CopyIcon, CheckCircleIcon, XCircleIcon
+} from '@/components/icons';
 
 export default function DisputePage() {
     const [checks, setChecks] = useState([]);
@@ -49,11 +54,11 @@ export default function DisputePage() {
 
         // Pipeline step animation
         const steps = [
-            '🔍 Analyzing verdict for compliance violations...',
-            '📚 Searching IRDAI precedent rulings...',
-            '✍️ Drafting formal grievance letter...',
-            '📄 Generating professional PDF report...',
-            '📧 Sending grievance to insurer GRO...',
+            'Analyzing verdict for compliance violations...',
+            'Searching precedent rulings...',
+            'Drafting formal grievance letter...',
+            'Generating professional PDF report...',
+            'Sending grievance to insurer...',
         ];
         let stepI = 0;
         const stepTimer = setInterval(() => {
@@ -118,7 +123,7 @@ export default function DisputePage() {
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">⚖️ Dispute Claim</h1>
+                <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ScaleIcon size={22} /> Dispute Claim</h1>
                 <p className="page-subtitle">
                     Select a denied or partially approved claim — the Grievance Agent will generate a
                     formal complaint letter, PDF report, and send it to the insurer
@@ -128,7 +133,7 @@ export default function DisputePage() {
             {/* Step 1: Select a claim */}
             <div className="card" style={{ marginBottom: 24 }}>
                 <div className="card-header">
-                    <h2 className="card-title">📋 Select Claim to Dispute</h2>
+                    <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ClipboardListIcon size={18} /> Select Claim to Dispute</h2>
                 </div>
 
                 {checks.length === 0 ? (
@@ -195,7 +200,7 @@ export default function DisputePage() {
                                         )}
                                         {verdict.requires_manual_review && (
                                             <div style={{ fontSize: 10, color: 'var(--red-500)', fontWeight: 700, marginTop: 4 }}>
-                                                ⚠️ REVIEW REQD
+                                                REVIEW REQD
                                             </div>
                                         )}
                                     </div>
@@ -232,7 +237,7 @@ export default function DisputePage() {
                         {loading ? (
                             <><div className="spinner" /> Running Grievance Agent...</>
                         ) : (
-                            <>🛡️ Generate Grievance Package</>
+                            <>Generate Grievance Package</>
                         )}
                     </button>
                     {loading && pipelineStep && (
@@ -252,7 +257,7 @@ export default function DisputePage() {
             {/* Error */}
             {error && (
                 <div className="toast error" style={{ position: 'relative', top: 0, right: 0, marginBottom: 24 }}>
-                    ❌ {error}
+                    {error}
                 </div>
             )}
 
@@ -264,7 +269,7 @@ export default function DisputePage() {
                     {result.compliance_violations && result.compliance_violations.length > 0 && (
                         <div className="card" style={{ marginBottom: 24, borderLeft: '4px solid var(--red-500)' }}>
                             <div className="card-header">
-                                <h2 className="card-title">🚨 Compliance Violations Detected</h2>
+                                <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><AlertTriangleIcon size={18} /> Compliance Violations Detected</h2>
                             </div>
                             <div style={{ padding: '0 16px 16px' }}>
                                 {result.compliance_violations.map((v, i) => (
@@ -277,7 +282,7 @@ export default function DisputePage() {
                                         lineHeight: 1.5,
                                         color: 'var(--navy-700)',
                                     }}>
-                                        ⚠️ {v}
+                                        {v}
                                     </div>
                                 ))}
                             </div>
@@ -288,7 +293,7 @@ export default function DisputePage() {
                     {result.precedents && result.precedents.length > 0 && (
                         <div className="card" style={{ marginBottom: 24 }}>
                             <div className="card-header">
-                                <h2 className="card-title">📚 IRDAI Precedent Rulings</h2>
+                                <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BookOpenIcon size={18} /> Precedent Rulings</h2>
                             </div>
                             <div style={{ padding: '0 16px 16px' }}>
                                 {result.precedents.map((p, i) => (
@@ -328,7 +333,7 @@ export default function DisputePage() {
                     {result.grievance_letter && (
                         <div className="card" style={{ marginBottom: 24 }}>
                             <div className="card-header">
-                                <h2 className="card-title">✍️ Formal Grievance Letter</h2>
+                                <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><EditIcon size={18} /> Formal Grievance Letter</h2>
                                 <button
                                     className="btn btn-secondary"
                                     style={{ fontSize: 12, padding: '6px 12px' }}
@@ -336,7 +341,7 @@ export default function DisputePage() {
                                         navigator.clipboard.writeText(result.grievance_letter);
                                     }}
                                 >
-                                    📋 Copy to Clipboard
+                                    Copy to Clipboard
                                 </button>
                             </div>
                             <div style={{
@@ -363,10 +368,10 @@ export default function DisputePage() {
                         {/* PDF Download */}
                         <div className="card">
                             <div className="card-header">
-                                <h2 className="card-title">📄 PDF Report</h2>
+                                <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><FileTextIcon size={18} /> PDF Report</h2>
                             </div>
                             <div style={{ padding: '16px', textAlign: 'center' }}>
-                                <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+                                <div style={{ marginBottom: 12, color: 'var(--primary-500)' }}><ClipboardListIcon size={48} /></div>
                                 <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--navy-700)' }}>
                                     {result.pdf_filename || 'Report Generated'}
                                 </div>
@@ -378,7 +383,7 @@ export default function DisputePage() {
                                         className="btn btn-primary"
                                         style={{ display: 'inline-block', marginTop: 8 }}
                                     >
-                                        ⬇️ Download PDF
+                                        Download PDF
                                     </a>
                                 )}
                             </div>
@@ -387,7 +392,7 @@ export default function DisputePage() {
                         {/* Email Status */}
                         <div className="card">
                             <div className="card-header">
-                                <h2 className="card-title">📧 Email Status</h2>
+                                <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MailIcon size={18} /> Email Status</h2>
                             </div>
                             {result.email_status && (
                                 <div style={{ padding: '16px' }}>
@@ -405,7 +410,7 @@ export default function DisputePage() {
                                             : 'var(--red-500)',
                                         marginBottom: 12,
                                     }}>
-                                        {result.email_status.status === 'sent' || result.email_status.status === 'ready_for_dispatch' ? '✅ PREPARED / SENT' : '❌ FAILED'}
+                                        {result.email_status.status === 'sent' || result.email_status.status === 'ready_for_dispatch' ? 'PREPARED / SENT' : 'FAILED'}
                                     </div>
                                     <div style={{ fontSize: 13, lineHeight: 2, color: 'var(--navy-700)' }}>
                                         <div><strong>Tracking ID:</strong> {result.email_status.tracking_id}</div>
@@ -433,7 +438,7 @@ export default function DisputePage() {
                     {result.tools_used && result.tools_used.length > 0 && (
                         <div className="card" style={{ marginBottom: 24 }}>
                             <div className="card-header">
-                                <h2 className="card-title">🔧 Agent Tools Invoked</h2>
+                                <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><WrenchIcon size={18} /> Agent Tools Invoked</h2>
                             </div>
                             <div style={{ padding: '12px 16px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                 {result.tools_used.map((tool, i) => (

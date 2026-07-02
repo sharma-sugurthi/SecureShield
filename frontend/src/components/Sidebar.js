@@ -10,27 +10,32 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import {
+    HomeIcon, UploadIcon, SearchIcon, ScaleIcon, MenuIcon,
+    DashboardIcon, ChatIcon, HistoryIcon, ShieldIcon, LightbulbIcon,
+    BookOpenIcon, SettingsIcon, LockIcon
+} from '@/components/icons';
 
 /* Bottom tab items — shown on mobile bottom bar */
 const BOTTOM_TABS = [
-    { label: 'Home',    icon: '🏠', href: '/',        protected: true  },
-    { label: 'Upload',  icon: '📄', href: '/upload',  protected: true  },
-    { label: 'Check',   icon: '🔍', href: '/check',   protected: true  },
-    { label: 'Dispute', icon: '⚖️', href: '/dispute', protected: true  },
-    { label: 'More',    icon: '☰',  href: '#more',    protected: false },
+    { label: 'Home',    icon: <HomeIcon size={20} />,    href: '/',        protected: true  },
+    { label: 'Upload',  icon: <UploadIcon size={20} />,  href: '/upload',  protected: true  },
+    { label: 'Check',   icon: <SearchIcon size={20} />,  href: '/check',   protected: true  },
+    { label: 'Dispute', icon: <ScaleIcon size={20} />,   href: '/dispute', protected: true  },
+    { label: 'More',    icon: <MenuIcon size={20} />,    href: '#more',    protected: false },
 ];
 
 /* Full nav items — visible in desktop sidebar + mobile "More" drawer */
 const NAV_ITEMS = [
-    { label: 'Dashboard',       icon: '📊', href: '/',           protected: true },
-    { label: 'Upload Policy',   icon: '📄', href: '/upload',     protected: true },
-    { label: 'Chat Assistant',  icon: '💬', href: '/chat',       protected: true },
-    { label: 'Check Eligibility', icon: '🔍', href: '/check',   protected: true },
-    { label: 'Dispute Claim',   icon: '⚖️', href: '/dispute',   protected: true },
-    { label: 'History',         icon: '📋', href: '/history',    protected: true },
-    { label: 'Audit Trail',     icon: '🛡️', href: '/audit',     protected: true },
-    { label: 'About',           icon: '💡', href: '/about',      protected: false },
-    { label: 'How It Works',    icon: '📚', href: '/how-it-works', protected: false },
+    { label: 'Dashboard',       icon: <DashboardIcon size={18} />,  href: '/',           protected: true },
+    { label: 'Upload Policy',   icon: <UploadIcon size={18} />,     href: '/upload',     protected: true },
+    { label: 'Chat Assistant',  icon: <ChatIcon size={18} />,       href: '/chat',       protected: true },
+    { label: 'Check Eligibility', icon: <SearchIcon size={18} />,   href: '/check',      protected: true },
+    { label: 'Dispute Claim',   icon: <ScaleIcon size={18} />,      href: '/dispute',    protected: true },
+    { label: 'History',         icon: <HistoryIcon size={18} />,    href: '/history',    protected: true },
+    { label: 'Audit Trail',     icon: <ShieldIcon size={18} />,     href: '/audit',      protected: true },
+    { label: 'About',           icon: <LightbulbIcon size={18} />,  href: '/about',      protected: false },
+    { label: 'How It Works',    icon: <BookOpenIcon size={18} />,   href: '/how-it-works', protected: false },
 ];
 
 export default function Sidebar() {
@@ -169,7 +174,7 @@ export default function Sidebar() {
                         </Link>
                     ))}
                     <Link href="/settings" className={`mobile-drawer-item ${isActive('/settings') ? 'active' : ''}`} onClick={() => setShowMoreDrawer(false)}>
-                        <span className="mobile-drawer-item-icon">⚙️</span>
+                        <span className="mobile-drawer-item-icon"><SettingsIcon size={18} /></span>
                         <span className="mobile-drawer-item-label">Settings</span>
                     </Link>
                 </div>
@@ -213,7 +218,7 @@ export default function Sidebar() {
                 <div className="sidebar-footer">
                     <div className="sidebar-section-title">System</div>
                     <Link href="/settings" className={`nav-link ${pathname === '/settings' ? 'active' : ''}`}>
-                        <span className="nav-icon">⚙️</span>
+                        <span className="nav-icon"><SettingsIcon size={18} /></span>
                         Settings
                     </Link>
                     
@@ -276,7 +281,7 @@ export default function Sidebar() {
                         boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
                         animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
                     }} onClick={e => e.stopPropagation()}>
-                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
+                        <div style={{ marginBottom: '16px', color: 'var(--primary-500)' }}><LockIcon size={48} /></div>
                         <h2 style={{ color: 'var(--navy-900)', fontSize: '24px', fontWeight: 800, marginBottom: '12px' }}>
                             Sign in Required
                         </h2>

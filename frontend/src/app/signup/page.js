@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { sendWelcomeEmail } from '@/lib/api';
+import { ShieldIcon } from '@/components/icons';
 
 export default function SignupPage() {
     const [email, setEmail] = useState('');
@@ -76,7 +77,7 @@ export default function SignupPage() {
                         width: 56, height: 56, background: 'var(--primary-500)', borderRadius: 'var(--radius-md)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: 'white',
                         margin: '0 auto 16px', boxShadow: '0 8px 16px var(--primary-glow)'
-                    }}>🛡️</div>
+                    }}><ShieldIcon size={28} /></div>
                     <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--navy-800)' }}>Create an account</h1>
                     <p style={{ color: 'var(--gray-500)', fontSize: 14, marginTop: 4 }}>Start checking insurance claims with AI</p>
                 </div>

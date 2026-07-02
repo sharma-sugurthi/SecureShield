@@ -138,7 +138,7 @@ export default function FeedbackWidget() {
           pointerEvents: showRateLabel ? 'auto' : 'none',
         }}
       >
-        ⭐ Rate Us!
+        Rate Us!
       </div>
 
       {isOpen && (
